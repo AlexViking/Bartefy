@@ -131,8 +131,9 @@ export function Chat() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--surface-page)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', background: 'var(--surface-page)' }}>
       <DesktopNav />
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, maxWidth: 720, width: '100%', margin: '0 auto' }}>
       {/* Header */}
       <header
         style={{
@@ -377,6 +378,7 @@ export function Chat() {
           </div>
         </div>
       </Sheet>
+      </div>
     </div>
   )
 }
