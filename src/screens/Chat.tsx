@@ -74,7 +74,16 @@ function ChatInner() {
     loadHistory()
 
     const channel = subscribeMessages(matchId, (msg) => {
-      addMessage(matchId, msg as ChatMessage)
+      const m = msg as Record<string, unknown>
+      addMessage(matchId, {
+        id: String(m.id ?? ''),
+        swap_id: String(m.swap_id ?? ''),
+        sender_id: String(m.sender_id ?? ''),
+        body: String(m.body ?? ''),
+        client_msg_id: String(m.client_msg_id ?? ''),
+        created_at: String(m.created_at ?? ''),
+        read_at: m.read_at ? String(m.read_at) : null,
+      })
     })
 
     return () => { channel.unsubscribe() }
@@ -83,7 +92,18 @@ function ChatInner() {
   async function loadHistory() {
     if (!matchId) return
     const { data } = await getMessages(matchId)
-    if (data) setMessages(matchId, data as ChatMessage[])
+    if (data) {
+      const safe: ChatMessage[] = (data as Record<string, unknown>[]).map((m) => ({
+        id: String(m.id ?? ''),
+        swap_id: String(m.swap_id ?? ''),
+        sender_id: String(m.sender_id ?? ''),
+        body: String(m.body ?? ''),
+        client_msg_id: String(m.client_msg_id ?? ''),
+        created_at: String(m.created_at ?? ''),
+        read_at: m.read_at ? String(m.read_at) : null,
+      }))
+      setMessages(matchId, safe)
+    }
   }
 
   async function loadContext() {
@@ -111,12 +131,12 @@ function ChatInner() {
       }
 
       setCtx({
-        status: swap.status ?? 'proposed',
-        itemATitle: swap.item_a?.title ?? 'Item A',
-        itemBTitle: swap.item_b?.title ?? 'Item B',
-        itemAImages: Array.isArray(swap.item_a?.images) ? swap.item_a.images : [],
-        itemBImages: Array.isArray(swap.item_b?.images) ? swap.item_b.images : [],
-        otherName,
+        status: String(swap.status ?? 'proposed'),
+        itemATitle: String(swap.item_a?.title ?? 'Item A'),
+        itemBTitle: String(swap.item_b?.title ?? 'Item B'),
+        itemAImages: Array.isArray(swap.item_a?.images) ? swap.item_a.images.map(String) : [],
+        itemBImages: Array.isArray(swap.item_b?.images) ? swap.item_b.images.map(String) : [],
+        otherName: String(otherName),
       })
     }
   }
