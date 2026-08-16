@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { ArrowLeft, MoreVertical, Send } from 'lucide-react'
 import { Avatar } from '../components/Avatar'
