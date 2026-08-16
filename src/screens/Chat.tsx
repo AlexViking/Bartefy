@@ -73,20 +73,32 @@ export function Chat() {
 
     const { data: swap } = await supabase
       .from('swaps')
-      .select('*, item_a:item_a_id(*), item_b:item_b_id(*), profile_a:user_a_id(name), profile_b:user_b_id(name)')
+      .select('*, item_a:item_a_id(*), item_b:item_b_id(*)')
       .eq('id', matchId)
       .maybeSingle()
 
     if (swap) {
       const isUserA = swap.user_a_id === userId
-      const otherProfile = isUserA ? swap.profile_b : swap.profile_a
+      const otherId = isUserA ? swap.user_b_id : swap.user_a_id
+
+      // Fetch other user's profile name separately
+      let otherName = 'Finder'
+      if (otherId) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', otherId)
+          .maybeSingle()
+        otherName = profile?.name ?? 'Finder'
+      }
+
       setCtx({
         status: swap.status ?? 'proposed',
         itemATitle: swap.item_a?.title ?? 'Item A',
         itemBTitle: swap.item_b?.title ?? 'Item B',
-        itemAImages: swap.item_a?.images ?? [],
-        itemBImages: swap.item_b?.images ?? [],
-        otherName: otherProfile?.name ?? 'Finder',
+        itemAImages: Array.isArray(swap.item_a?.images) ? swap.item_a.images : [],
+        itemBImages: Array.isArray(swap.item_b?.images) ? swap.item_b.images : [],
+        otherName,
       })
     }
   }
