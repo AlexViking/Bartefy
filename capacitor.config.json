@@ -1,0 +1,13 @@
+{
+  "appId": "com.bartefy.app",
+  "appName": "Bartefy",
+  "webDir": "client",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    }
+  }
+}

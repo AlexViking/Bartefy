@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Karla:ital,wght@0,400;0,500;0,700;1,400&display=swap');
+
+:root {
+  /* Colors */
+  --bartefy-green: #2F6A52;
+  --parchment: #F7F2E1;
+  --ink: #33322B;
+  --brass: #E9BE8C;
+  --terracotta: #C97C5E;
+  --denim: #4E6FA3;
+  --green-hover: #285C47;
+  --green-press: #224E3C;
+  --brass-hover: #E3B279;
+  --parchment-deep: #EFE8D2;
+  --cream: #FBF8EE;
+  --ink-soft: rgba(51, 50, 43, 0.62);
+  --ink-faint: rgba(51, 50, 43, 0.14);
+  --sage: #7E9473;
+  --surface-page: var(--parchment);
+  --surface-card: #FFFFFF;
+  --surface-hero: var(--bartefy-green);
+  --text-body: var(--ink);
+  --text-muted: var(--ink-soft);
+  --text-on-green: var(--parchment);
+  --text-on-brass: var(--ink);
+  --action-primary: var(--bartefy-green);
+  --action-accent: var(--brass);
+  --border-subtle: var(--ink-faint);
+  --focus-ring: rgba(47, 106, 82, 0.45);
+
+  /* Typography */
+  --font-display: 'Quicksand', system-ui, sans-serif;
+  --font-body: 'Karla', system-ui, sans-serif;
+  --type-display: 700 54px/1.1 var(--font-display);
+  --type-h2: 700 32px/1.2 var(--font-display);
+  --type-h3: 600 20px/1.3 var(--font-display);
+  --type-body: 400 17px/1.6 var(--font-body);
+  --type-caption: 700 13px/1.4 var(--font-display);
+  --tracking-caption: 0.18em;
+  --type-body-min: 16px;
+
+  /* Shape */
+  --radius-card: 12px;
+  --radius-card-sm: 10px;
+  --radius-card-lg: 14px;
+  --radius-pill: 999px;
+  --radius-hero: 20px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --hit-min: 44px;
+  --shadow-card: 0 1px 2px rgba(51,50,43,0.05), 0 6px 18px rgba(51,50,43,0.06);
+  --shadow-float: 0 10px 30px rgba(51,50,43,0.12);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 140ms;
+  --dur-med: 240ms;
+}
