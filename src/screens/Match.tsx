@@ -29,19 +29,30 @@ export function Match() {
     if (!matchId || !userId) return
     const { data } = await supabase
       .from('swaps')
-      .select('*, item_a:item_a_id(*), item_b:item_b_id(*), profile_a:user_a_id(name), profile_b:user_b_id(name)')
+      .select('*, item_a:item_a_id(*), item_b:item_b_id(*)')
       .eq('id', matchId)
       .maybeSingle()
 
     if (data) {
       const isUserA = data.user_a_id === userId
-      const otherProfile = isUserA ? data.profile_b : data.profile_a
+      const otherId = isUserA ? data.user_b_id : data.user_a_id
+
+      let otherName = 'Finder'
+      if (otherId) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', otherId)
+          .maybeSingle()
+        otherName = profile?.name ?? 'Finder'
+      }
+
       setSwapData({
         itemATitle: data.item_a?.title ?? 'Your item',
         itemBTitle: data.item_b?.title ?? 'Their item',
         itemAImage: data.item_a?.images?.[0] ?? null,
         itemBImage: data.item_b?.images?.[0] ?? null,
-        otherName: (otherProfile as { name?: string } | null)?.name ?? 'Finder',
+        otherName,
       })
     }
   }

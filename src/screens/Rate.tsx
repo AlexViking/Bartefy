@@ -38,16 +38,23 @@ export function Rate() {
     if (!matchId || !userId) return
     const { data: swap } = await supabase
       .from('swaps')
-      .select('user_a_id, user_b_id, profile_a:user_a_id(name), profile_b:user_b_id(name)')
+      .select('user_a_id, user_b_id')
       .eq('id', matchId)
       .maybeSingle()
 
     if (swap) {
       const isUserA = swap.user_a_id === userId
       const otherId = isUserA ? swap.user_b_id : swap.user_a_id
-      const otherProfile = isUserA ? swap.profile_b : swap.profile_a
       setOtherUserId(otherId)
-      setOtherName((otherProfile as { name?: string } | null)?.name ?? 'them')
+
+      if (otherId) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('id', otherId)
+          .maybeSingle()
+        setOtherName(profile?.name ?? 'them')
+      }
     }
   }
 
