@@ -214,9 +214,9 @@ export function Matches() {
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 12,
+                        gap: 14,
                         width: '100%',
-                        padding: '14px 20px',
+                        padding: '16px 20px',
                         background: selectedSwapId === swap.id ? 'rgba(47,106,82,0.06)' : 'none',
                         border: 'none',
                         borderBottom: '1px solid var(--border-subtle)',
@@ -227,16 +227,16 @@ export function Matches() {
                       {/* Paired item thumbnails */}
                       <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
                         <div style={{
-                          width: 38, height: 38, borderRadius: 10,
+                          width: 46, height: 46, borderRadius: 12,
                           background: swap.itemAImage ? 'transparent' : 'var(--brass)',
                           overflow: 'hidden', flexShrink: 0,
                           border: '2px solid #fff',
                         }}>
                           {swap.itemAImage && <img src={swap.itemAImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                         </div>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bartefy-green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 -2px', zIndex: 1 }}><path d="M4 8h13M14 4l4 4-4 4M20 16H7M10 12l-4 4 4 4"/></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--bartefy-green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 -3px', zIndex: 1 }}><path d="M4 8h13M14 4l4 4-4 4M20 16H7M10 12l-4 4 4 4"/></svg>
                         <div style={{
-                          width: 38, height: 38, borderRadius: 10,
+                          width: 46, height: 46, borderRadius: 12,
                           background: swap.itemBImage ? 'transparent' : 'var(--denim)',
                           overflow: 'hidden', flexShrink: 0,
                           border: '2px solid #fff',
@@ -245,21 +245,21 @@ export function Matches() {
                         </div>
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, marginBottom: 2, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {swap.itemA} ⇄ {swap.itemB}
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 15, marginBottom: 3, color: 'var(--ink)' }}>
+                          {swap.itemA}
                         </div>
-                        <div style={{
-                          fontSize: 13,
-                          fontFamily: 'var(--font-body)',
-                          color: 'var(--text-muted)',
-                          marginTop: 2,
-                        }}>
-                          with {swap.otherName} · {relativeTime(swap.createdAt)}
+                        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 13, color: 'var(--text-muted)', marginBottom: 4 }}>
+                          ⇄ {swap.itemB}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontSize: 13, fontFamily: 'var(--font-body)', color: 'var(--text-muted)' }}>
+                            with {swap.otherName} · {relativeTime(swap.createdAt)}
+                          </span>
+                          <Badge bg={badgeColor[swap.status] ?? 'var(--denim)'} color="#fff">
+                            {badgeLabel[swap.status] ?? swap.status}
+                          </Badge>
                         </div>
                       </div>
-                      <Badge bg={badgeColor[swap.status] ?? 'var(--denim)'} color="#fff">
-                        {badgeLabel[swap.status] ?? swap.status}
-                      </Badge>
                     </button>
                   ))}
                 </div>
