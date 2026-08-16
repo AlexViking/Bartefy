@@ -135,13 +135,13 @@ export function Chat() {
       <DesktopNav />
       {/* Header */}
       <header
-        className="mobile-header"
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '4px 16px',
+          padding: '8px 16px',
           flexShrink: 0,
+          borderBottom: '1px solid var(--border-subtle)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
