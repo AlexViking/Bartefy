@@ -299,7 +299,11 @@ export function Swipe() {
         userId,
       })
 
-      let items: Item[] = feedData?.items ?? feedData ?? []
+      let items: Item[] = (feedData?.items ?? feedData ?? []).map((i: Record<string, unknown>) => ({
+        ...i,
+        images: (i.photo_urls as string[]) ?? (i.images as string[]) ?? [],
+        wants_in_return: (i.wants as string[]) ?? (i.wants_in_return as string[]) ?? [],
+      })) as Item[]
 
       if (feedErr || items.length === 0) {
         const { data: directItems } = await supabase
@@ -398,7 +402,11 @@ export function Swipe() {
       userId,
     })
     if (!error && feedData) {
-      const items: Item[] = Array.isArray(feedData) ? feedData : (feedData.items ?? [])
+      const items: Item[] = (Array.isArray(feedData) ? feedData : (feedData.items ?? [])).map((i: Record<string, unknown>) => ({
+        ...i,
+        images: (i.photo_urls as string[]) ?? (i.images as string[]) ?? [],
+        wants_in_return: (i.wants as string[]) ?? (i.wants_in_return as string[]) ?? [],
+      })) as Item[]
       if (items.length > 0) {
         setCards((prev) => [...prev, ...items])
         setCursor((c) => c + items.length)
