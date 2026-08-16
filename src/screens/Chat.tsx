@@ -11,14 +11,23 @@ import { useAuthStore } from '../store/auth'
 import { useChatStore, type ChatMessage } from '../store/chat'
 import { getMessages, sendMessage, subscribeMessages, updateSwapStatus } from '../lib/api'
 
-class ChatErrorBoundary extends React.Component<{children: React.ReactNode}, {error: Error | null}> {
-  state = { error: null as Error | null }
+class ChatErrorBoundary extends React.Component<{children: React.ReactNode}, {error: Error | null, info: string}> {
+  state = { error: null as Error | null, info: '' }
   static getDerivedStateFromError(error: Error) { return { error } }
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error('Chat crash:', error, info)
+    this.setState({ info: info.componentStack ?? '' })
+  }
   render() {
     if (this.state.error) return (
-      <div style={{ padding: 40, textAlign: 'center', color: 'var(--terracotta)' }}>
+      <div style={{ padding: 40, color: 'var(--terracotta)', maxWidth: 600, margin: '0 auto' }}>
         <h2>Something went wrong</h2>
-        <pre style={{ fontSize: 13, whiteSpace: 'pre-wrap' }}>{this.state.error.message}</pre>
+        <pre style={{ fontSize: 12, whiteSpace: 'pre-wrap', background: '#fff', padding: 16, borderRadius: 8, overflow: 'auto', maxHeight: 300 }}>
+          {this.state.error.message}{'\n\n'}{this.state.error.stack}{'\n\nComponent stack:'}{this.state.info}
+        </pre>
+        <button onClick={() => window.location.reload()} style={{ marginTop: 16, padding: '10px 24px', background: 'var(--bartefy-green)', color: '#fff', border: 'none', borderRadius: 999, cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600 }}>
+          Reload
+        </button>
       </div>
     )
     return this.props.children
@@ -196,9 +205,9 @@ function ChatInner() {
           >
             <ArrowLeft size={19} color="var(--ink)" />
           </button>
-          <Avatar initials={ctx.otherName[0]?.toUpperCase() ?? 'S'} color={AVATAR_COLORS[0]} size={42} />
+          <Avatar initials={String(ctx.otherName ?? 'F')[0]?.toUpperCase() ?? 'F'} color={AVATAR_COLORS[0]} size={42} />
           <div>
-            <p style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '17px', color: 'var(--ink)', margin: 0 }}>{ctx.otherName}</p>
+            <p style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '17px', color: 'var(--ink)', margin: 0 }}>{String(ctx.otherName ?? 'Finder')}</p>
           </div>
         </div>
         <button
@@ -227,7 +236,7 @@ function ChatInner() {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '14.5px', color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>
-                {ctx.itemATitle} ⇄ {ctx.itemBTitle}
+                {String(ctx.itemATitle)} ⇄ {String(ctx.itemBTitle)}
               </div>
               <div style={{ fontSize: '12.5px', color: 'var(--text-muted)', margin: 0 }}>swap in progress</div>
             </div>
@@ -330,10 +339,10 @@ function ChatInner() {
                   fontFamily: 'var(--font-body)',
                 }}
               >
-                {msg.body}
+                {String(msg.body ?? '')}
                 {fromMe && (
                   <div style={{ fontSize: '10px', marginTop: '4px', opacity: 0.7, textAlign: 'right' }}>
-                    {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {(() => { try { return new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) } catch { return '' } })()}
                   </div>
                 )}
               </div>
@@ -356,7 +365,7 @@ function ChatInner() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-          placeholder={`Message ${ctx.otherName}…`}
+          placeholder={`Message ${String(ctx.otherName ?? 'Finder')}…`}
           style={{
             flex: 1,
             minHeight: '48px',
@@ -393,8 +402,8 @@ function ChatInner() {
       <Sheet open={detailsOpen} onClose={() => setDetailsOpen(false)} title="Swap details" height="auto">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '8px' }}>
           {[
-            { title: ctx.itemATitle, images: ctx.itemAImages, label: 'Your item' },
-            { title: ctx.itemBTitle, images: ctx.itemBImages, label: `${ctx.otherName}'s item` },
+            { title: String(ctx.itemATitle), images: ctx.itemAImages, label: 'Your item' },
+            { title: String(ctx.itemBTitle), images: ctx.itemBImages, label: `${String(ctx.otherName)}'s item` },
           ].map((item) => (
             <div key={item.label} style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
               <div style={{ width: '72px', height: '72px', borderRadius: 'var(--radius-card)', overflow: 'hidden', flexShrink: 0, background: 'var(--parchment-deep)' }}>
@@ -412,7 +421,7 @@ function ChatInner() {
           <div style={{ height: '1px', background: 'var(--border-subtle)' }} />
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontFamily: 'var(--font-body)', color: 'var(--text-muted)' }}>
             <span>Status</span>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--ink)', textTransform: 'capitalize' }}>{ctx.status}</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, color: 'var(--ink)', textTransform: 'capitalize' }}>{String(ctx.status)}</span>
           </div>
         </div>
       </Sheet>
