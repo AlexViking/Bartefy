@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { ArrowLeft, MoreVertical, Send } from 'lucide-react'
 import { Avatar } from '../components/Avatar'
@@ -10,6 +10,20 @@ import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/auth'
 import { useChatStore, type ChatMessage } from '../store/chat'
 import { getMessages, sendMessage, subscribeMessages, updateSwapStatus } from '../lib/api'
+
+class ChatErrorBoundary extends React.Component<{children: React.ReactNode}, {error: Error | null}> {
+  state = { error: null as Error | null }
+  static getDerivedStateFromError(error: Error) { return { error } }
+  render() {
+    if (this.state.error) return (
+      <div style={{ padding: 40, textAlign: 'center', color: 'var(--terracotta)' }}>
+        <h2>Something went wrong</h2>
+        <pre style={{ fontSize: 13, whiteSpace: 'pre-wrap' }}>{this.state.error.message}</pre>
+      </div>
+    )
+    return this.props.children
+  }
+}
 
 type SwapContext = {
   status: string
@@ -23,6 +37,10 @@ type SwapContext = {
 const AVATAR_COLORS = ['var(--terracotta)', 'var(--denim)', 'var(--sage)', 'var(--brass)']
 
 export function Chat() {
+  return <ChatErrorBoundary><ChatInner /></ChatErrorBoundary>
+}
+
+function ChatInner() {
   const navigate = useNavigate()
   const { matchId } = useParams<{ matchId: string }>()
   const session = useAuthStore((s) => s.session)
@@ -131,7 +149,7 @@ export function Chat() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', background: 'var(--surface-page)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--surface-page)', overflow: 'hidden' }}>
       <DesktopNav />
       <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, maxWidth: 720, width: '100%', margin: '0 auto' }}>
       {/* Header */}
