@@ -233,7 +233,7 @@ export function Profile() {
                 }}
               >
                 {item.images?.[0] ? (
-                  <img src={item.images[0]} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={item.images[0]} alt={item.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   <div style={{ width: '100%', height: '100%', background: 'var(--parchment-deep)' }} />
                 )}
@@ -284,7 +284,7 @@ export function Profile() {
             {/* Preview */}
             <div style={{ width: '100%', aspectRatio: '4/3', borderRadius: 'var(--radius-card)', overflow: 'hidden', background: 'var(--parchment-deep)' }}>
               {selectedItem.images?.[0]
-                ? <img src={selectedItem.images[0]} alt={selectedItem.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ? <img src={selectedItem.images[0]} alt={selectedItem.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 14 }}>No photo</div>
               }
             </div>

@@ -46,6 +46,32 @@ export function AddItem() {
 
   const removeWant = (i: number) => setWants((prev) => prev.filter((_, idx) => idx !== i))
 
+  async function compressImage(file: File, maxDim = 1200, quality = 0.82): Promise<Blob> {
+    return new Promise((resolve) => {
+      const img = new Image()
+      img.onload = () => {
+        let { width, height } = img
+        if (width > maxDim || height > maxDim) {
+          const scale = maxDim / Math.max(width, height)
+          width = Math.round(width * scale)
+          height = Math.round(height * scale)
+        }
+        const canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext('2d')!
+        ctx.drawImage(img, 0, 0, width, height)
+        canvas.toBlob(
+          (blob) => resolve(blob ?? file),
+          'image/webp',
+          quality,
+        )
+      }
+      img.onerror = () => resolve(file)
+      img.src = URL.createObjectURL(file)
+    })
+  }
+
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? [])
     e.target.value = ''
@@ -74,7 +100,8 @@ export function AddItem() {
         const urls = (data as { urls: Array<{ uploadId: string; uploadUrl: string; publicUrl: string }> }).urls
         for (const p of photos) {
           const u = urls.find((x) => x.uploadId === p.uploadId)!
-          const res = await fetch(u.uploadUrl, { method: 'PUT', body: p.file })
+          const compressed = await compressImage(p.file)
+          const res = await fetch(u.uploadUrl, { method: 'PUT', body: compressed, headers: { 'Content-Type': 'image/webp' } })
           if (!res.ok) { setSaveError('A photo failed to upload — try again'); return }
         }
         cdnUrls = photos.map((p) => urls.find((x) => x.uploadId === p.uploadId)!.publicUrl)

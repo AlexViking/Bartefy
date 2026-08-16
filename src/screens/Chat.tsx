@@ -219,11 +219,11 @@ function ChatInner() {
         <Card style={{ padding: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'var(--brass)', flexShrink: 0, overflow: 'hidden' }}>
-              {ctx.itemAImages[0] && <img src={ctx.itemAImages[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+              {ctx.itemAImages[0] && <img src={ctx.itemAImages[0]} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
             </div>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--bartefy-green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 8h13M14 4l4 4-4 4M20 16H7M10 12l-4 4 4 4"/></svg>
             <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'var(--denim)', flexShrink: 0, overflow: 'hidden' }}>
-              {ctx.itemBImages[0] && <img src={ctx.itemBImages[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+              {ctx.itemBImages[0] && <img src={ctx.itemBImages[0]} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '14.5px', color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: 0 }}>
@@ -399,7 +399,7 @@ function ChatInner() {
             <div key={item.label} style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
               <div style={{ width: '72px', height: '72px', borderRadius: 'var(--radius-card)', overflow: 'hidden', flexShrink: 0, background: 'var(--parchment-deep)' }}>
                 {item.images[0]
-                  ? <img src={item.images[0]} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ? <img src={item.images[0]} alt={item.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   : <div style={{ width: '100%', height: '100%' }} />
                 }
               </div>

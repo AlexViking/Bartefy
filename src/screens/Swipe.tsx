@@ -56,7 +56,7 @@ function OfferThumb({ item, selected, onClick }: { item: Item; selected: boolean
     >
       <div style={{ width: 64, height: 64, borderRadius: 12, overflow: 'hidden' }}>
         {item.images?.[0]
-          ? <img src={item.images[0]} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ? <img src={item.images[0]} alt={item.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           : <div style={{ width: '100%', height: '100%', background: 'var(--parchment-deep)' }} />
         }
       </div>
@@ -729,7 +729,7 @@ export function Swipe() {
                 </p>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   {topCard.images.slice(1, 4).map((img: string, i: number) => (
-                    <img key={i} src={img} style={{ width: 80, height: 80, borderRadius: 10, objectFit: 'cover' }} alt={`photo ${i + 2}`} />
+                    <img key={i} src={img} loading="lazy" style={{ width: 80, height: 80, borderRadius: 10, objectFit: 'cover' }} alt={`photo ${i + 2}`} />
                   ))}
                 </div>
               </>

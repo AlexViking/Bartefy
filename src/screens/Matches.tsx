@@ -232,7 +232,7 @@ export function Matches() {
                           overflow: 'hidden', flexShrink: 0,
                           border: '2px solid #fff',
                         }}>
-                          {swap.itemAImage && <img src={swap.itemAImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                          {swap.itemAImage && <img src={swap.itemAImage} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                         </div>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--bartefy-green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 -3px', zIndex: 1 }}><path d="M4 8h13M14 4l4 4-4 4M20 16H7M10 12l-4 4 4 4"/></svg>
                         <div style={{
@@ -241,7 +241,7 @@ export function Matches() {
                           overflow: 'hidden', flexShrink: 0,
                           border: '2px solid #fff',
                         }}>
-                          {swap.itemBImage && <img src={swap.itemBImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
+                          {swap.itemBImage && <img src={swap.itemBImage} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
                         </div>
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
