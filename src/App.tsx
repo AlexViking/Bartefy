@@ -28,7 +28,20 @@ export function App() {
 
 function Live() {
   const userId = useAuthStore((s) => s.session?.user?.id)
+  const setSession = useAuthStore((s) => s.setSession)
+  const setInitialized = useAuthStore((s) => s.setInitialized)
   useRealtime(userId)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setInitialized()
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => setSession(session),
+    )
+    return () => subscription.unsubscribe()
+  }, [setSession, setInitialized])
 
   useEffect(() => {
     return startOutbox(async (jobs: Job[]) => {
