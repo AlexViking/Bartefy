@@ -1,51 +1,58 @@
-import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
+import { useQuery } from '@tanstack/react-query'
 import { AppShell } from '@/components/AppShell'
 import { EmptyState } from '@/components/EmptyState'
 import { StatusRow } from '@/components/swap/StatusRow'
-import { Avatar } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/store/auth'
+import { getMySwaps } from '@/lib/api'
+import { keys, STALE } from '@/lib/cache/queryClient'
 import type { SwapStatus } from '@/types/swap'
 
 type Tab = 'active' | 'activity' | 'closed'
 
-/** T2 - list + detail. Matches and Activity merged into one inbox, because two
- *  places for "what happened" meant neither felt like home.
- *  /activity now redirects here with ?tab=activity.
- */
+interface SwapRow {
+  id: string
+  title: string
+  subtitle: string
+  status: SwapStatus
+  photoUrl?: string
+  photoColor: string
+}
+
+/** T2 - list + detail. Matches and Activity merged into one inbox. */
 export function SwapsInbox() {
   const navigate = useNavigate()
+  const userId = useAuthStore((s) => s.session?.user?.id)
   const [params, setParams] = useSearchParams()
   const tab = (params.get('tab') as Tab) ?? 'active'
-  const [swaps] = useState(() => [
-    {
-      id: 's1',
-      title: 'Pentax ME Super',
-      subtitle: 'Mira K. \u00b7 your move',
-      status: 'agreed' as SwapStatus,
-      photoColor: 'hsl(var(--illo-terracotta))',
-    },
-    {
-      id: 's2',
-      title: 'Hardback Calvino',
-      subtitle: 'Jonas D. \u00b7 offer sent yesterday',
-      status: 'offered' as SwapStatus,
-      photoColor: 'hsl(var(--illo-denim))',
-    },
-    {
-      id: 's3',
-      title: 'Brass compass',
-      subtitle: 'Withdrawn by owner',
-      status: 'cancelled' as SwapStatus,
-      photoColor: 'hsl(var(--secondary))',
-    },
-  ])
 
-  const activity = [
-    { id: 'a1', when: 'Today', who: 'Mira K.', what: 'wants your wool scarf', to: '/swaps/s1' },
-    { id: 'a2', when: 'Today', who: 'Jonas D.', what: 'countered your offer', to: '/swaps/s2' },
-    { id: 'a3', when: 'Yesterday', who: 'Ana P.', what: 'is eyeing your brass compass', to: '/item/i3' },
-  ]
+  const { data: swaps = [], isLoading } = useQuery({
+    queryKey: keys.swaps(userId ?? ''),
+    queryFn: async () => {
+      const { data, error } = await getMySwaps(userId!)
+      if (error) throw error
+      return (data ?? []).map((s: Record<string, unknown>): SwapRow => {
+        const itemA = s.item_a as Record<string, unknown> | null
+        const itemB = s.item_b as Record<string, unknown> | null
+        const isUserA = s.user_a_id === userId
+        const theirItem = isUserA ? itemB : itemA
+        const status = String(s.status ?? 'new') as SwapStatus
+        const title = String(theirItem?.title ?? 'Swap')
+        const photos = theirItem?.images as string[] | undefined
+        return {
+          id: String(s.id),
+          title,
+          subtitle: status,
+          status,
+          photoUrl: photos?.[0],
+          photoColor: 'hsl(var(--illo-denim))',
+        }
+      })
+    },
+    enabled: !!userId,
+    staleTime: STALE.realtime,
+  })
 
   const active = swaps.filter((s) => s.status !== 'done' && s.status !== 'cancelled')
   const closed = swaps.filter((s) => s.status === 'done' || s.status === 'cancelled')
@@ -73,32 +80,19 @@ export function SwapsInbox() {
           ))}
         </div>
 
-        {tab === 'activity' ? (
-          <ul className="flex flex-col gap-2">
-            {activity.map((a) => (
-              <li key={a.id}>
-                <button
-                  type="button"
-                  onClick={() => navigate(a.to)}
-                  className="flex w-full items-center gap-3 rounded-sm border border-border/[0.14] bg-card p-3 text-left hover:bg-popover"
-                >
-                  <Avatar name={a.who} size={36} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-body text-[15px]">
-                      <strong className="font-display font-semibold">{a.who}</strong> {a.what}
-                    </span>
-                    <span className="block font-body text-xs text-muted-foreground">{a.when}</span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
+        {isLoading ? (
+          <p className="py-10 text-center font-body text-sm text-muted-foreground">Loading swaps…</p>
+        ) : tab === 'activity' ? (
+          <EmptyState
+            title="No recent activity"
+            body="When someone eyes your finds or responds to an offer, it lands here."
+          />
         ) : (
           <ul className="flex flex-col gap-2">
             {(tab === 'active' ? active : closed).map((s) => (
               <li key={s.id}>
                 <StatusRow
-                  item={{ id: s.id, title: s.title, photoColor: s.photoColor }}
+                  item={{ id: s.id, title: s.title, photoColor: s.photoColor, photoUrl: s.photoUrl }}
                   title={s.title}
                   subtitle={s.subtitle}
                   status={s.status}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
+import { useQuery } from '@tanstack/react-query'
 import { AppShell } from '@/components/AppShell'
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
@@ -10,6 +11,9 @@ import { WantsRow } from '@/components/swap/WantsRow'
 import { ResponsiveSheet } from '@/components/ui/sheet'
 import { SwapPair } from '@/components/swap/SwapPair'
 import { useHuntStore, type CardItem } from '@/store/hunt'
+import { useAuthStore } from '@/store/auth'
+import { fetchFeed, recordSwipe } from '@/lib/api'
+import { keys, STALE } from '@/lib/cache/queryClient'
 
 const CATEGORIES = ['Cameras', 'Books', 'Clothing', 'Curiosities', 'Vinyl']
 
@@ -19,20 +23,56 @@ const CATEGORIES = ['Cameras', 'Books', 'Clothing', 'Curiosities', 'Vinyl']
  */
 export function Hunt() {
   const navigate = useNavigate()
+  const userId = useAuthStore((s) => s.session?.user?.id)
+  const city = useAuthStore((s) => s.selectedCity) || 'Berlin'
+  const setCardQueue = useHuntStore((s) => s.setCardQueue)
   const cards = useHuntStore((s) => s.cardQueue)
   const removeTopCard = useHuntStore((s) => s.removeTopCard)
   const addToLikeHistory = useHuntStore((s) => s.addToLikeHistory)
   const [filters, setFilters] = useState<string[]>([])
   const [matched, setMatched] = useState<CardItem | null>(null)
+  const [radiusKm, setRadiusKm] = useState(10)
+
+  const { isLoading } = useQuery({
+    queryKey: keys.feed(filters, radiusKm),
+    queryFn: async () => {
+      const { data, error } = await fetchFeed({ city, radiusKm, userId: userId! })
+      if (error) throw error
+      const items = (data?.items ?? []) as Record<string, unknown>[]
+      const shaped: CardItem[] = items.map((it) => ({
+        id: String(it.id),
+        title: String(it.title ?? ''),
+        category: String(it.category ?? ''),
+        condition: String(it.condition ?? ''),
+        distance: String(it.location_city ?? city),
+        owner: String(it.owner ?? 'Swapper'),
+        wants: Array.isArray(it.wants) ? (it.wants as string[]) : [],
+        photoColor: 'hsl(var(--illo-terracotta))',
+        photoUrl: Array.isArray(it.photo_urls) && (it.photo_urls as string[]).length > 0
+          ? String((it.photo_urls as string[])[0])
+          : undefined,
+        ownerId: String(it.user_id ?? ''),
+        rating: it.rating != null ? Number(it.rating) : undefined,
+        swapCount: it.swaps != null ? Number(it.swaps) : 0,
+      }))
+      setCardQueue(shaped)
+      return shaped
+    },
+    enabled: !!userId,
+    staleTime: STALE.feed,
+  })
 
   const top = cards[0]
 
-  const decide = (item: CardItem, want: boolean) => {
-    // TODO(api): recordSwipe({ targetItemId, targetOwnerId, isLike: want })
-    if (want) {
+  const decide = async (item: CardItem, want: boolean) => {
+    if (want && (item as CardItem & { ownerId?: string }).ownerId) {
       addToLikeHistory(item.id)
-      // Mutual interest arrives from the swipe function's response.
-      if (item.wants.length > 0 && Math.random() > 0.7) setMatched(item)
+      const { data } = await recordSwipe({
+        targetItemId: item.id,
+        targetOwnerId: (item as CardItem & { ownerId?: string }).ownerId!,
+        isLike: true,
+      })
+      if (data?.matched) setMatched(item)
     }
     removeTopCard()
   }
@@ -62,13 +102,16 @@ export function Hunt() {
 
         {/* Centre - the stack */}
         <section className="flex flex-col items-center justify-center gap-4 px-5 py-6">
-          {top ? (
+          {isLoading ? (
+            <p className="font-body text-sm text-muted-foreground">Loading finds…</p>
+          ) : top ? (
             <HuntStack cards={cards} onDecide={decide} />
           ) : (
             <EmptyState
               title="Nothing left to hunt today"
-              body="You have seen every find within 10 km. Widen the range, or list something of your own - new finds arrive daily."
-              actionLabel="Widen to 25 km"
+              body={`You have seen every find within ${radiusKm} km. Widen the range, or list something of your own - new finds arrive daily.`}
+              actionLabel={`Widen to ${radiusKm * 2.5} km`}
+              onAction={() => setRadiusKm((r) => Math.round(r * 2.5))}
               secondaryLabel="Browse instead"
               onSecondary={() => navigate('/browse')}
             />
@@ -83,10 +126,17 @@ export function Hunt() {
                 About this find
               </span>
               <OwnerRow
-                person={{ id: 'owner', name: top.owner, rating: 4.8, swapCount: 31, verified: true, distanceLabel: top.distance }}
+                person={{
+                  id: (top as CardItem & { ownerId?: string }).ownerId ?? 'owner',
+                  name: top.owner,
+                  rating: (top as CardItem & { rating?: number }).rating ?? undefined,
+                  swapCount: (top as CardItem & { swapCount?: number }).swapCount ?? 0,
+                  verified: false,
+                  distanceLabel: top.distance,
+                }}
                 action="Profile"
               />
-              <WantsRow wants={top.wants} matchCount={2} />
+              <WantsRow wants={top.wants} matchCount={0} />
               <Button fullWidth onClick={() => navigate('/item/' + top.id)}>
                 See everything
               </Button>
@@ -117,7 +167,7 @@ export function Hunt() {
       >
         {matched && (
           <SwapPair
-            mine={{ id: 'mine', title: 'Your wool scarf', photoColor: 'hsl(var(--illo-denim))' }}
+            mine={{ id: 'mine', title: 'Your item', photoColor: 'hsl(var(--illo-denim))' }}
             theirs={{ id: matched.id, title: matched.title, photoColor: matched.photoColor }}
           />
         )}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
+import { useQuery } from '@tanstack/react-query'
 import { AppShell } from '@/components/AppShell'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge, Tag } from '@/components/ui/badge'
@@ -9,31 +10,68 @@ import { Stat } from '@/components/ui/stat'
 import { EmptyState } from '@/components/EmptyState'
 import { PausedFindsSheet } from '@/components/membership/PausedFindsSheet'
 import { useMembershipStore } from '@/store/membership'
+import { useAuthStore } from '@/store/auth'
 import { tierOf } from '@/lib/membership'
 import { cn } from '@/lib/utils'
+import { getProfile, getMyItems } from '@/lib/api'
+import { keys, STALE } from '@/lib/cache/queryClient'
 import type { ItemRef } from '@/types/swap'
 
 type Tab = 'live' | 'paused' | 'eyeing'
 
-/** T3 - gallery. Identity, trust, then the finds. Membership sits here as a
- *  quiet row, never as a banner.
- */
+/** T3 - gallery. Identity, trust, then the finds. */
 export function Profile() {
   const navigate = useNavigate()
+  const userId = useAuthStore((s) => s.session?.user?.id)
   const tier = useMembershipStore((s) => s.tier)
   const spec = tierOf(tier)
   const [tab, setTab] = useState<Tab>('live')
   const [pausedOpen, setPausedOpen] = useState(false)
 
-  // TODO(api): getProfile(userId) + getMyItems(userId) + saves list
-  const me = { name: 'Mira K.', city: 'Berlin', rating: 4.8, swaps: 31, verified: true, memberSince: '2025' }
-  const live: ItemRef[] = [
-    { id: 'i1', title: 'Wool scarf', photoColor: 'hsl(var(--illo-denim))' },
-    { id: 'i2', title: 'Ricoh flash', photoColor: 'hsl(var(--illo-sage))' },
-    { id: 'i3', title: 'Brass compass', photoColor: 'hsl(var(--accent))' },
-  ]
-  const paused: ItemRef[] = [{ id: 'i4', title: 'Enamel jug', photoColor: 'hsl(var(--secondary))' }]
-  const eyeing: ItemRef[] = [{ id: 'e1', title: 'Pentax ME Super', photoColor: 'hsl(var(--illo-terracotta))' }]
+  const { data: me } = useQuery({
+    queryKey: keys.profile(userId ?? ''),
+    queryFn: async () => {
+      const { data, error } = await getProfile(userId!)
+      if (error) throw error
+      return data as Record<string, unknown>
+    },
+    enabled: !!userId,
+    staleTime: STALE.mine,
+  })
+
+  const { data: allItems = [] } = useQuery({
+    queryKey: keys.myItems(userId ?? ''),
+    queryFn: async () => {
+      const { data, error } = await getMyItems(userId!)
+      if (error) throw error
+      return (data ?? []) as Record<string, unknown>[]
+    },
+    enabled: !!userId,
+    staleTime: STALE.mine,
+  })
+
+  const toRef = (it: Record<string, unknown>): ItemRef => {
+    const photos = it.images as string[] | undefined
+    return {
+      id: String(it.id),
+      title: String(it.title ?? ''),
+      photoUrl: photos?.[0],
+      photoColor: 'hsl(var(--illo-terracotta))',
+      condition: String(it.condition ?? ''),
+      category: String(it.category ?? ''),
+    }
+  }
+
+  const live = allItems.filter((it) => it.status === 'active').map(toRef)
+  const paused = allItems.filter((it) => it.status === 'paused').map(toRef)
+  const eyeing: ItemRef[] = [] // TODO: fetch saves
+
+  const profileName = String(me?.name ?? me?.display_name ?? 'You')
+  const rating = me?.rating != null ? Number(me.rating) : 0
+  const swapCount = me?.swap_count != null ? Number(me.swap_count) : 0
+  const verified = Boolean(me?.verified)
+  const memberSince = me?.created_at ? new Date(String(me.created_at)).getFullYear().toString() : ''
+  const city = String(me?.location_city ?? me?.city ?? 'Berlin')
 
   const shown = tab === 'live' ? live : tab === 'paused' ? paused : eyeing
 
@@ -42,21 +80,21 @@ export function Profile() {
       <div className="mx-auto w-full max-w-[1160px] px-4 py-5">
         {/* Identity */}
         <div className="flex flex-col gap-4 rounded border border-border/[0.14] bg-card p-5 shadow-card lg:flex-row lg:items-center">
-          <Avatar name={me.name} size={72} verified={me.verified} />
+          <Avatar name={profileName} size={72} verified={verified} />
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <div className="flex items-center gap-2.5">
-              <h1 className="font-display text-2xl font-bold">{me.name}</h1>
-              {me.verified && <Badge tone="green">Verified</Badge>}
+              <h1 className="font-display text-2xl font-bold">{profileName}</h1>
+              {verified && <Badge tone="green">Verified</Badge>}
             </div>
             <div className="flex items-center gap-2">
-              <Stars value={me.rating} />
+              <Stars value={rating} />
               <span className="font-body text-sm text-muted-foreground">
-                {me.rating.toFixed(1)} {'\u00b7'} {me.city} {'\u00b7'} swapping since {me.memberSince}
+                {rating.toFixed(1)} {'\u00b7'} {city} {memberSince ? `\u00b7 swapping since ${memberSince}` : ''}
               </span>
             </div>
           </div>
           <div className="flex gap-6">
-            <Stat value={me.swaps} label="Swaps" />
+            <Stat value={swapCount} label="Swaps" />
             <Stat value={live.length} label="Finds live" />
             <Stat value={eyeing.length} label="Eyeing" />
           </div>
@@ -128,7 +166,14 @@ export function Profile() {
                   tab === 'paused' && 'opacity-70',
                 )}
               >
-                <span className="block aspect-[4/3] w-full rounded-sm" style={{ background: it.photoColor }} />
+                <span
+                  className="block aspect-[4/3] w-full overflow-hidden rounded-sm"
+                  style={{ background: it.photoColor }}
+                >
+                  {it.photoUrl && (
+                    <img src={it.photoUrl} alt={it.title} className="h-full w-full object-cover" />
+                  )}
+                </span>
                 <span className="truncate font-display text-base font-semibold">{it.title}</span>
                 {tab === 'paused' && <Badge tone="quiet">Paused</Badge>}
               </button>

@@ -9,6 +9,10 @@ export interface CardItem {
   owner: string
   wants: string[]
   photoColor: string
+  photoUrl?: string
+  ownerId?: string
+  rating?: number
+  swapCount?: number
 }
 
 interface HuntState {
