@@ -1,0 +1,60 @@
+/* shadcn bridge — republishes src/styles/tokens.css under the variable names
+ * shadcn/ui and Tailwind expect. tokens.css stays the single source of truth:
+ * nothing is redefined here, only aliased.
+ *
+ * Import order in src/main.tsx:
+ *   import './styles/tokens.css'
+ *   import './styles/shadcn-bridge.css'
+ *   import './styles/global.css'
+ *   import './styles/responsive.css'
+ *
+ * HSL triplets (no hsl() wrapper) because shadcn composes them as
+ * hsl(var(--primary) / <alpha>).
+ */
+
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: 46 58% 93%; /* --parchment  #F7F2E1 */
+    --foreground: 52 8% 18%; /* --ink        #33322B */
+
+    --card: 0 0% 100%;
+    --card-foreground: 52 8% 18%;
+
+    --popover: 47 62% 96%; /* --cream      #FBF8EE */
+    --popover-foreground: 52 8% 18%;
+
+    --primary: 156 39% 30%; /* --bartefy-green #2F6A52 */
+    --primary-foreground: 46 58% 93%;
+
+    --secondary: 45 48% 88%; /* --parchment-deep #EFE8D2 */
+    --secondary-foreground: 52 8% 18%;
+
+    --accent: 32 68% 73%; /* --brass      #E9BE8C */
+    --accent-foreground: 52 8% 18%;
+
+    --muted: 45 48% 88%;
+    --muted-foreground: 52 8% 40%;
+
+    /* shadcn insists on a destructive slot. Bartefy has no red buttons —
+       this is used for text and evidence states only, never a filled CTA. */
+    --destructive: 17 50% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 52 8% 18%; /* consumed at 14% alpha, matching --ink-faint */
+    --input: 52 8% 82%;
+    --ring: 156 39% 30%;
+
+    /* Illustration accents. Art and photo wells only — never a status. */
+    --illo-terracotta: 17 50% 58%; /* --terracotta */
+    --illo-denim: 217 35% 47%; /* --denim */
+    --illo-sage: 100 13% 52%; /* --sage */
+
+    /* shadcn reads --radius for its own components */
+    --radius: var(--radius-card);
+  }
+
+  /* No .dark block on purpose: parchment is the identity. Do not add one
+     without a brand decision — an inverted parchment is not a dark theme. */
+}

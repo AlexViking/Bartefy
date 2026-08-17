@@ -1,48 +1,42 @@
-import { useEffect } from 'react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
+import { queryClient } from '@/lib/cache/queryClient'
+import { idbPersister } from '@/lib/cache/idbPersister'
 import { AppRouter } from './router'
-import { supabase } from './lib/supabase'
-import { useAuthStore } from './store/auth'
-import './styles/global.css'
+import { useRealtime } from '@/lib/realtime'
+import { startOutbox, type Job } from '@/lib/outbox'
+import { useAuthStore } from '@/store/auth'
+import { supabase } from '@/lib/supabase'
+import { useEffect } from 'react'
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60,
-      retry: 1,
-    },
-  },
-})
-
-function AuthListener() {
-  const setSession = useAuthStore((s) => s.setSession)
-  const setInitialized = useAuthStore((s) => s.setInitialized)
-
-  useEffect(() => {
-    // Pick up any existing session (e.g. after magic link redirect or localStorage injection)
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
-      setInitialized()
-    })
-
-    // Keep session in sync
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [setSession, setInitialized])
-
-  return null
-}
-
-function App() {
+/** Cache restores before the first paint, so a cold start opens on the last
+ *  known feed, threads and profile rather than an empty screen.
+ */
+export function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthListener />
-      <AppRouter />
-    </QueryClientProvider>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{ persister: idbPersister, maxAge: 24 * 60 * 60_000 }}
+    >
+      <QueryClientProvider client={queryClient}>
+        <Live />
+        <AppRouter />
+      </QueryClientProvider>
+    </PersistQueryClientProvider>
   )
 }
 
-export default App
+function Live() {
+  const userId = useAuthStore((s) => s.session?.user?.id)
+  useRealtime(userId)
+
+  useEffect(() => {
+    return startOutbox(async (jobs: Job[]) => {
+      const { data, error } = await supabase.functions.invoke('sync', { body: { jobs } })
+      if (error) throw error
+      return (data?.acked ?? []) as string[]
+    })
+  }, [])
+
+  return null
+}

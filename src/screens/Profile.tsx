@@ -1,325 +1,155 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { Settings, Plus, Trash2, X } from 'lucide-react'
-import { TabBar } from '../components/TabBar'
-import { DesktopNav } from '../components/DesktopNav'
-import { Button } from '../components/Button'
-import { Card } from '../components/Card'
-import { Sheet } from '../components/Sheet'
-import { useAuthStore, PALETTES } from '../store/auth'
-import { getProfile, updateProfile, getMyItems, signOut, deleteItem } from '../lib/api'
+import { AppShell } from '@/components/AppShell'
+import { Avatar } from '@/components/ui/avatar'
+import { Badge, Tag } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Stars } from '@/components/ui/stars'
+import { Stat } from '@/components/ui/stat'
+import { EmptyState } from '@/components/EmptyState'
+import { PausedFindsSheet } from '@/components/membership/PausedFindsSheet'
+import { useMembershipStore } from '@/store/membership'
+import { tierOf } from '@/lib/membership'
+import { cn } from '@/lib/utils'
+import type { ItemRef } from '@/types/swap'
 
-type ProfileData = {
-  name: string
-  home_city: string
-  rating: number | null
-  swap_count: number
-  swap_radius_km: number
-}
+type Tab = 'live' | 'paused' | 'eyeing'
 
-type ItemData = {
-  id: string
-  title: string
-  images: string[]
-}
-
+/** T3 - gallery. Identity, trust, then the finds. Membership sits here as a
+ *  quiet row, never as a banner.
+ */
 export function Profile() {
   const navigate = useNavigate()
-  const session = useAuthStore((s) => s.session)
-  const userId = session?.user?.id
-  const palette = useAuthStore((s) => s.palette)
-  const cardStyle = useAuthStore((s) => s.cardStyle)
-  const pal = PALETTES[palette]
+  const tier = useMembershipStore((s) => s.tier)
+  const spec = tierOf(tier)
+  const [tab, setTab] = useState<Tab>('live')
+  const [pausedOpen, setPausedOpen] = useState(false)
 
-  const [profile, setProfile] = useState<ProfileData | null>(null)
-  const [items, setItems] = useState<ItemData[]>([])
-  const [radius, setRadius] = useState(15)
-  const [loading, setLoading] = useState(true)
-  const [manageMode, setManageMode] = useState(false)
-  const [selectedItem, setSelectedItem] = useState<ItemData | null>(null)
-  const [deleting, setDeleting] = useState(false)
+  // TODO(api): getProfile(userId) + getMyItems(userId) + saves list
+  const me = { name: 'Mira K.', city: 'Berlin', rating: 4.8, swaps: 31, verified: true, memberSince: '2025' }
+  const live: ItemRef[] = [
+    { id: 'i1', title: 'Wool scarf', photoColor: 'hsl(var(--illo-denim))' },
+    { id: 'i2', title: 'Ricoh flash', photoColor: 'hsl(var(--illo-sage))' },
+    { id: 'i3', title: 'Brass compass', photoColor: 'hsl(var(--accent))' },
+  ]
+  const paused: ItemRef[] = [{ id: 'i4', title: 'Enamel jug', photoColor: 'hsl(var(--secondary))' }]
+  const eyeing: ItemRef[] = [{ id: 'e1', title: 'Pentax ME Super', photoColor: 'hsl(var(--illo-terracotta))' }]
 
-  useEffect(() => {
-    if (!userId) return
-    loadData()
-  }, [userId])
-
-  async function loadData() {
-    if (!userId) return
-    setLoading(true)
-    try {
-      const [{ data: prof }, { data: myItems }] = await Promise.all([
-        getProfile(userId),
-        getMyItems(userId),
-      ])
-      if (prof) {
-        setProfile(prof as ProfileData)
-        setRadius(prof.swap_radius_km ?? 15)
-      }
-      setItems((myItems ?? []) as ItemData[])
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function handleRadiusChange(value: number) {
-    setRadius(value)
-    if (!userId) return
-    await updateProfile(userId, { swap_radius_km: value })
-  }
-
-  async function handleSignOut() {
-    await signOut()
-    navigate('/')
-  }
-
-  async function handleDeleteItem(item: ItemData) {
-    setDeleting(true)
-    try {
-      const { error } = await deleteItem(item.id)
-      if (error) { alert('Could not remove this item — try again'); return }
-      setItems((prev) => prev.filter((i) => i.id !== item.id))
-      setSelectedItem(null)
-      setManageMode(false)
-    } finally {
-      setDeleting(false)
-    }
-  }
-
-  const swapCount = profile?.swap_count ?? 0
-  const rating = profile?.rating ?? null
-  const activeCount = items.length
-  const initial = (profile?.name ?? 'U')[0]?.toUpperCase() ?? 'U'
-
-  if (loading) {
-    return (
-      <div style={{ minHeight: '100dvh', background: 'var(--surface-page)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontFamily: 'var(--font-display)', fontWeight: 600 }}>
-        Loading…
-      </div>
-    )
-  }
+  const shown = tab === 'live' ? live : tab === 'paused' ? paused : eyeing
 
   return (
-    <div style={{ minHeight: '100dvh', background: 'var(--surface-page)', display: 'flex', flexDirection: 'column', paddingBottom: '80px' }}>
-      <DesktopNav />
-      {/* Header */}
-      <header className="mobile-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 20px' }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '26px', lineHeight: 1.15, color: 'var(--ink)', margin: 0 }}>Profile</h1>
-        <button
-          onClick={() => navigate('/settings')}
-          style={{
-            width: '40px', height: '40px', borderRadius: '50%',
-            border: '1.5px solid var(--border-subtle)',
-            background: 'var(--surface-card)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', flexShrink: 0, padding: 0,
-          }}
-        >
-          <Settings size={19} color="var(--ink)" />
-        </button>
-      </header>
-
-      <div style={{ padding: '8px 20px 16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        {/* Identity card in user's palette */}
-        <div
-          style={{
-            background: pal.accent,
-            borderRadius: cardStyle === 'rounded' ? '16px' : '4px',
-            padding: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '14px',
-            transition: 'background 240ms, border-radius 240ms',
-          }}
-        >
-          <div
-            style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '50%',
-              background: pal.surf,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontFamily: 'var(--font-display)',
-              fontWeight: 700,
-              fontSize: '22px',
-              color: pal.accent,
-              flexShrink: 0,
-            }}
-          >
-            {initial}
-          </div>
-          <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '18px', color: pal.surf }}>{profile?.name ?? 'You'}</div>
-            <div style={{ fontSize: '13px', color: pal.surf === '#33322B' ? 'rgba(51,50,43,0.55)' : 'rgba(247,242,225,0.6)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
-              {profile?.home_city ?? 'Somewhere'} · swapping since 2026
+    <AppShell>
+      <div className="mx-auto w-full max-w-[1160px] px-4 py-5">
+        {/* Identity */}
+        <div className="flex flex-col gap-4 rounded border border-border/[0.14] bg-card p-5 shadow-card lg:flex-row lg:items-center">
+          <Avatar name={me.name} size={72} verified={me.verified} />
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <div className="flex items-center gap-2.5">
+              <h1 className="font-display text-2xl font-bold">{me.name}</h1>
+              {me.verified && <Badge tone="green">Verified</Badge>}
+            </div>
+            <div className="flex items-center gap-2">
+              <Stars value={me.rating} />
+              <span className="font-body text-sm text-muted-foreground">
+                {me.rating.toFixed(1)} {'\u00b7'} {me.city} {'\u00b7'} swapping since {me.memberSince}
+              </span>
             </div>
           </div>
+          <div className="flex gap-6">
+            <Stat value={me.swaps} label="Swaps" />
+            <Stat value={live.length} label="Finds live" />
+            <Stat value={eyeing.length} label="Eyeing" />
+          </div>
         </div>
 
-        {/* Stats */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
-          {[
-            { label: 'Swaps done', value: String(swapCount) },
-            { label: 'On the table', value: String(activeCount) },
-            { label: 'Rating', value: rating != null ? `★ ${rating.toFixed(1)}` : '—' },
-          ].map((stat) => (
-            <Card key={stat.label} style={{ textAlign: 'center', padding: '12px 8px' }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '24px', color: 'var(--bartefy-green)' }}>{stat.value}</div>
-              <div style={{ fontSize: '12.5px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>{stat.label}</div>
-            </Card>
-          ))}
-        </div>
+        {/* Membership row */}
+        <button
+          type="button"
+          onClick={() => navigate('/membership')}
+          className="mt-3 flex w-full items-center gap-3 rounded-sm border border-border/[0.14] bg-popover p-3.5 text-left hover:bg-secondary"
+        >
+          <span className="min-w-0 flex-1">
+            <span className="block font-display text-[15px] font-semibold">{spec.name} membership</span>
+            <span className="block font-body text-sm text-muted-foreground">
+              {spec.radiusKm ? 'Hunting within ' + spec.radiusKm + ' km' : 'No radius cap'}
+              {spec.liveFinds ? ' \u00b7 ' + spec.liveFinds + ' finds live' : ' \u00b7 unlimited finds'}
+            </span>
+          </span>
+          <span className="font-body text-sm text-primary">{tier === 'hunter' ? 'See plans' : 'Manage'}</span>
+        </button>
 
-        {/* Trusted swapper progress */}
-        <Card>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '15.5px', color: 'var(--ink)' }}>Trusted Bartefyer</div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '13px', color: 'var(--bartefy-green)', whiteSpace: 'nowrap' }}>{swapCount} / 15</div>
-          </div>
-          <div style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginBottom: '8px' }}>{swapCount} / 15 swaps to unlock badge</div>
-          <div style={{ height: '8px', background: 'var(--parchment-deep)', borderRadius: 'var(--radius-pill)', overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${Math.min((swapCount / 15) * 100, 100)}%`, background: 'var(--bartefy-green)', borderRadius: 'var(--radius-pill)', transition: 'width var(--dur-med)' }} />
-          </div>
-        </Card>
-
-        {/* Hunt radius */}
-        <Card>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '15.5px', color: 'var(--ink)' }}>Hunt radius</div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '14px', color: 'var(--bartefy-green)' }}>{radius} km</div>
-          </div>
-          <input
-            type="range"
-            min={1}
-            max={50}
-            value={radius}
-            onChange={(e) => handleRadiusChange(Number(e.target.value))}
-            style={{ width: '100%', accentColor: 'var(--bartefy-green)' }}
-          />
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
-            <span>1 km</span>
-            <span>50 km</span>
-          </div>
-        </Card>
-
-        {/* Listings grid */}
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '16px', color: 'var(--ink)' }}>Your finds on the table</div>
+        {/* Finds */}
+        <div className="mt-6 flex gap-1 border-b border-border/[0.14]">
+          {(['live', 'paused', 'eyeing'] as Tab[]).map((t) => (
             <button
-              onClick={() => setManageMode((m) => !m)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '14px', color: manageMode ? 'var(--terracotta)' : 'var(--bartefy-green)' }}
+              key={t}
+              type="button"
+              onClick={() => setTab(t)}
+              aria-current={tab === t ? 'page' : undefined}
+              className={cn(
+                'min-h-hit border-b-[2.5px] px-3 font-display text-[15px] font-semibold capitalize transition-colors duration-fast ease-brand',
+                tab === t ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground',
+              )}
             >
-              {manageMode ? 'Done' : 'Manage'}
+              {t}
             </button>
-          </div>
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            {items.map((item) => (
+          ))}
+          {tab === 'paused' && paused.length > 0 && (
+            <Button variant="ghost" size="sm" className="ml-auto" onClick={() => setPausedOpen(true)}>
+              Choose what stays live
+            </Button>
+          )}
+        </div>
+
+        {shown.length === 0 ? (
+          <EmptyState
+            title={
+              tab === 'live' ? 'Nothing in the hunt yet' : tab === 'paused' ? 'Nothing paused' : 'Nothing saved yet'
+            }
+            body={
+              tab === 'live'
+                ? 'List one thing and the feed starts working both ways.'
+                : tab === 'paused'
+                  ? 'Finds you park land here. They keep their photos and story.'
+                  : 'Save a find while you think about it - it will be here.'
+            }
+            actionLabel={tab === 'live' ? 'List a find' : tab === 'eyeing' ? 'Start hunting' : undefined}
+            onAction={() => navigate(tab === 'live' ? '/add' : '/hunt')}
+          />
+        ) : (
+          <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {shown.map((it) => (
               <button
-                key={item.id}
-                onClick={() => manageMode ? setSelectedItem(item) : setSelectedItem(item)}
-                style={{
-                  position: 'relative',
-                  width: '78px',
-                  height: '78px',
-                  borderRadius: '12px',
-                  background: 'var(--parchment-deep)',
-                  overflow: 'hidden',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                }}
+                key={it.id}
+                type="button"
+                onClick={() => navigate('/item/' + it.id)}
+                className={cn(
+                  'flex flex-col gap-2 rounded-lg border border-border/[0.14] bg-card p-3 text-left shadow-card transition-shadow duration-med ease-brand hover:shadow-float',
+                  tab === 'paused' && 'opacity-70',
+                )}
               >
-                {item.images?.[0] ? (
-                  <img src={item.images[0]} alt={item.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                ) : (
-                  <div style={{ width: '100%', height: '100%', background: 'var(--parchment-deep)' }} />
-                )}
-                {manageMode && (
-                  <div style={{
-                    position: 'absolute', inset: 0,
-                    background: 'rgba(0,0,0,0.35)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <Trash2 size={20} color="#fff" />
-                  </div>
-                )}
+                <span className="block aspect-[4/3] w-full rounded-sm" style={{ background: it.photoColor }} />
+                <span className="truncate font-display text-base font-semibold">{it.title}</span>
+                {tab === 'paused' && <Badge tone="quiet">Paused</Badge>}
               </button>
             ))}
-            <button
-              onClick={() => navigate('/add')}
-              style={{
-                width: '78px',
-                height: '78px',
-                borderRadius: '12px',
-                background: 'var(--parchment-deep)',
-                border: '1.5px dashed var(--ink-faint)',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--ink-soft)',
-              }}
-            >
-              <Plus size={22} />
-            </button>
-          </div>
-        </div>
-
-        <Button variant="ghost" size="md" fullWidth onClick={handleSignOut}>
-          Sign out
-        </Button>
-      </div>
-
-      <div className="mobile-tab-bar">
-        <TabBar active="profile" />
-      </div>
-
-      {/* Item detail / delete sheet */}
-      <Sheet open={!!selectedItem} onClose={() => setSelectedItem(null)}>
-        {selectedItem && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {/* Preview */}
-            <div style={{ width: '100%', aspectRatio: '4/3', borderRadius: 'var(--radius-card)', overflow: 'hidden', background: 'var(--parchment-deep)' }}>
-              {selectedItem.images?.[0]
-                ? <img src={selectedItem.images[0]} alt={selectedItem.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: 14 }}>No photo</div>
-              }
-            </div>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '20px', margin: 0 }}>
-              {selectedItem.title}
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <Button
-                variant="ghost"
-                size="md"
-                fullWidth
-                onClick={() => { setSelectedItem(null); navigate('/add') }}
-              >
-                Edit item
-              </Button>
-              <Button
-                variant="danger"
-                size="md"
-                fullWidth
-                disabled={deleting}
-                onClick={() => handleDeleteItem(selectedItem)}
-              >
-                <Trash2 size={16} />
-                {deleting ? 'Removing…' : 'Remove from table'}
-              </Button>
-              <button
-                onClick={() => setSelectedItem(null)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '14px', color: 'var(--text-muted)', padding: '8px' }}
-              >
-                <X size={14} style={{ marginRight: 4 }} /> Cancel
-              </button>
-            </div>
           </div>
         )}
-      </Sheet>
-    </div>
+
+        {tab === 'live' && (
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Tag onSelect={() => navigate('/add')}>List another find</Tag>
+            <Tag onSelect={() => navigate('/settings')}>Settings</Tag>
+          </div>
+        )}
+      </div>
+
+      <PausedFindsSheet
+        open={pausedOpen}
+        onOpenChange={setPausedOpen}
+        items={[...live, ...paused]}
+        keepCount={spec.liveFinds ?? 6}
+      />
+    </AppShell>
   )
 }
