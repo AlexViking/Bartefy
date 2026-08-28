@@ -1,65 +1,48 @@
-import * as React from 'react'
-import { cn } from '@/lib/utils'
+import * as React from "react"
+import * as AvatarPrimitive from "@radix-ui/react-avatar"
 
-/** Accent fills for initials. Illustration accents are fine here - an avatar is
- *  a portrait stand-in, not a status. A person keeps their color because it is
- *  derived from their name, not from render order.
- */
-const FILLS = ['bg-illo-denim', 'bg-illo-terracotta', 'bg-illo-sage', 'bg-primary'] as const
+import { cn } from "@/lib/utils"
 
-export function fillForName(name: string) {
-  let hash = 0
-  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) % 9973
-  return FILLS[hash % FILLS.length]
-}
+const Avatar = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Root
+    ref={ref}
+    className={cn(
+      "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full",
+      className
+    )}
+    {...props}
+  />
+))
+Avatar.displayName = AvatarPrimitive.Root.displayName
 
-export interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
-  name?: string
-  initials?: string
-  src?: string
-  size?: number
-  /** Green dot: ID verified. Nothing else earns a dot. */
-  verified?: boolean
-}
+const AvatarImage = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Image>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Image
+    ref={ref}
+    className={cn("aspect-square h-full w-full", className)}
+    {...props}
+  />
+))
+AvatarImage.displayName = AvatarPrimitive.Image.displayName
 
-export function Avatar({
-  name = '',
-  initials,
-  src,
-  size = 40,
-  verified = false,
-  className,
-  ...props
-}: AvatarProps) {
-  const text = (initials ?? name.slice(0, 2) ?? '?').toUpperCase()
-  const dot = Math.max(12, Math.round(size * 0.32))
+const AvatarFallback = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Fallback>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Fallback
+    ref={ref}
+    className={cn(
+      "flex h-full w-full items-center justify-center rounded-full bg-muted",
+      className
+    )}
+    {...props}
+  />
+))
+AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName
 
-  return (
-    <div className={cn('relative shrink-0', className)} style={{ width: size, height: size }} {...props}>
-      <div
-        className={cn(
-          'flex h-full w-full items-center justify-center overflow-hidden rounded-full',
-          src ? 'bg-transparent' : fillForName(name || text),
-        )}
-      >
-        {src ? (
-          <img src={src} alt={name} className="h-full w-full object-cover" />
-        ) : (
-          <span
-            className="font-display font-bold text-white"
-            style={{ fontSize: Math.round(size * 0.4) }}
-          >
-            {text}
-          </span>
-        )}
-      </div>
-      {verified && (
-        <span
-          aria-label="ID verified"
-          className="absolute -bottom-0.5 -right-0.5 rounded-full border-2 border-card bg-primary"
-          style={{ width: dot, height: dot }}
-        />
-      )}
-    </div>
-  )
-}
+export { Avatar, AvatarImage, AvatarFallback }
