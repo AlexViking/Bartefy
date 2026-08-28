@@ -1,3 +1,4 @@
+import { useT } from '@/i18n/T'
 import { cn } from '@/lib/utils'
 import type { ItemRef } from '@/types/swap'
 
@@ -16,16 +17,17 @@ export function SwapPair({
   size?: 'sm' | 'md'
   className?: string
 }) {
+  const { t } = useT()
   const left = Array.isArray(mine) ? mine : [mine]
   const right = Array.isArray(theirs) ? theirs : [theirs]
 
   return (
     <div className={cn('flex items-center gap-3', className)}>
-      <Side items={left} label={left.length > 1 ? left.length + ' of yours' : 'Yours'} size={size} />
+      <Side items={left} label={t('profile.myFinds')} size={size} />
       <span aria-hidden className="font-display text-xl font-bold text-primary">
-        {'< >'}
+        {'\u2194'}
       </span>
-      <Side items={right} label="Theirs" size={size} align="right" />
+      <Side items={right} label={t('item.owner')} size={size} align="right" />
     </div>
   )
 }
@@ -48,7 +50,7 @@ function Side({
         className={cn('w-full overflow-hidden rounded-sm', size === 'sm' ? 'aspect-square' : 'aspect-[4/3]')}
         style={{ background: first?.photoColor ?? 'hsl(var(--secondary))' }}
       >
-        {first?.photoUrl && <img src={first.photoUrl} alt="" className="h-full w-full object-cover" />}
+        {first?.photoUrl && <img src={first.photoUrl} alt="" loading="lazy" className="size-full object-cover" />}
       </div>
       <span className="truncate font-display text-sm font-semibold text-foreground">
         {items.length > 1 ? label : (first?.title ?? label)}

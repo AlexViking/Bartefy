@@ -1,43 +1,78 @@
-import { Badge } from '@/components/ui/badge'
-import { Avatar } from '@/components/ui/avatar'
-import type { CardItem } from '@/store/hunt'
+import { Eye } from 'lucide-react'
 
-/** The card itself - identical on desktop and mobile. Only the frame changes. */
-export function HuntCard({ item, eyeing = 0 }: { item: CardItem; eyeing?: number }) {
+import { Card } from '@/components/ui/card'
+import { ToneBadge } from '@/components/ui/tone-badge'
+import { UserAvatar } from '@/components/ui/user-avatar'
+import { useT } from '@/i18n/T'
+import type { CardItem } from '@/store/hunt'
+import { cn } from '@/lib/utils'
+
+/** The find itself. Identical on both platforms — only the frame around it
+ *  changes, so a card someone learns to read on a phone reads the same on a
+ *  desktop.
+ */
+export function HuntCard({
+  item,
+  eyeing = 0,
+  className,
+}: {
+  item: CardItem
+  eyeing?: number
+  className?: string
+}) {
+  const { t } = useT()
+
   return (
-    <article className="overflow-hidden rounded-hero bg-card shadow-float">
-      <div className="relative h-[260px]" style={{ background: item.photoColor }}>
+    <Card
+      className={cn('overflow-hidden rounded-hero border-0 bg-card shadow-float', className)}
+    >
+      <div className="relative aspect-[4/3] w-full" style={{ background: item.photoColor }}>
+        {item.photoUrl && (
+          <img
+            src={item.photoUrl}
+            alt={t('a11y.photoOf', { title: item.title })}
+            loading="lazy"
+            className="size-full object-cover"
+          />
+        )}
         <div className="absolute inset-x-3 top-3 flex justify-between gap-2">
-          <Badge tone="quiet" className="bg-card/90">
+          <ToneBadge tone="quiet" className="bg-card/90 backdrop-blur-sm">
             {item.condition}
-          </Badge>
+          </ToneBadge>
           {eyeing > 0 && (
-            <span className="rounded-pill bg-foreground/70 px-2.5 py-1 font-body text-xs font-semibold text-white">
-              {eyeing} eyeing
+            <span
+              className="flex items-center gap-1 rounded-pill bg-foreground/70 px-2.5 py-1 font-display text-xs font-semibold text-background"
+              title={t('help.whyEyeing')}
+            >
+              <Eye className="size-3.5" aria-hidden="true" />
+              {eyeing}
             </span>
           )}
         </div>
       </div>
+
       <div className="flex flex-col gap-2 p-4">
-        <h3 className="font-display text-lg font-bold leading-tight text-foreground">{item.title}</h3>
+        <h3 className="font-display text-h3 leading-tight text-foreground">{item.title}</h3>
         <p className="font-body text-sm text-muted-foreground">
-          {item.category} {'\u00b7'} {item.distance}
+          {item.category} {'·'} {item.distance}
         </p>
         <div className="flex items-center gap-2">
-          <Avatar name={item.owner} size={24} />
-          <span className="font-display text-sm font-semibold">{item.owner}</span>
+          <UserAvatar name={item.owner} size="sm" />
+          <span className="font-display text-sm font-semibold text-foreground">{item.owner}</span>
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          {item.wants.map((w) => (
-            <span
-              key={w}
-              className="rounded-pill bg-primary/[0.08] px-2.5 py-0.5 font-body text-xs font-semibold text-primary"
-            >
-              {w}
-            </span>
-          ))}
-        </div>
+        {item.wants.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {item.wants.map((w) => (
+              <span
+                key={w}
+                className="rounded-pill bg-primary/[0.08] px-2.5 py-0.5 font-body text-xs font-semibold text-primary"
+              >
+                {w}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
-    </article>
+    </Card>
   )
 }

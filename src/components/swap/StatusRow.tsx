@@ -1,20 +1,23 @@
-import { Badge } from '@/components/ui/badge'
+import { ToneBadge } from '@/components/ui/tone-badge'
+import { useT } from '@/i18n/T'
 import { cn } from '@/lib/utils'
 import type { ItemRef, SwapStatus } from '@/types/swap'
 
 /** One row shape for the whole swaps inbox. State lives in the badge and the
  *  second line; the row never changes shape, so scanning stays cheap.
  */
-const TONES: Record<SwapStatus, { tone: 'green' | 'brass' | 'quiet' | 'terracotta'; label: string }> = {
-  new: { tone: 'brass', label: 'New' },
-  chatting: { tone: 'quiet', label: 'Talking' },
-  offered: { tone: 'brass', label: 'Offer out' },
-  agreed: { tone: 'green', label: 'Agreed' },
-  arranged: { tone: 'green', label: 'Meeting set' },
-  received_one_side: { tone: 'brass', label: 'Confirm' },
-  done: { tone: 'quiet', label: 'Closed' },
-  cancelled: { tone: 'quiet', label: 'Closed' },
-  frozen: { tone: 'terracotta', label: 'With us' },
+/** Brass means "this one needs you"; green means settled; quiet means closed.
+ *  A frozen swap uses the evidence tone — a human is reading the report. */
+const TONES: Record<SwapStatus, { tone: 'green' | 'brass' | 'quiet' | 'evidence'; label: string }> = {
+  new: { tone: 'brass', label: 'swaps.statusYourTurn' },
+  chatting: { tone: 'quiet', label: 'swaps.statusTalking' },
+  offered: { tone: 'brass', label: 'swaps.statusYourTurn' },
+  agreed: { tone: 'green', label: 'swaps.statusAgreed' },
+  arranged: { tone: 'green', label: 'swaps.statusArranged' },
+  received_one_side: { tone: 'brass', label: 'swaps.statusWaiting' },
+  done: { tone: 'quiet', label: 'swaps.statusDone' },
+  cancelled: { tone: 'quiet', label: 'swaps.statusDone' },
+  frozen: { tone: 'evidence', label: 'trouble.title' },
 }
 
 export function StatusRow({
@@ -32,6 +35,7 @@ export function StatusRow({
   onClick?: () => void
   className?: string
 }) {
+  const { t } = useT()
   const meta = TONES[status]
   const dimmed = status === 'done' || status === 'cancelled'
 
@@ -46,16 +50,18 @@ export function StatusRow({
       )}
     >
       <span
-        className="h-11 w-11 shrink-0 overflow-hidden rounded-lg"
+        className="size-11 shrink-0 overflow-hidden rounded-lg"
         style={{ background: item?.photoColor ?? 'hsl(var(--secondary))' }}
       >
-        {item?.photoUrl && <img src={item.photoUrl} alt="" className="h-full w-full object-cover" />}
+        {item?.photoUrl && <img src={item.photoUrl} alt="" className="size-full object-cover" />}
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate font-display text-[15px] font-semibold text-foreground">{title}</span>
         {subtitle && <span className="block truncate font-body text-sm text-muted-foreground">{subtitle}</span>}
       </span>
-      <Badge tone={meta.tone}>{meta.label}</Badge>
+      <ToneBadge tone={meta.tone} data-i18n={meta.label}>
+        {t(meta.label)}
+      </ToneBadge>
     </button>
   )
 }

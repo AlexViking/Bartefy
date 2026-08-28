@@ -1,5 +1,6 @@
-import { Avatar } from '@/components/ui/avatar'
+import { UserAvatar } from '@/components/ui/user-avatar'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/i18n/T'
 import { cn } from '@/lib/utils'
 import type { PersonRef } from '@/types/swap'
 
@@ -17,19 +18,20 @@ export function OwnerRow({
   onAction?: () => void
   className?: string
 }) {
+  const { t } = useT()
   const bits = [
-    person.rating ? '\u2605 ' + person.rating.toFixed(1) : null,
-    person.swapCount != null ? person.swapCount + ' swaps' : null,
+    person.rating ? '★ ' + person.rating.toFixed(1) : null,
+    person.swapCount != null ? t('profile.swapsDone', { count: person.swapCount }) : null,
     person.distanceLabel,
   ].filter(Boolean)
 
   return (
     <div className={cn('flex items-center gap-2.5', className)}>
-      <Avatar name={person.name} src={person.avatarUrl} verified={person.verified} size={40} />
+      <UserAvatar name={person.name} src={person.avatarUrl} verified={person.verified} size="md" />
       <div className="min-w-0 flex-1">
         <div className="truncate font-display text-[15px] font-semibold text-foreground">{person.name}</div>
         {bits.length > 0 && (
-          <div className="truncate font-body text-sm text-muted-foreground">{bits.join(' \u00b7 ')}</div>
+          <div className="truncate font-body text-sm text-muted-foreground">{bits.join(' · ')}</div>
         )}
       </div>
       {action && (

@@ -1,3 +1,5 @@
+import { InfoHint } from '@/components/guidance/InfoHint'
+import { useT } from '@/i18n/T'
 import { cn } from '@/lib/utils'
 
 /** Read-only wishes, tinted green so they never read as filters.
@@ -6,19 +8,42 @@ import { cn } from '@/lib/utils'
 export function WantsRow({
   wants,
   matchCount = 0,
-  label = 'Looking for',
+  label = 'item.wants',
   className,
 }: {
   wants: string[]
   matchCount?: number
+  /** Translation key. */
   label?: string
   className?: string
 }) {
-  if (wants.length === 0) return null
+  const { t } = useT()
+
+  if (wants.length === 0) {
+    return (
+      <div className={cn('flex items-center gap-1.5', className)}>
+        <span
+          data-i18n="item.wantsOpen"
+          className="font-body text-sm italic text-muted-foreground"
+        >
+          {t('item.wantsOpen')}
+        </span>
+        <InfoHint k="help.whyWants" />
+      </div>
+    )
+  }
 
   return (
     <div className={cn('flex flex-col gap-2', className)}>
-      <span className="font-display text-caption uppercase tracking-[0.18em] text-muted-foreground">{label}</span>
+      <div className="flex items-center gap-1.5">
+        <span
+          data-i18n={label}
+          className="font-display text-caption uppercase tracking-[0.18em] text-muted-foreground"
+        >
+          {t(label)}
+        </span>
+        <InfoHint k="help.whyWants" />
+      </div>
       <div className="flex flex-wrap gap-1.5">
         {wants.map((w) => (
           <span
@@ -31,7 +56,7 @@ export function WantsRow({
       </div>
       {matchCount > 0 && (
         <span className="font-body text-sm font-semibold text-primary">
-          You have {matchCount} {matchCount === 1 ? 'find' : 'finds'} they are asking for.
+          {t('browse.resultCount', { count: matchCount })}
         </span>
       )}
     </div>
