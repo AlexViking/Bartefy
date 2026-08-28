@@ -29,9 +29,22 @@ export default function AddItemDesktop() {
             <WantsSection a={a} />
           </div>
 
+          {a.publishError && (
+            <T
+              as="p"
+              k="add.publishFailed"
+              className="text-center font-body text-sm text-destructive"
+              role="alert"
+            />
+          )}
           <div className="mt-8 flex items-center gap-3 border-t border-border/[0.14] pt-5">
-            <Button size="lg" onClick={a.publish} disabled={!a.hasPhoto} data-i18n="add.publish">
-              {t('add.publish')}
+            <Button
+              size="lg"
+              onClick={a.publish}
+              disabled={!a.hasPhoto || a.uploading || a.publishing}
+              data-i18n="add.publish"
+            >
+              {a.publishing ? t('common.loading') : t('add.publish')}
             </Button>
             <Button variant="ghost" size="lg" onClick={a.cancel} data-i18n="add.notNow">
               {t('add.notNow')}

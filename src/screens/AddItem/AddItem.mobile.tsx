@@ -42,9 +42,23 @@ export default function AddItemMobile() {
         </main>
 
         <footer className="flex flex-col gap-2 border-t border-border/[0.14] bg-card px-5 pb-[max(16px,env(safe-area-inset-bottom))] pt-4">
+          {a.publishError && (
+            <T
+              as="p"
+              k="add.publishFailed"
+              className="text-center font-body text-sm text-destructive"
+              role="alert"
+            />
+          )}
           {a.isLast ? (
-            <Button size="lg" fullWidth onClick={a.publish} data-i18n="add.publish">
-              {t('add.publish')}
+            <Button
+              size="lg"
+              fullWidth
+              onClick={a.publish}
+              disabled={!a.hasPhoto || a.uploading || a.publishing}
+              data-i18n="add.publish"
+            >
+              {a.publishing ? t('common.loading') : t('add.publish')}
             </Button>
           ) : (
             <Button

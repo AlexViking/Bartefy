@@ -13,14 +13,28 @@ export function PhotosSection({ a, columns = 3 }: { a: ReturnType<typeof useAddI
   return (
     <div className="flex flex-col gap-4">
       <LabelWithHint label="add.photosTitle" hint="help.whyCondition" />
+      {/* The one real file input. PhotoWell is the visible affordance; this
+          stays off-screen and is opened by it. `capture` is deliberately not
+          set, so phones offer the camera and the library both. */}
+      <input
+        ref={a.fileInputRef}
+        type="file"
+        accept="image/*"
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden="true"
+        onChange={(e) => a.onFilePicked(e.target.files?.[0])}
+      />
       <PhotoWellGrid columns={columns}>
         {a.photos.map((p, i) => (
           <PhotoWell
             key={i}
             state={p.state}
+            src={p.previewUrl}
+            progress={p.progress}
             swatch={p.swatch}
-            onPick={a.addPhoto}
-            onRetry={a.addPhoto}
+            onPick={() => a.addPhoto(i)}
+            onRetry={() => a.retryPhoto(i)}
             onRemove={() => a.removePhoto(i)}
           />
         ))}
