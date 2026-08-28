@@ -125,7 +125,9 @@
     "offerSwap": "Offer a swap",
     "reservedNote": "Reserved while another swap finishes. We will tell you if it comes back.",
     "photoN": "Photo {{n}}",
-    "viewProfile": "Profile"
+    "viewProfile": "Profile",
+    "notFoundTitle": "This find is not here",
+    "notFoundBody": "It may have been swapped, paused or taken down. Have a look at what else is around."
   },
   "add": {
     "title": "List a find",
@@ -268,7 +270,9 @@
     "evidenceLabel": "Add a photo, if you have one",
     "nextTitle": "What happens next",
     "nextBody": "The swap freezes tonight. {{name}} sees that you raised something, not what you wrote. We reply within two days, and neither rating counts until then.",
-    "notePlaceholder": "Anything that helps us understand."
+    "notePlaceholder": "Anything that helps us understand.",
+    "reasonAskedForMoney": "They asked me for money",
+    "consequenceAskedForMoney": "Bartefy is trade-only. We read the thread and act on it — you do not have to pay anything, ever."
   },
   "profile": {
     "title": "Profile",

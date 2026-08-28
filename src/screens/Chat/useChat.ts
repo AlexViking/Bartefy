@@ -15,6 +15,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth'
 import { useChatStore, type ChatMessage } from '@/store/chat'
 import { STATUS_FROM_DB } from '@/types/swap'
+import type { TroubleReason } from '@/components/swap/TroubleSheet'
 
 export interface SwapContext {
   status: string
@@ -107,8 +108,10 @@ export function useChat() {
 
       let otherName = 'Swapper'
       if (otherId) {
+        // profiles_public exposes name/rating/swap_count only; the base table
+        // is readable to its owner alone (migration 008).
         const { data: profile } = await supabase
-          .from('profiles')
+          .from('profiles_public')
           .select('name')
           .eq('id', otherId)
           .maybeSingle()
@@ -218,11 +221,7 @@ export function useChat() {
    *  The block is applied immediately though, because someone who says they
    *  felt unsafe should not have to wait on a queue to stop being contacted.
    */
-  const submitTrouble = async (
-    reason: 'changed_mind' | 'no_show' | 'not_as_described' | 'unsafe',
-    note: string,
-    block: boolean,
-  ) => {
+  const submitTrouble = async (reason: TroubleReason, note: string, block: boolean) => {
     if (!userId) return
     const otherId = ctx?.otherId
 

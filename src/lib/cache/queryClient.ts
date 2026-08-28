@@ -24,8 +24,13 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       refetchOnMount: 'always',
       retry: (count, err: unknown) => {
-        const status = (err as { status?: number })?.status
-        if (status && status >= 400 && status < 500) return false
+        const e = err as { status?: number; code?: string }
+        if (e?.status && e.status >= 400 && e.status < 500) return false
+        // Supabase errors carry a PostgREST `code`, not an HTTP `status`, so
+        // the status check alone never matched and a missing row was retried
+        // for seconds behind a "Just a moment…" that looked like a hang.
+        // PGRST1xx are request-shaped problems; retrying cannot help.
+        if (e?.code && /^(PGRST1|22|23|42)/.test(e.code)) return false
         return count < 2
       },
     },

@@ -20,7 +20,7 @@ export function useItemDetail() {
   const [offerOpen, setOfferOpen] = useState(false)
   const [photo, setPhoto] = useState(0)
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: keys.item(itemId ?? ''),
     queryFn: async () => {
       const { data: row, error } = await getItem(itemId!)
@@ -31,14 +31,20 @@ export function useItemDetail() {
     staleTime: STALE.item,
   })
 
+  // A find that failed to load, was deleted, or never existed must say so.
+  // Returning "not ready" for an error left the screen on "Just a moment…"
+  // forever, which is indistinguishable from a hang.
+  if (isError || (!isLoading && !data)) {
+    return { ready: false as const, isLoading: false, notFound: true as const, goBack: () => navigate(-1) }
+  }
   if (isLoading || !data) {
-    return { ready: false as const, isLoading, goBack: () => navigate(-1) }
+    return { ready: false as const, isLoading, notFound: false as const, goBack: () => navigate(-1) }
   }
 
   const photos = Array.isArray(data.images) ? (data.images as string[]) : []
   const hasRealPhotos = photos.length > 0 && photos[0]?.startsWith('http')
   const ownerData = data.owner as Record<string, unknown> | null
-  const eyeingData = data.eyeing as Record<string, unknown>[] | null
+  // get_item_detail returns eyeing_count as a scalar, not an embedded row.
 
   const item = {
     id: String(data.id),
@@ -47,7 +53,7 @@ export function useItemDetail() {
     condition: String(data.condition ?? ''),
     description: String(data.description ?? ''),
     wants: Array.isArray(data.wants_in_return) ? (data.wants_in_return as string[]) : [],
-    eyeing: eyeingData?.[0]?.eyeing_count != null ? Number(eyeingData[0].eyeing_count) : 0,
+    eyeing: data.eyeing_count != null ? Number(data.eyeing_count) : 0,
     reserved: data.status === 'reserved',
   }
 

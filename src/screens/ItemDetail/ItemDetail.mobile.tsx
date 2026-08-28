@@ -1,6 +1,9 @@
 import { ArrowLeft, Heart } from 'lucide-react'
 
+import { useNavigate } from 'react-router'
+
 import { AppShell } from '@/components/shell/AppShell'
+import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
 import { OfferComposerSheet } from '@/components/offer/OfferComposerSheet'
 import { T, useT } from '@/i18n/T'
@@ -14,6 +17,22 @@ import { useItemDetail } from './useItemDetail'
 export default function ItemDetailMobile() {
   const d = useItemDetail()
   const { t } = useT()
+  const navigate = useNavigate()
+
+  if (d.notFound) {
+    return (
+      <AppShell>
+        <div className="flex min-h-dvh items-center justify-center px-5">
+          <EmptyState
+            title="item.notFoundTitle"
+            body="item.notFoundBody"
+            actionLabel="nav.browse"
+            onAction={() => navigate('/browse')}
+          />
+        </div>
+      </AppShell>
+    )
+  }
 
   if (!d.ready) {
     return (

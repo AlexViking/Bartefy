@@ -11,7 +11,12 @@ import { cn } from '@/lib/utils'
  *  Every reason states its consequence before it is picked. Tone drops all
  *  playfulness here: plain and reassuring, per the voice rules.
  */
-export type TroubleReason = 'changed_mind' | 'no_show' | 'not_as_described' | 'unsafe'
+export type TroubleReason =
+  | 'changed_mind'
+  | 'no_show'
+  | 'not_as_described'
+  | 'unsafe'
+  | 'asked_for_money'
 
 /** Title and consequence are translation keys, not copy. Every reason states
  *  what will happen before it is picked. */
@@ -28,6 +33,11 @@ const REASONS: { id: TroubleReason; title: string; consequence: string }[] = [
     consequence: 'trouble.consequenceNotAsDescribed',
   },
   { id: 'unsafe', title: 'trouble.reasonUnsafe', consequence: 'trouble.consequenceUnsafe' },
+  {
+    id: 'asked_for_money',
+    title: 'trouble.reasonAskedForMoney',
+    consequence: 'trouble.consequenceAskedForMoney',
+  },
 ]
 
 export function TroubleSheet({
