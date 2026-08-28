@@ -53,6 +53,11 @@ export default {
         float: 'var(--shadow-float)',
       },
       minHeight: { hit: 'var(--hit-min)' },
+      minWidth: { hit: 'var(--hit-min)' },
+      /* `size-hit` reads the shared spacing scale, not minHeight. Without this
+         entry `size="icon"` collapsed to its padding, so every icon button in
+         the app rendered below the 44px minimum. */
+      spacing: { hit: 'var(--hit-min)' },
       transitionTimingFunction: { brand: 'var(--ease-out)' },
       transitionDuration: { fast: '140ms', med: '240ms' },
       keyframes: {

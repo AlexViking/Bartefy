@@ -73,7 +73,11 @@ export function DetailsSection({ a }: { a: ReturnType<typeof useAddItem> }) {
         <T as="p" k="add.categoryHelp" className="font-body text-sm text-muted-foreground" />
         <div className="flex flex-wrap gap-2">
           {CATEGORIES.map((c) => (
-            <Chip key={c.id} active={a.category === c.id} onClick={() => a.setCategory(c.id)}>
+            <Chip
+              key={c.id}
+              active={a.categories.includes(c.id)}
+              onClick={() => a.toggleCategory(c.id)}
+            >
               {t(c.label)}
             </Chip>
           ))}

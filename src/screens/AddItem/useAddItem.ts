@@ -61,7 +61,10 @@ export function useAddItem() {
   const [photos, setPhotos] = useState<PhotoSlot[]>([{ state: 'empty' }])
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [category, setCategory] = useState<string | null>(null)
+  /** A find is often genuinely two things — a camera bag is bags and cameras.
+   *  items.category is a single column, so the first pick is what gets stored
+   *  and stays matchable; the rest ride along as extra categories. */
+  const [categories, setCategories] = useState<string[]>([])
   const [condition, setCondition] = useState<number>(DEFAULT_CONDITION)
   const [wants, setWants] = useState<string[]>([])
   const [wantsNote, setWantsNote] = useState('')
@@ -111,14 +114,29 @@ export function useAddItem() {
         patchSlot(index, { state: 'ready', progress: 1, url: target.publicUrl })
       } catch (err) {
         // 402 means the listing cap was hit — that is the upgrade sheet's
-        // job, not a failed photo.
-        const status = (err as { context?: { status?: number } })?.context?.status
+        // job, not a failed photo. FunctionsHttpError carries the response on
+        // `context`, so read the status from either shape.
+        const e = err as {
+          context?: { status?: number; clone?: () => Response }
+          status?: number
+        }
+        const status = e?.context?.status ?? e?.status
         if (status === 402) {
           setCapped(true)
           patchSlot(index, { state: 'empty', progress: 0 })
           return
         }
-        console.error('[add] photo upload failed', err)
+        // FunctionsHttpError carries the Response on `context` but never
+        // reads it, so the function's own message is otherwise lost and every
+        // cause looks identical. Read it before giving up.
+        let detail = ''
+        try {
+          const body = e?.context?.clone?.()
+          if (body) detail = await body.text()
+        } catch {
+          /* the body is optional; the status below is the part that matters */
+        }
+        console.error('[add] photo upload failed', { status, detail, err })
         patchSlot(index, { state: 'failed', progress: 0 })
       }
     },
@@ -174,6 +192,11 @@ export function useAddItem() {
   const toggleWant = (w: string) =>
     setWants((f) => (f.includes(w) ? f.filter((x) => x !== w) : [...f, w]))
 
+  /** Order is meaningful: the first pick is the one stored in items.category,
+   *  which is what the feed and search filter on. */
+  const toggleCategory = (c: string) =>
+    setCategories((f) => (f.includes(c) ? f.filter((x) => x !== c) : [...f, c]))
+
   const publish = async () => {
     if (!can('add_find')) return setCapped(true)
     if (!userId || publishing) return
@@ -197,7 +220,10 @@ export function useAddItem() {
       user_id: userId,
       title: title.trim(),
       description: description.trim(),
-      category: category ?? 'other',
+      // The first pick stays in the single column the feed and search filter
+      // on; the whole set rides alongside it (migration 009).
+      category: categories[0] ?? 'other',
+      categories,
       condition,
       wants_in_return: wantsColumn,
       images,
@@ -240,8 +266,8 @@ export function useAddItem() {
     setTitle,
     description,
     setDescription,
-    category,
-    setCategory,
+    categories,
+    toggleCategory,
     condition,
     setCondition,
     wants,
