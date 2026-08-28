@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { AppShell } from '@/components/shell/AppShell'
+import { T } from '@/i18n/T'
 import { Button } from '@/components/ui/button'
 import { Field, TextField } from '@/components/ui/field'
 import { Chip } from '@/components/ui/badge'
@@ -83,16 +84,16 @@ export function AddItem() {
 
         {step === 2 && (
           <div className="flex flex-col gap-4">
-            <h1 className="font-display text-2xl font-bold leading-tight lg:text-h2">What is it?</h1>
-            <Field label="Name it" placeholder="Pentax ME Super" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <T as="h1" k="add.titleLabel" className="font-display text-h2 leading-tight text-foreground" />
+            <Field label="add.nameIt" placeholder="add.titlePlaceholder" value={title} onChange={(e) => setTitle(e.target.value)} />
             <TextField
-              label="Tell its story (optional)"
-              placeholder="Light seals redone last spring. Comes with the 50mm."
+              label="add.storyOptional"
+              placeholder="add.descriptionPlaceholder"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
             <div className="flex flex-col gap-2">
-              <span className="font-display text-sm font-semibold">Category</span>
+              <T as="span" k="add.categoryLabel" className="font-display text-sm font-semibold" />
               <div className="flex flex-wrap gap-2">
                 {CATEGORIES.map((c) => (
                   <Chip key={c} active={category === c} onClick={() => setCategory(c)}>
@@ -102,7 +103,7 @@ export function AddItem() {
               </div>
             </div>
             <div className="flex flex-col gap-2">
-              <span className="font-display text-sm font-semibold">Condition</span>
+              <T as="span" k="add.conditionLabel" className="font-display text-sm font-semibold" />
               <div className="flex flex-wrap gap-2">
                 {CONDITIONS.map((c) => (
                   <Chip key={c} active={condition === c} onClick={() => setCondition(c)}>

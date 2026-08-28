@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { AppShell } from '@/components/shell/AppShell'
+import { T, useT } from '@/i18n/T'
 import { ToneBadge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
@@ -14,6 +15,7 @@ import type { ItemRef, PersonRef } from '@/types/swap'
 
 /** S1 - the one screen with a shareable link. */
 export function ItemDetail() {
+  const { t } = useT()
   const { itemId } = useParams()
   const navigate = useNavigate()
   const [offerOpen, setOfferOpen] = useState(false)
@@ -34,7 +36,7 @@ export function ItemDetail() {
     return (
       <AppShell>
         <div className="flex min-h-dvh items-center justify-center">
-          <p className="font-body text-sm text-muted-foreground">Loading…</p>
+          <T as="p" k="common.loading" className="font-body text-sm text-muted-foreground" />
         </div>
       </AppShell>
     )
@@ -92,7 +94,7 @@ export function ItemDetail() {
               <button
                 type="button"
                 onClick={() => navigate(-1)}
-                aria-label="Back"
+                aria-label={t('common.back')}
                 className="absolute left-3.5 top-3.5 flex h-9 w-9 items-center justify-center rounded-full bg-card/90 lg:hidden"
               >
                 <Icon name="ChevronLeft" size={18} />
@@ -159,7 +161,7 @@ export function ItemDetail() {
               <Button size="lg" disabled={item.reserved} onClick={() => setOfferOpen(true)}>
                 Offer a swap
               </Button>
-              <Button variant="ghost">Save it</Button>
+              <Button variant="ghost">{t('item.save')}</Button>
               <span className="ml-auto font-body text-sm text-muted-foreground">{item.eyeing} people eyeing</span>
             </div>
           </div>
@@ -173,7 +175,7 @@ export function ItemDetail() {
         </Button>
         <button
           type="button"
-          aria-label="Save it"
+          aria-label={t('item.save')}
           className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-[1.5px] border-border/[0.14] text-muted-foreground"
         >
           <Icon name="Heart" size={18} />

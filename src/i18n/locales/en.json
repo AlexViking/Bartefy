@@ -139,7 +139,9 @@
     "publish": "Put it on the table",
     "publishing": "Putting it on the table…",
     "limitTitle": "You have reached your listing limit",
-    "limitBody": "Free members keep {{count}} finds on the table at once. Pause one, or upgrade for more room."
+    "limitBody": "Free members keep {{count}} finds on the table at once. Pause one, or upgrade for more room.",
+    "nameIt": "Name it",
+    "storyOptional": "Tell its story"
   },
   "swaps": {
     "title": "Swaps",
@@ -183,7 +185,10 @@
     "accept": "That works",
     "suggestAnother": "Suggest another",
     "safetyTitle": "Meeting safely",
-    "safetyBody": "Meet in daylight in a public place. Tell someone where you are going. Trust your gut — you can back out at any point, for any reason, at no cost."
+    "safetyBody": "Meet in daylight in a public place. Tell someone where you are going. Trust your gut — you can back out at any point, for any reason, at no cost.",
+    "evenWalk": "Even walk",
+    "typePlace": "Or type a place",
+    "anotherTime": "Another time"
   },
   "confirm": {
     "title": "Did the swap happen?",
@@ -219,7 +224,14 @@
     "memberSince": "Member since {{date}}",
     "editProfile": "Edit profile",
     "emptyFindsTitle": "Nothing on the table yet",
-    "emptyFindsBody": "List one thing and offers start arriving."
+    "emptyFindsBody": "List one thing and offers start arriving.",
+    "verified": "Verified",
+    "statSwaps": "Swaps",
+    "statLive": "Finds live",
+    "statEyeing": "Eyeing",
+    "tabLive": "On the table",
+    "tabPaused": "Paused",
+    "listAnother": "List another find"
   },
   "membership": {
     "title": "Membership",
@@ -229,7 +241,19 @@
     "upgrade": "Upgrade",
     "manage": "Manage membership",
     "alwaysFreeTitle": "Always free, on every tier",
-    "alwaysFreeBody": "Reporting, blocking, meeting safely, confirming a handover, rating, reading your threads, and finishing a swap you already agreed."
+    "alwaysFreeBody": "Reporting, blocking, meeting safely, confirming a handover, rating, reading your threads, and finishing a swap you already agreed.",
+    "headline": "Swapping is free. Reach is not.",
+    "subhead": "Listing, hunting, chatting, meeting, confirming, rating, blocking and reporting stay free forever. What you can pay for is a bigger map, more finds live at once, and being seen sooner.",
+    "mostPopular": "Most people",
+    "current": "Your plan",
+    "perMonth": "a month",
+    "freePrice": "Free",
+    "oneOffTitle": "Pay once, no membership",
+    "spotlight": "Spotlight one find for 48 hours",
+    "postage": "Prepaid postage label for a distant swap",
+    "freeBlurb": "Everything you need to swap with your neighbours.",
+    "collectorBlurb": "A wider map and more finds on the table at once.",
+    "curatorBlurb": "For people who swap constantly and want to be seen first."
   },
   "settings": {
     "title": "Settings",
@@ -279,5 +303,16 @@
     "notFoundTitle": "Nothing here",
     "notFoundBody": "This find may have been swapped or taken down.",
     "goHome": "Back to hunting"
+  },
+  "admin": {
+    "title": "Reports",
+    "emptyTitle": "Nothing waiting",
+    "emptyBody": "Every report in this state has been dealt with.",
+    "internalNote": "Internal note",
+    "notePlaceholder": "What we saw in the thread, and what we told each side.",
+    "unfreeze": "Unfreeze and let it finish",
+    "cancelRelist": "Cancel the swap, relist both",
+    "tabOpen": "Open",
+    "tabClosed": "Closed"
   }
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { AppShell } from '@/components/shell/AppShell'
+import { T, useT } from '@/i18n/T'
 import { ToneBadge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/badge'
@@ -13,6 +14,7 @@ import { cn } from '@/lib/utils'
 type Mode = 'meet' | 'post'
 
 export function Arrange() {
+  const { t } = useT()
   const { swapId } = useParams()
   const navigate = useNavigate()
   const [mode, setMode] = useState<Mode>('meet')
@@ -92,11 +94,11 @@ export function Arrange() {
                     <span className="block truncate font-display text-[15px] font-semibold">{s.name}</span>
                     <span className="block truncate font-body text-sm text-muted-foreground">{s.meta}</span>
                   </span>
-                  {s.even && <ToneBadge tone="green">Even walk</ToneBadge>}
+                  {s.even && <ToneBadge tone="green">{t('arrange.evenWalk')}</ToneBadge>}
                 </button>
               ))}
               <Field
-                placeholder="Or type a place"
+                placeholder="arrange.typePlace"
                 value={customSpot}
                 onChange={(e) => setCustomSpot(e.target.value)}
                 hint="We never suggest home addresses, and the thread strips them if typed."
@@ -104,14 +106,14 @@ export function Arrange() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <span className="font-display text-caption uppercase tracking-[0.18em] text-muted-foreground">When</span>
+              <T as="span" k="arrange.whenLabel" className="font-display text-caption uppercase tracking-[0.18em] text-muted-foreground" />
               <div className="flex flex-wrap gap-2">
                 {slots.map((s) => (
                   <Chip key={s.id} active={slot === s.id} onClick={() => setSlot(s.id)}>
                     {s.label}
                   </Chip>
                 ))}
-                <Chip>Another time</Chip>
+                <Chip>{t('arrange.anotherTime')}</Chip>
               </div>
             </div>
           </>

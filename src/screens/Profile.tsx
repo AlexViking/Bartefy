@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { AppShell } from '@/components/shell/AppShell'
+import { useT } from '@/i18n/T'
 import { UserAvatar } from '@/components/ui/user-avatar'
-import { ToneBadge, Tag } from '@/components/ui/badge'
+import { ToneBadge, Chip } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Stars } from '@/components/ui/stars'
 import { Stat } from '@/components/ui/stat'
@@ -21,6 +22,7 @@ type Tab = 'live' | 'paused' | 'eyeing'
 
 /** T3 - gallery. Identity, trust, then the finds. */
 export function Profile() {
+  const { t } = useT()
   const navigate = useNavigate()
   const userId = useAuthStore((s) => s.session?.user?.id)
   const tier = useMembershipStore((s) => s.tier)
@@ -84,7 +86,7 @@ export function Profile() {
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <div className="flex items-center gap-2.5">
               <h1 className="font-display text-2xl font-bold">{profileName}</h1>
-              {verified && <ToneBadge tone="green">Verified</ToneBadge>}
+              {verified && <ToneBadge tone="green">{t('profile.verified')}</ToneBadge>}
             </div>
             <div className="flex items-center gap-2">
               <Stars value={rating} />
@@ -94,9 +96,9 @@ export function Profile() {
             </div>
           </div>
           <div className="flex gap-6">
-            <Stat value={swapCount} label="Swaps" />
-            <Stat value={live.length} label="Finds live" />
-            <Stat value={eyeing.length} label="Eyeing" />
+            <Stat value={swapCount} label={t('profile.statSwaps')} />
+            <Stat value={live.length} label={t('profile.statLive')} />
+            <Stat value={eyeing.length} label={t('profile.statEyeing')} />
           </div>
         </div>
 
@@ -175,7 +177,7 @@ export function Profile() {
                   )}
                 </span>
                 <span className="truncate font-display text-base font-semibold">{it.title}</span>
-                {tab === 'paused' && <ToneBadge tone="quiet">Paused</ToneBadge>}
+                {tab === 'paused' && <ToneBadge tone="quiet">{t('profile.tabPaused')}</ToneBadge>}
               </button>
             ))}
           </div>
@@ -183,8 +185,8 @@ export function Profile() {
 
         {tab === 'live' && (
           <div className="mt-5 flex flex-wrap gap-2">
-            <Tag onSelect={() => navigate('/add')}>List another find</Tag>
-            <Tag onSelect={() => navigate('/settings')}>Settings</Tag>
+            <Chip onClick={() => navigate('/add')}>{t('profile.listAnother')}</Chip>
+            <Chip onClick={() => navigate('/settings')}>{t('settings.title')}</Chip>
           </div>
         )}
       </div>

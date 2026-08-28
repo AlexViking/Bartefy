@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AppShell } from '@/components/shell/AppShell'
+import { T, useT } from '@/i18n/T'
 import { ToneBadge, Chip } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { TextField } from '@/components/ui/field'
@@ -15,6 +16,7 @@ type Status = 'open' | 'reviewing' | 'resolved'
  *  A person decides every outcome; nothing here is automated.
  */
 export function ReportQueue() {
+  const { t } = useT()
   const [status, setStatus] = useState<Status>('open')
   const [selected, setSelected] = useState<string | null>('r1')
   const [note, setNote] = useState('')
@@ -52,7 +54,7 @@ export function ReportQueue() {
     <AppShell hideNav>
       <div className="mx-auto w-full max-w-[1160px] px-4 py-5">
         <div className="mb-4 flex items-baseline gap-3">
-          <h1 className="font-display text-2xl font-bold lg:text-h2">Reports</h1>
+          <T as="h1" k="admin.title" className="font-display text-h2 text-foreground" />
           <span className="font-body text-sm text-muted-foreground">
             Internal. Freeze first, decide slowly, tell both sides plainly.
           </span>
@@ -67,7 +69,7 @@ export function ReportQueue() {
         </div>
 
         {shown.length === 0 ? (
-          <EmptyState title="Nothing waiting" body="Every report in this state has been dealt with." />
+          <EmptyState title="admin.emptyTitle" body="admin.emptyBody" />
         ) : (
           <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
             {/* List */}
@@ -144,15 +146,15 @@ export function ReportQueue() {
                 </div>
 
                 <TextField
-                  label="Internal note"
-                  placeholder="What we saw in the thread, and what we told each side."
+                  label="admin.internalNote"
+                  placeholder="admin.notePlaceholder"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                 />
 
                 <div className="flex flex-wrap gap-2 border-t border-border/[0.14] pt-4">
-                  <Button>Unfreeze and let it finish</Button>
-                  <Button variant="accent">Cancel the swap, relist both</Button>
+                  <Button>{t('admin.unfreeze')}</Button>
+                  <Button variant="accent">{t('admin.cancelRelist')}</Button>
                   <Button variant="ghost">Warn {current.about.name}</Button>
                   <Button variant="ghost">Suspend {current.about.name}</Button>
                 </div>
