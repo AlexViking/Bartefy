@@ -51,5 +51,6 @@ export const keys = {
   offers: (swapId: string) => ['offers', swapId] as const,
   eyeing: (itemId: string) => ['eyeing', itemId] as const,
   profile: (userId: string) => ['profile', userId] as const,
+  reviews: (userId: string) => ['reviews', userId] as const,
   membership: (userId: string) => ['membership', userId] as const,
 }

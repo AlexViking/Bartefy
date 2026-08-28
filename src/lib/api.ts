@@ -139,6 +139,20 @@ export async function updateSwapStatus(
   return supabase.from('swaps').update(patch).eq('id', swapId).select()
 }
 
+/** The reviews behind someone's star average (migration 010).
+ *
+ *  The RPC returns only revealed ratings — blind-until-revealed is enforced in
+ *  SQL, not here — along with the average and total computed from that same
+ *  set, so the header can never disagree with the rows.
+ */
+export async function getUserReviews(userId: string, limit = 20, offset = 0) {
+  return supabase.rpc('get_user_reviews', {
+    p_user: userId,
+    p_limit: limit,
+    p_offset: offset,
+  })
+}
+
 // ── Chat (server-stored) ────────────────────────────────────────────────
 
 export async function getMessages(swapId: string) {

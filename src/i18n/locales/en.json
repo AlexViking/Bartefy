@@ -430,5 +430,16 @@
     "goodHelp": "Used gently. Nothing that would put anyone off.",
     "likeNew": "Like new",
     "likeNewHelp": "Barely touched, or never used at all."
+  },
+  "reviews": {
+    "title": "What people said",
+    "count": "{{count}} review",
+    "count_other": "{{count}} reviews",
+    "noneYet": "No reviews yet",
+    "emptyTitle": "No reviews yet",
+    "emptyBody": "Once a swap is done and both sides have rated, their words show up here.",
+    "failed": "Could not load the reviews. Try again in a moment.",
+    "fromCancelled": "From a swap that fell through",
+    "seeAll": "See reviews"
   }
 }
