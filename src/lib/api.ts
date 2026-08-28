@@ -266,7 +266,23 @@ export async function fileReport(input: {
 }
 
 export async function blockUser(blocker: string, blocked: string) {
-  return supabase.from('blocks').upsert({ blocker, blocked })
+  return supabase.from('blocks').upsert({ blocker, blocked }).select()
+}
+
+export async function unblockUser(blocker: string, blocked: string) {
+  return supabase.from('blocks').delete().eq('blocker', blocker).eq('blocked', blocked).select()
+}
+
+/** Everyone this person has blocked, newest first. RLS scopes `blocks` to the
+ *  blocker, so the filter here is belt and braces rather than load-bearing.
+ *  The profile join is a plain read: profiles_public_read allows it.
+ */
+export async function listBlocked(blocker: string) {
+  return supabase
+    .from('blocks')
+    .select('blocked, created_at, profile:profiles!blocked(id, name)')
+    .eq('blocker', blocker)
+    .order('created_at', { ascending: false })
 }
 
 // ── Membership ──────────────────────────────────────────────────────────────
