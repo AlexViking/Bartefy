@@ -1,7 +1,7 @@
-import logoUrl from '@/assets/bartefy-logo-lockup.png'
+import { Wordmark } from '@/components/Wordmark'
 import mapUrl from '@/assets/bartefy-bg-treasure-map.png'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
-import { T, useT } from '@/i18n/T'
+import { T } from '@/i18n/T'
 import { AuthForm } from './AuthForm'
 import { useAuthScreen } from './useAuth'
 
@@ -11,7 +11,6 @@ import { useAuthScreen } from './useAuth'
  */
 export default function AuthDesktop() {
   const a = useAuthScreen()
-  const { t } = useT()
 
   return (
     <div className="grid min-h-dvh grid-cols-2 bg-background">
@@ -23,7 +22,7 @@ export default function AuthDesktop() {
           backgroundPosition: 'center',
         }}
       >
-        <img src={logoUrl} alt={t('brand.name')} className="h-14 w-fit brightness-0 invert" />
+        <Wordmark on="dark" />
         <div className="max-w-[420px] space-y-4">
           <T as="h1" k="auth.welcomeTitle" className="font-display text-h2 text-primary-foreground" />
           <T

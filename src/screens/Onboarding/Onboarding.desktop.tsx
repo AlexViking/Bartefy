@@ -1,5 +1,5 @@
 import mapUrl from '@/assets/bartefy-bg-treasure-map.png'
-import logoUrl from '@/assets/bartefy-logo-lockup.png'
+import { Wordmark } from '@/components/Wordmark'
 import { Button } from '@/components/ui/button'
 import { FlowSteps } from '@/components/guidance/FlowSteps'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
@@ -26,7 +26,7 @@ export default function OnboardingDesktop() {
           backgroundPosition: 'center',
         }}
       >
-        <img src={logoUrl} alt={t('brand.name')} className="h-14 w-fit brightness-0 invert" />
+        <Wordmark on="dark" />
         <div className="max-w-[420px] space-y-3">
           <T as="h2" k="auth.welcomeTitle" className="font-display text-h2 text-primary-foreground" />
           <T

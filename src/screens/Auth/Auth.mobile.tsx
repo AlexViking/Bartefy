@@ -1,7 +1,7 @@
-import logoUrl from '@/assets/bartefy-logo-lockup.png'
+import { Wordmark } from '@/components/Wordmark'
 import mapUrl from '@/assets/bartefy-bg-treasure-map.png'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
-import { T, useT } from '@/i18n/T'
+import { T } from '@/i18n/T'
 import { AuthForm } from './AuthForm'
 import { useAuthScreen } from './useAuth'
 
@@ -10,7 +10,6 @@ import { useAuthScreen } from './useAuth'
  */
 export default function AuthMobile() {
   const a = useAuthScreen()
-  const { t } = useT()
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
@@ -25,7 +24,7 @@ export default function AuthMobile() {
         <div className="absolute right-3 top-3">
           <LanguageSwitcher className="text-primary-foreground hover:bg-primary-foreground/10" />
         </div>
-        <img src={logoUrl} alt={t('brand.name')} className="h-14 brightness-0 invert" />
+        <Wordmark on="dark" />
         <T
           as="h1"
           k="auth.welcomeTitle"
