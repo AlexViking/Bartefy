@@ -142,19 +142,25 @@ export function Settings() {
         </Section>
 
         <Section title="settings.membership">
-          <Row
-            label="membership.title"
-            control={
-              <div className="flex items-center gap-2">
-                <ToneBadge tone={tier === 'free' ? 'quiet' : 'green'}>
-                  {t(`membership.tier${tier.charAt(0).toUpperCase()}${tier.slice(1)}`)}
-                </ToneBadge>
-                <Button variant="ghost" size="sm" onClick={() => navigate('/membership')}>
-                  {t('membership.manage')}
-                </Button>
-              </div>
-            }
-          />
+          {/* Label, badge and button do not fit one phone-width row, so this
+              one stacks rather than truncating the label to "Mem…". */}
+          <div className="flex flex-col gap-2 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <T as="p" k="membership.title" className="font-body text-base text-foreground" />
+              <ToneBadge tone={tier === 'free' ? 'quiet' : 'green'}>
+                {t(`membership.tier${tier.charAt(0).toUpperCase()}${tier.slice(1)}`)}
+              </ToneBadge>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/membership')}
+              className="self-start"
+              data-i18n="membership.manage"
+            >
+              {t('membership.manage')}
+            </Button>
+          </div>
           <Separator />
           <div className="px-4 py-3">
             <div className="flex items-center gap-1.5">
@@ -175,7 +181,7 @@ export function Settings() {
 
         <Section title="settings.notifications">
           <Row
-            label="hunt.matchTitle"
+            label="settings.notifMatch"
             control={
               <Switch
                 checked={notifMatch}
@@ -188,7 +194,7 @@ export function Settings() {
           />
           <Separator />
           <Row
-            label="chat.placeholder"
+            label="settings.notifMessage"
             control={
               <Switch
                 checked={notifPush}
@@ -201,7 +207,7 @@ export function Settings() {
           />
           <Separator />
           <Row
-            label="auth.emailLabel"
+            label="settings.notifEmail"
             control={
               <Switch
                 checked={notifEmail}
@@ -216,8 +222,8 @@ export function Settings() {
 
         <Section title="stuck.title">
           <Row
-            label="common.moreInfo"
-            help="onboarding.step1Body"
+            label="settings.replayTips"
+            help="settings.replayTipsHelp"
             control={
               <Button
                 variant="ghost"

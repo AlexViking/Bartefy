@@ -264,7 +264,12 @@
     "blocked": "Blocked people",
     "membership": "Membership",
     "deleteAccount": "Delete account",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "notifMatch": "When something is a bartefy",
+    "notifMessage": "New messages",
+    "notifEmail": "Email me a summary",
+    "replayTips": "Show the guidance again",
+    "replayTipsHelp": "Replays the welcome tour and brings back every tip you dismissed."
   },
   "help": {
     "whatIsBartefy": "Bartefy is a straight swap: your item for theirs. No money changes hands.",
