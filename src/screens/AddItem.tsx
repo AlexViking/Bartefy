@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { AppShell } from '@/components/AppShell'
+import { AppShell } from '@/components/shell/AppShell'
 import { Button } from '@/components/ui/button'
-import { Input, Textarea } from '@/components/ui/input'
-import { Tag } from '@/components/ui/badge'
+import { Field, TextField } from '@/components/ui/field'
+import { Chip } from '@/components/ui/badge'
 import { PhotoWell, PhotoWellGrid, type PhotoState } from '@/components/ui/photo-well'
 import { useMembershipStore } from '@/store/membership'
 import { UpgradeSheet } from '@/components/membership/UpgradeSheet'
@@ -44,7 +44,7 @@ export function AddItem() {
   }
 
   return (
-    <AppShell hideTabBar>
+    <AppShell hideNav>
       <div className="mx-auto flex w-full max-w-[560px] flex-col gap-5 px-4 py-6">
         <div className="flex flex-col gap-2.5">
           <div className="h-2 overflow-hidden rounded-pill bg-secondary">
@@ -84,8 +84,8 @@ export function AddItem() {
         {step === 2 && (
           <div className="flex flex-col gap-4">
             <h1 className="font-display text-2xl font-bold leading-tight lg:text-h2">What is it?</h1>
-            <Input label="Name it" placeholder="Pentax ME Super" value={title} onChange={(e) => setTitle(e.target.value)} />
-            <Textarea
+            <Field label="Name it" placeholder="Pentax ME Super" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <TextField
               label="Tell its story (optional)"
               placeholder="Light seals redone last spring. Comes with the 50mm."
               value={description}
@@ -95,9 +95,9 @@ export function AddItem() {
               <span className="font-display text-sm font-semibold">Category</span>
               <div className="flex flex-wrap gap-2">
                 {CATEGORIES.map((c) => (
-                  <Tag key={c} active={category === c} onSelect={() => setCategory(c)}>
+                  <Chip key={c} active={category === c} onClick={() => setCategory(c)}>
                     {c}
-                  </Tag>
+                  </Chip>
                 ))}
               </div>
             </div>
@@ -105,9 +105,9 @@ export function AddItem() {
               <span className="font-display text-sm font-semibold">Condition</span>
               <div className="flex flex-wrap gap-2">
                 {CONDITIONS.map((c) => (
-                  <Tag key={c} active={condition === c} onSelect={() => setCondition(c)}>
+                  <Chip key={c} active={condition === c} onClick={() => setCondition(c)}>
                     {c}
-                  </Tag>
+                  </Chip>
                 ))}
               </div>
             </div>
@@ -124,13 +124,13 @@ export function AddItem() {
             </p>
             <div className="flex flex-wrap gap-2">
               {['Film lenses', 'Vinyl', 'Anything wool', 'Books', 'Plants', 'Surprise me'].map((w) => (
-                <Tag
+                <Chip
                   key={w}
                   active={wants.includes(w)}
-                  onSelect={() => setWants((f) => (f.includes(w) ? f.filter((x) => x !== w) : [...f, w]))}
+                  onClick={() => setWants((f) => (f.includes(w) ? f.filter((x) => x !== w) : [...f, w]))}
                 >
                   {w}
-                </Tag>
+                </Chip>
               ))}
             </div>
           </div>

@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { AppShell } from '@/components/AppShell'
-import { Avatar } from '@/components/ui/avatar'
-import { Badge, Tag } from '@/components/ui/badge'
+import { AppShell } from '@/components/shell/AppShell'
+import { UserAvatar } from '@/components/ui/user-avatar'
+import { ToneBadge, Tag } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Stars } from '@/components/ui/stars'
 import { Stat } from '@/components/ui/stat'
@@ -80,11 +80,11 @@ export function Profile() {
       <div className="mx-auto w-full max-w-[1160px] px-4 py-5">
         {/* Identity */}
         <div className="flex flex-col gap-4 rounded border border-border/[0.14] bg-card p-5 shadow-card lg:flex-row lg:items-center">
-          <Avatar name={profileName} size={72} verified={verified} />
+          <UserAvatar name={profileName} size="xl" verified={verified} />
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <div className="flex items-center gap-2.5">
               <h1 className="font-display text-2xl font-bold">{profileName}</h1>
-              {verified && <Badge tone="green">Verified</Badge>}
+              {verified && <ToneBadge tone="green">Verified</ToneBadge>}
             </div>
             <div className="flex items-center gap-2">
               <Stars value={rating} />
@@ -175,7 +175,7 @@ export function Profile() {
                   )}
                 </span>
                 <span className="truncate font-display text-base font-semibold">{it.title}</span>
-                {tab === 'paused' && <Badge tone="quiet">Paused</Badge>}
+                {tab === 'paused' && <ToneBadge tone="quiet">Paused</ToneBadge>}
               </button>
             ))}
           </div>

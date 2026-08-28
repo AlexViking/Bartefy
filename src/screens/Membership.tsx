@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { AppShell } from '@/components/AppShell'
-import { Badge } from '@/components/ui/badge'
+import { AppShell } from '@/components/shell/AppShell'
+import { ToneBadge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { TIERS } from '@/lib/membership'
 import { useMembershipStore } from '@/store/membership'
@@ -43,8 +43,8 @@ export function Membership() {
               >
                 <div className="flex items-baseline gap-2.5">
                   <h2 className={cn('font-display text-h3', featured && 'text-primary-foreground')}>{t.name}</h2>
-                  {featured && <Badge tone="brass">Most people</Badge>}
-                  {isCurrent && !featured && <Badge tone="quiet">Current</Badge>}
+                  {featured && <ToneBadge tone="brass">Most people</ToneBadge>}
+                  {isCurrent && !featured && <ToneBadge tone="quiet">Current</ToneBadge>}
                 </div>
 
                 <div className="font-display text-[34px] font-bold leading-none">{t.priceLabel}</div>

@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { AppShell } from '@/components/AppShell'
-import { Badge, Tag } from '@/components/ui/badge'
+import { AppShell } from '@/components/shell/AppShell'
+import { ToneBadge, Chip } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/input'
+import { TextField } from '@/components/ui/field'
 import { OwnerRow } from '@/components/swap/OwnerRow'
 import { SwapPair } from '@/components/swap/SwapPair'
 import { EmptyState } from '@/components/EmptyState'
@@ -49,7 +49,7 @@ export function ReportQueue() {
   const current = shown.find((r) => r.id === selected) ?? shown[0]
 
   return (
-    <AppShell hideTabBar>
+    <AppShell hideNav>
       <div className="mx-auto w-full max-w-[1160px] px-4 py-5">
         <div className="mb-4 flex items-baseline gap-3">
           <h1 className="font-display text-2xl font-bold lg:text-h2">Reports</h1>
@@ -60,9 +60,9 @@ export function ReportQueue() {
 
         <div className="mb-4 flex gap-2">
           {(['open', 'reviewing', 'resolved'] as Status[]).map((s) => (
-            <Tag key={s} active={status === s} onSelect={() => setStatus(s)}>
+            <Chip key={s} active={status === s} onClick={() => setStatus(s)}>
               {s}
-            </Tag>
+            </Chip>
           ))}
         </div>
 
@@ -88,7 +88,7 @@ export function ReportQueue() {
                       <span className="flex-1 truncate font-display text-[15px] font-semibold">
                         {r.reason.replace(/_/g, ' ')}
                       </span>
-                      {r.priorReports > 1 && <Badge tone="terracotta">{r.priorReports} prior</Badge>}
+                      {r.priorReports > 1 && <ToneBadge tone="evidence">{r.priorReports} prior</ToneBadge>}
                     </span>
                     <span className="mt-1 block truncate font-body text-sm text-muted-foreground">
                       {r.filedBy.name} about {r.about.name} {'\u00b7'} {r.when}
@@ -103,7 +103,7 @@ export function ReportQueue() {
               <section className="flex flex-col gap-4 rounded border border-border/[0.14] bg-card p-5 shadow-card">
                 <div className="flex flex-wrap items-center gap-2.5">
                   <h2 className="font-display text-h3 capitalize">{current.reason.replace(/_/g, ' ')}</h2>
-                  <Badge tone={current.status === 'open' ? 'brass' : 'quiet'}>{current.status}</Badge>
+                  <ToneBadge tone={current.status === 'open' ? 'brass' : 'quiet'}>{current.status}</ToneBadge>
                   <span className="ml-auto font-body text-sm text-muted-foreground">{current.when}</span>
                 </div>
 
@@ -143,7 +143,7 @@ export function ReportQueue() {
                   )}
                 </div>
 
-                <Textarea
+                <TextField
                   label="Internal note"
                   placeholder="What we saw in the thread, and what we told each side."
                   value={note}

@@ -20,3 +20,7 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
 Input.displayName = "Input"
 
 export { Input }
+
+/** Textarea lives in its own shadcn file; re-exported here because Bartefy
+ *  screens import both from one place. */
+export { Textarea } from "./textarea"

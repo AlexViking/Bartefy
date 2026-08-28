@@ -5,7 +5,7 @@ import { Button } from '../components/Button'
 import { Toggle } from '../components/Toggle'
 import { Sheet } from '../components/Sheet'
 import { CityPicker } from './CityPicker'
-import { DesktopNav } from '../components/DesktopNav'
+import { TopNav } from '@/components/shell/TopNav'
 import { useAuthStore } from '../store/auth'
 import { getProfile, updateProfile, signOut } from '../lib/api'
 import { supabase } from '../lib/supabase'
@@ -141,7 +141,7 @@ export function Settings() {
 
   return (
     <main style={{ minHeight: '100dvh', background: 'var(--surface-page)', display: 'flex', flexDirection: 'column' }}>
-      <DesktopNav />
+      <TopNav />
       <header className="mobile-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 20px' }}>
         <button
           onClick={() => navigate(-1)}

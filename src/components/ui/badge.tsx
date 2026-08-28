@@ -34,3 +34,7 @@ function Badge({ className, variant, ...props }: BadgeProps) {
 }
 
 export { Badge, badgeVariants }
+
+/** Bartefy's tone-based status pill and selectable chip. shadcn's Badge
+ *  stays above, untouched, for anything that wants the stock variants. */
+export { ToneBadge, ToneBadge as Tag, Chip } from "./tone-badge"

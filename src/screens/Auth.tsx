@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router'
 import bgUrl from '@/assets/bartefy-bg-treasure-map.png'
 import logoUrl from '@/assets/bartefy-logo-lockup.png'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Field } from '@/components/ui/field'
 import { requestOTP } from '@/lib/api'
 
 /** Auth screen — sign-in via magic link (email OTP).
@@ -193,7 +193,7 @@ export function Auth() {
 
             <Divider />
 
-            <Input
+            <Field
               label="Email"
               type="email"
               placeholder="you@example.com"
@@ -202,7 +202,7 @@ export function Auth() {
               error={error ?? undefined}
             />
 
-            <Input
+            <Field
               label="Password"
               type="password"
               placeholder="••••••••"
@@ -270,7 +270,7 @@ export function Auth() {
             </div>
           </div>
 
-          <Input
+          <Field
             label="Email"
             type="email"
             placeholder="you@example.com"
@@ -279,7 +279,7 @@ export function Auth() {
             error={error ?? undefined}
           />
 
-          <Input
+          <Field
             label="Password"
             type="password"
             placeholder="••••••••"

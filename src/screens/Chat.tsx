@@ -5,7 +5,7 @@ import { Avatar } from '../components/Avatar'
 import { Card } from '../components/Card'
 import { Button } from '../components/Button'
 import { Sheet } from '../components/Sheet'
-import { DesktopNav } from '../components/DesktopNav'
+import { TopNav } from '@/components/shell/TopNav'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/auth'
 import { useChatStore, type ChatMessage } from '../store/chat'
@@ -179,7 +179,7 @@ function ChatInner() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', background: 'var(--surface-page)', overflow: 'hidden' }}>
-      <DesktopNav />
+      <TopNav />
       <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, maxWidth: 720, width: '100%', margin: '0 auto' }}>
       {/* Header */}
       <header

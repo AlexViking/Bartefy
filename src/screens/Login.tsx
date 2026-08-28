@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '../components/Button'
-import { Input } from '../components/Input'
+import { Field } from '@/components/ui/field'
 import { useAuthStore } from '../store/auth'
 import { requestOTP } from '../lib/api'
 import bgUrl from '../assets/bartefy-bg-treasure-map.png'
@@ -72,7 +72,7 @@ export function Login() {
           Enter your email and we'll send you a magic link to sign in.
         </p>
 
-        <Input
+        <Field
           label="Email"
           type="email"
           placeholder="you@somewhere.com"

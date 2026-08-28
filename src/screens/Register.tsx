@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { ArrowLeft, ChevronDown, MapPin } from 'lucide-react'
 import { Button } from '../components/Button'
-import { Input } from '../components/Input'
+import { Field } from '@/components/ui/field'
 import { Sheet } from '../components/Sheet'
 import { CityPicker } from './CityPicker'
 import { useAuthStore } from '../store/auth'
@@ -88,7 +88,7 @@ export function Register() {
           </div>
         )}
 
-        <Input
+        <Field
           label="Email"
           type="email"
           placeholder="you@somewhere.com"

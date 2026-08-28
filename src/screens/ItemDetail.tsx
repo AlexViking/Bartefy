@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { AppShell } from '@/components/AppShell'
-import { Badge } from '@/components/ui/badge'
+import { AppShell } from '@/components/shell/AppShell'
+import { ToneBadge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { OwnerRow } from '@/components/swap/OwnerRow'
@@ -98,7 +98,7 @@ export function ItemDetail() {
                 <Icon name="ChevronLeft" size={18} />
               </button>
               <div className="absolute left-3.5 top-3.5 hidden lg:block">
-                <Badge tone="brass">{item.condition}</Badge>
+                <ToneBadge tone="brass">{item.condition}</ToneBadge>
               </div>
               <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5 lg:hidden">
                 {(hasRealPhotos ? photos : placeholderColors).map((_, i) => (

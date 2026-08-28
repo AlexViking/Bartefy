@@ -1,6 +1,6 @@
 import { useNavigate, useSearchParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { AppShell } from '@/components/AppShell'
+import { AppShell } from '@/components/shell/AppShell'
 import { EmptyState } from '@/components/EmptyState'
 import { StatusRow } from '@/components/swap/StatusRow'
 import { cn } from '@/lib/utils'

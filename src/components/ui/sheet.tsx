@@ -136,3 +136,7 @@ export {
   SheetTitle,
   SheetDescription,
 }
+
+/** Bartefy composes shadcn's Sheet and Dialog into one platform-aware
+ *  component. See responsive-sheet.tsx. */
+export { ResponsiveSheet, type ResponsiveSheetProps } from "./responsive-sheet"

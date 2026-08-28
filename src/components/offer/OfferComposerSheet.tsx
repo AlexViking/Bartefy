@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ResponsiveSheet } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/input'
+import { TextField } from '@/components/ui/field'
 import { PhotoWell, PhotoWellGrid } from '@/components/ui/photo-well'
 import { cn } from '@/lib/utils'
 import type { ItemRef } from '@/types/swap'
@@ -137,7 +137,7 @@ export function OfferComposerSheet({
           </p>
         </div>
 
-        <Textarea
+        <TextField
           label="Say something (optional)"
           placeholder="The scarf is hand-knit - happy to meet at Rose Market."
           value={note}

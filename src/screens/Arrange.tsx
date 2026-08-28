@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
-import { AppShell } from '@/components/AppShell'
-import { Badge } from '@/components/ui/badge'
+import { AppShell } from '@/components/shell/AppShell'
+import { ToneBadge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Tag } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
+import { Chip } from '@/components/ui/badge'
+import { Field } from '@/components/ui/field'
 import { cn } from '@/lib/utils'
 
 /** S3 / F4 - T4 guided step. Safety is a default, not a warning banner:
@@ -92,10 +92,10 @@ export function Arrange() {
                     <span className="block truncate font-display text-[15px] font-semibold">{s.name}</span>
                     <span className="block truncate font-body text-sm text-muted-foreground">{s.meta}</span>
                   </span>
-                  {s.even && <Badge tone="green">Even walk</Badge>}
+                  {s.even && <ToneBadge tone="green">Even walk</ToneBadge>}
                 </button>
               ))}
-              <Input
+              <Field
                 placeholder="Or type a place"
                 value={customSpot}
                 onChange={(e) => setCustomSpot(e.target.value)}
@@ -107,11 +107,11 @@ export function Arrange() {
               <span className="font-display text-caption uppercase tracking-[0.18em] text-muted-foreground">When</span>
               <div className="flex flex-wrap gap-2">
                 {slots.map((s) => (
-                  <Tag key={s.id} active={slot === s.id} onSelect={() => setSlot(s.id)}>
+                  <Chip key={s.id} active={slot === s.id} onClick={() => setSlot(s.id)}>
                     {s.label}
-                  </Tag>
+                  </Chip>
                 ))}
-                <Tag>Another time</Tag>
+                <Chip>Another time</Chip>
               </div>
             </div>
           </>

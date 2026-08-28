@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { AppShell } from '@/components/AppShell'
+import { AppShell } from '@/components/shell/AppShell'
 import { EmptyState } from '@/components/EmptyState'
 import { Input } from '@/components/ui/input'
-import { Tag, Badge } from '@/components/ui/badge'
+import { Chip, ToneBadge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/store/auth'
 import { searchItems } from '@/lib/api'
@@ -73,13 +73,13 @@ export function Browse() {
           />
           <div className="flex flex-wrap gap-1.5">
             {CATEGORIES.map((c) => (
-              <Tag
+              <Chip
                 key={c}
                 active={cats.includes(c)}
-                onSelect={() => setCats((f) => (f.includes(c) ? f.filter((x) => x !== c) : [...f, c]))}
+                onClick={() => setCats((f) => (f.includes(c) ? f.filter((x) => x !== c) : [...f, c]))}
               >
                 {c}
-              </Tag>
+              </Chip>
             ))}
           </div>
         </div>
@@ -111,9 +111,9 @@ export function Browse() {
                       <img src={r.photoUrl} alt={r.title} className="h-full w-full object-cover" />
                     )}
                     {r.isNew && (
-                      <Badge tone="brass" className="absolute left-2 top-2">
+                      <ToneBadge tone="brass" className="absolute left-2 top-2">
                         New find
-                      </Badge>
+                      </ToneBadge>
                     )}
                   </span>
                   <span className="font-display text-base font-semibold">{r.title}</span>
