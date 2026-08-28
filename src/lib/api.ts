@@ -39,7 +39,10 @@ export async function insertItem(item: {
   user_id: string
   title: string
   description: string
+  /** The primary pick. Feed and search filter on this single column. */
   category: string
+  /** Every category picked, primary first (migration 009). */
+  categories: string[]
   condition: number
   wants_in_return: string[]
   images: string[]

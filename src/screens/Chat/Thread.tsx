@@ -74,11 +74,12 @@ export function Thread({ c }: { c: ReturnType<typeof useChat> }) {
         />
         <Button
           size="icon"
+          pill
           onClick={() => void c.send()}
           disabled={!c.input.trim() || c.sending}
           aria-label={t('chat.send')}
         >
-          <Send aria-hidden="true" />
+          <Send aria-hidden="true" className="size-5" />
         </Button>
       </div>
     </>
