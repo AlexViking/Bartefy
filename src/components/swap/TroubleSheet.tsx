@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ResponsiveSheet } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/input'
+import { TextField } from '@/components/ui/field'
 import { PhotoWell, PhotoWellGrid } from '@/components/ui/photo-well'
 import { cn } from '@/lib/utils'
 
@@ -117,7 +117,7 @@ export function TroubleSheet({
             </div>
           )}
 
-          <Textarea
+          <TextField
             label="Anything we should know?"
             placeholder="The lens mount was cracked."
             value={note}

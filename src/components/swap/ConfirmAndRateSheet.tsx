@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ResponsiveSheet } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { Tag } from '@/components/ui/badge'
+import { Chip } from '@/components/ui/badge'
 import { StarsInput } from '@/components/ui/stars'
 import { Icon } from '@/components/ui/icon'
 import { SwapPair } from './SwapPair'
@@ -76,9 +76,9 @@ export function ConfirmAndRateSheet({
             <StarsInput value={stars} onChange={setStars} />
             <div className="flex flex-wrap gap-2">
               {RATING_TAGS.map((t) => (
-                <Tag key={t} active={tags.includes(t)} onSelect={() => toggleTag(t)}>
+                <Chip key={t} active={tags.includes(t)} onClick={() => toggleTag(t)}>
                   {t}
-                </Tag>
+                </Chip>
               ))}
             </div>
             <p className="font-body text-sm text-muted-foreground">

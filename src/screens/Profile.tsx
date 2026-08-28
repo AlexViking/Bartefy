@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { AppShell } from '@/components/AppShell'
-import { Avatar } from '@/components/ui/avatar'
-import { Badge, Tag } from '@/components/ui/badge'
+import { AppShell } from '@/components/shell/AppShell'
+import { useT } from '@/i18n/T'
+import { useIsDesktop } from '@/lib/platform'
+import { UserAvatar } from '@/components/ui/user-avatar'
+import { ToneBadge, Chip } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Stars } from '@/components/ui/stars'
 import { Stat } from '@/components/ui/stat'
@@ -21,6 +23,8 @@ type Tab = 'live' | 'paused' | 'eyeing'
 
 /** T3 - gallery. Identity, trust, then the finds. */
 export function Profile() {
+  const { t } = useT()
+  const isDesktop = useIsDesktop()
   const navigate = useNavigate()
   const userId = useAuthStore((s) => s.session?.user?.id)
   const tier = useMembershipStore((s) => s.tier)
@@ -79,24 +83,28 @@ export function Profile() {
     <AppShell>
       <div className="mx-auto w-full max-w-[1160px] px-4 py-5">
         {/* Identity */}
-        <div className="flex flex-col gap-4 rounded border border-border/[0.14] bg-card p-5 shadow-card lg:flex-row lg:items-center">
-          <Avatar name={profileName} size={72} verified={verified} />
+        <div className={cn(
+            'flex flex-col gap-4 rounded border border-border/[0.14] bg-card p-5 shadow-card',
+            isDesktop && 'flex-row items-center',
+          )}>
+          <UserAvatar name={profileName} size="xl" verified={verified} />
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <div className="flex items-center gap-2.5">
-              <h1 className="font-display text-2xl font-bold">{profileName}</h1>
-              {verified && <Badge tone="green">Verified</Badge>}
+              <h1 className="font-display text-h2 text-foreground">{profileName}</h1>
+              {verified && <ToneBadge tone="green">{t('profile.verified')}</ToneBadge>}
             </div>
             <div className="flex items-center gap-2">
               <Stars value={rating} />
               <span className="font-body text-sm text-muted-foreground">
-                {rating.toFixed(1)} {'\u00b7'} {city} {memberSince ? `\u00b7 swapping since ${memberSince}` : ''}
+                {rating.toFixed(1)} {'\u00b7'} {city}
+                {memberSince ? ` \u00b7 ${t('profile.memberSince', { date: memberSince })}` : ''}
               </span>
             </div>
           </div>
           <div className="flex gap-6">
-            <Stat value={swapCount} label="Swaps" />
-            <Stat value={live.length} label="Finds live" />
-            <Stat value={eyeing.length} label="Eyeing" />
+            <Stat value={swapCount} label={t('profile.statSwaps')} />
+            <Stat value={live.length} label={t('profile.statLive')} />
+            <Stat value={eyeing.length} label={t('profile.statEyeing')} />
           </div>
         </div>
 
@@ -142,20 +150,24 @@ export function Profile() {
         {shown.length === 0 ? (
           <EmptyState
             title={
-              tab === 'live' ? 'Nothing in the hunt yet' : tab === 'paused' ? 'Nothing paused' : 'Nothing saved yet'
+              tab === 'live'
+                ? 'profile.emptyFindsTitle'
+                : tab === 'paused'
+                  ? 'profile.emptyPausedTitle'
+                  : 'profile.emptyEyeingTitle'
             }
             body={
               tab === 'live'
-                ? 'List one thing and the feed starts working both ways.'
+                ? 'profile.emptyFindsBody'
                 : tab === 'paused'
-                  ? 'Finds you park land here. They keep their photos and story.'
-                  : 'Save a find while you think about it - it will be here.'
+                  ? 'profile.emptyPausedBody'
+                  : 'profile.emptyEyeingBody'
             }
-            actionLabel={tab === 'live' ? 'List a find' : tab === 'eyeing' ? 'Start hunting' : undefined}
+            actionLabel={tab === 'live' ? 'nav.add' : tab === 'eyeing' ? 'swaps.goHunt' : undefined}
             onAction={() => navigate(tab === 'live' ? '/add' : '/hunt')}
           />
         ) : (
-          <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className={cn('mt-4 grid gap-3', isDesktop ? 'grid-cols-4' : 'grid-cols-2')}>
             {shown.map((it) => (
               <button
                 key={it.id}
@@ -171,11 +183,16 @@ export function Profile() {
                   style={{ background: it.photoColor }}
                 >
                   {it.photoUrl && (
-                    <img src={it.photoUrl} alt={it.title} className="h-full w-full object-cover" />
+                    <img
+                      src={it.photoUrl}
+                      alt={t('a11y.photoOf', { title: it.title })}
+                      loading="lazy"
+                      className="size-full object-cover"
+                    />
                   )}
                 </span>
                 <span className="truncate font-display text-base font-semibold">{it.title}</span>
-                {tab === 'paused' && <Badge tone="quiet">Paused</Badge>}
+                {tab === 'paused' && <ToneBadge tone="quiet">{t('profile.tabPaused')}</ToneBadge>}
               </button>
             ))}
           </div>
@@ -183,8 +200,8 @@ export function Profile() {
 
         {tab === 'live' && (
           <div className="mt-5 flex flex-wrap gap-2">
-            <Tag onSelect={() => navigate('/add')}>List another find</Tag>
-            <Tag onSelect={() => navigate('/settings')}>Settings</Tag>
+            <Chip onClick={() => navigate('/add')}>{t('profile.listAnother')}</Chip>
+            <Chip onClick={() => navigate('/settings')}>{t('settings.title')}</Chip>
           </div>
         )}
       </div>

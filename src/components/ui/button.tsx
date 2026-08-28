@@ -1,21 +1,24 @@
-import * as React from 'react';
-import { Slot } from '@radix-ui/react-slot';
-import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from '@/lib/utils';
+import * as React from 'react'
+import { Slot } from '@radix-ui/react-slot'
+import { cva, type VariantProps } from 'class-variance-authority'
 
-/** Drop-in replacement for src/components/Button.tsx — same prop names, so no
- *  screen needs editing. Two real changes:
+import { cn } from '@/lib/utils'
+
+/** shadcn Button, branded for Bartefy.
  *
- *  1. `danger` is gone. Bartefy has no red buttons; destructive actions are
- *     ghost buttons with plain copy ("Something's wrong"). Passing it falls
- *     back to ghost and warns in dev.
- *  2. Hover and press actually darken (the old inline styles could only fade
- *     opacity), matching the brand's hover/press rules.
+ *  The stock shadcn variant set is replaced by the three the brand allows:
+ *  primary (green), accent (brass), ghost (outline). There is deliberately no
+ *  `destructive` — Bartefy has no red buttons; a destructive action is a ghost
+ *  button with plain copy ("Something's wrong").
+ *
+ *  Stock shadcn names are kept as aliases so components copied from the shadcn
+ *  registry keep working: default → primary, outline/secondary → ghost.
  */
 const buttonVariants = cva(
   'inline-flex items-center justify-center gap-2 whitespace-nowrap font-display font-semibold ' +
     'transition-colors duration-fast ease-brand focus-visible:outline-none focus-visible:ring-[3px] ' +
-    'focus-visible:ring-ring/45 disabled:cursor-not-allowed disabled:opacity-50',
+    'focus-visible:ring-ring/45 disabled:cursor-not-allowed disabled:opacity-60 ' +
+    '[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
@@ -25,44 +28,54 @@ const buttonVariants = cva(
           'bg-accent text-accent-foreground hover:bg-[var(--brass-hover)] active:bg-[#DCA968]',
         ghost:
           'border-[1.5px] border-border/[0.14] text-foreground hover:bg-foreground/[0.06] active:bg-foreground/[0.10]',
+        link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {
         sm: 'min-h-9 px-4 text-sm',
         md: 'min-h-hit px-6 text-base',
         lg: 'min-h-[52px] px-8 text-[17px]',
+        icon: 'size-hit shrink-0',
       },
       pill: { true: 'rounded-pill', false: 'rounded' },
       fullWidth: { true: 'w-full' },
     },
     defaultVariants: { variant: 'primary', size: 'md', pill: true },
   },
-);
+)
 
-type Variant = 'primary' | 'ghost' | 'accent' | 'danger';
+/** What callers may pass. The right-hand names are legacy aliases. */
+type ButtonVariant = 'primary' | 'accent' | 'ghost' | 'link' | 'default' | 'outline' | 'secondary' | 'destructive'
+
+const VARIANT_ALIASES: Record<string, 'primary' | 'accent' | 'ghost' | 'link'> = {
+  default: 'primary',
+  outline: 'ghost',
+  secondary: 'ghost',
+  destructive: 'ghost',
+}
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     Omit<VariantProps<typeof buttonVariants>, 'variant'> {
-  variant?: Variant;
-  asChild?: boolean;
+  variant?: ButtonVariant
+  asChild?: boolean
 }
 
-export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size, pill, fullWidth, asChild = false, ...props }, ref) => {
-    if (import.meta.env.DEV && variant === 'danger') {
-      console.warn('[Button] `danger` is deprecated — use variant="ghost" with plain copy.');
+    if (import.meta.env.DEV && variant === 'destructive') {
+      console.warn('[Button] Bartefy has no red buttons — use variant="ghost" with plain copy.')
     }
-    const safeVariant = variant === 'danger' ? 'ghost' : variant;
-    const Comp = asChild ? Slot : 'button';
+    const resolved = VARIANT_ALIASES[variant] ?? (variant as 'primary' | 'accent' | 'ghost' | 'link')
+    const Comp = asChild ? Slot : 'button'
     return (
       <Comp
         ref={ref}
-        className={cn(buttonVariants({ variant: safeVariant, size, pill, fullWidth }), className)}
+        className={cn(buttonVariants({ variant: resolved, size, pill, fullWidth }), className)}
         {...props}
       />
-    );
+    )
   },
-);
-Button.displayName = 'Button';
+)
+Button.displayName = 'Button'
 
-export { buttonVariants };
+export { Button, buttonVariants }

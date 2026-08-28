@@ -22,7 +22,7 @@ export function UpgradeSheet({
   const collector = tierOf('collector')
 
   return (
-    <ResponsiveSheet open={open} onOpenChange={onOpenChange} title={copy.title} height="58%">
+    <ResponsiveSheet open={open} onOpenChange={onOpenChange} title={copy.title}>
       <div className="flex flex-col gap-4">
         <p className="font-body text-[17px] leading-relaxed">{copy.body}</p>
 
