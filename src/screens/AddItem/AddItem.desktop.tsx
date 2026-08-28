@@ -37,7 +37,7 @@ export default function AddItemDesktop() {
               {t('add.notNow')}
             </Button>
             {!a.hasPhoto && (
-              <T as="p" k="add.photoStepHelp" className="font-body text-sm text-muted-foreground" />
+              <T as="p" k="add.photosTitle" className="font-body text-sm text-muted-foreground" />
             )}
           </div>
         </section>
