@@ -36,7 +36,9 @@ export function StatusRow({
   className?: string
 }) {
   const { t } = useT()
-  const meta = TONES[status]
+  // A status this build does not know about must never blank the screen: an
+  // unrecognised value renders as a quiet, neutral row instead of throwing.
+  const meta = TONES[status] ?? TONES.new
   const dimmed = status === 'done' || status === 'cancelled'
 
   return (

@@ -101,13 +101,17 @@ export async function recordSwipe({ targetItemId, targetOwnerId, isLike }: {
 
 // ── Swaps ───────────────────────────────────────────────────────────────────
 
+/** Every swap you are part of, open and closed alike.
+ *
+ *  Closed swaps are deliberately NOT filtered out here: the inbox has a
+ *  "closed" tab, and excluding them server-side left that tab permanently
+ *  empty. The split between active and closed happens in useSwapsInbox.
+ */
 export async function getMySwaps(userId: string) {
   return supabase
     .from('swaps')
     .select('*, item_a:item_a_id(*), item_b:item_b_id(*)')
     .or(`user_a_id.eq.${userId},user_b_id.eq.${userId}`)
-    .neq('status', 'completed')
-    .neq('status', 'cancelled')
     .order('created_at', { ascending: false })
 }
 
