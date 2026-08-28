@@ -24,6 +24,23 @@ export interface SwapRow {
 
 const CLOSED: SwapStatus[] = ['done', 'cancelled']
 
+/** swaps.status in Postgres is CHECK'd to four values
+ *  ('proposed','confirmed','completed','cancelled'), but the V3 UI was built
+ *  around a richer nine-state flow that was never migrated. Rows therefore
+ *  arrive with statuses the client's SwapStatus union does not contain, and
+ *  StatusRow's lookup returned undefined — which blanked the whole screen.
+ *
+ *  This maps the database's vocabulary onto the UI's at the boundary, so the
+ *  rest of the app only ever sees a SwapStatus. When the schema catches up to
+ *  the nine-state model, this map is the single place to retire.
+ */
+const STATUS_FROM_DB: Record<string, SwapStatus> = {
+  proposed: 'new',
+  confirmed: 'agreed',
+  completed: 'done',
+  cancelled: 'cancelled',
+}
+
 /** The inbox's data and tab state, with no layout in it. */
 export function useSwapsInbox() {
   const navigate = useNavigate()
@@ -44,7 +61,7 @@ export function useSwapsInbox() {
         return {
           id: String(s.id),
           title: String(theirItem?.title ?? ''),
-          status: String(s.status ?? 'new') as SwapStatus,
+          status: STATUS_FROM_DB[String(s.status ?? '')] ?? 'new',
           photoUrl: photos?.[0],
           photoColor: 'hsl(var(--illo-denim))',
         }
