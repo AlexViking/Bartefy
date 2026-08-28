@@ -30,6 +30,14 @@
     display: none !important;
   }
 
+  .auth-desktop {
+    display: block !important;
+  }
+
+  .auth-mobile {
+    display: none !important;
+  }
+
   /* Sheet becomes centered dialog on desktop */
   .sheet {
     bottom: auto !important;
@@ -184,6 +192,14 @@
 
   .register-hero {
     display: none !important;
+  }
+
+  .auth-desktop {
+    display: none !important;
+  }
+
+  .auth-mobile {
+    display: flex !important;
   }
 
   .hunt-left,

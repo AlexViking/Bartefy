@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 const buttonVariants = cva(
   'inline-flex items-center justify-center gap-2 whitespace-nowrap font-display font-semibold ' +
     'transition-colors duration-fast ease-brand focus-visible:outline-none focus-visible:ring-[3px] ' +
-    'focus-visible:ring-ring/45 disabled:cursor-not-allowed disabled:opacity-50',
+    'focus-visible:ring-ring/45 disabled:cursor-not-allowed disabled:opacity-60',
   {
     variants: {
       variant: {
