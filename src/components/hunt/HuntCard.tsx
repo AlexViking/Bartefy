@@ -1,10 +1,12 @@
 import { Eye } from 'lucide-react'
 
 import { Card } from '@/components/ui/card'
+import { Icon } from '@/components/ui/icon'
 import { Stars } from '@/components/ui/stars'
 import { ToneBadge } from '@/components/ui/tone-badge'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { useT } from '@/i18n/T'
+import { categoryIcon, categoryLabel } from '@/lib/taxonomy'
 import type { CardItem } from '@/store/hunt'
 import { cn } from '@/lib/utils'
 
@@ -54,8 +56,11 @@ export function HuntCard({
 
       <div className="flex flex-col gap-2 p-4">
         <h3 className="font-display text-h3 leading-tight text-foreground">{item.title}</h3>
-        <p className="font-body text-sm text-muted-foreground">
-          {item.category} {'·'} {item.distance}
+        {/* Joined rather than interpolated: a find with no distance used to
+            render "other ·" with a dangling separator and nothing after it. */}
+        <p className="flex items-center gap-1.5 font-body text-sm text-muted-foreground">
+          <Icon name={categoryIcon(item.category)} size={14} aria-hidden="true" className="shrink-0" />
+          {[t(categoryLabel(item.category)), item.distance].filter(Boolean).join(' · ')}
         </p>
         <div className="flex items-center gap-2">
           <UserAvatar name={item.owner} size="sm" />

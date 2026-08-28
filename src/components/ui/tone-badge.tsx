@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 
+import { Icon, type IconName } from '@/components/ui/icon'
 import { cn } from '@/lib/utils'
 
 /** Status pill. Composes shadcn's Badge idiom but with Bartefy's tones.
@@ -36,18 +37,29 @@ export function ToneBadge({ className, tone, ...props }: ToneBadgeProps) {
   return <span className={cn(toneBadgeVariants({ tone }), className)} {...props} />
 }
 
-/** Selectable filter chip — Browse categories, taste picker, wants list. */
+/** Selectable filter chip — Browse categories, taste picker, wants list.
+ *
+ *  `icon` is optional and decorative: the label is always present, so the
+ *  shape is a second way to recognise a category rather than the only one.
+ *  Fifteen identical pills are read word by word; with a shape in front, the
+ *  right one is found before the word is.
+ */
 export function Chip({
   active = false,
+  icon,
   className,
+  children,
   ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & { active?: boolean }) {
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  active?: boolean
+  icon?: IconName
+}) {
   return (
     <button
       type="button"
       aria-pressed={active}
       className={cn(
-        'inline-flex min-h-9 items-center rounded-pill border-[1.5px] px-3.5',
+        'inline-flex min-h-9 items-center gap-1.5 rounded-pill border-[1.5px] px-3.5',
         'font-display text-[15px] font-semibold transition-colors duration-fast ease-brand',
         'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45',
         active
@@ -56,7 +68,10 @@ export function Chip({
         className,
       )}
       {...props}
-    />
+    >
+      {icon && <Icon name={icon} size={15} aria-hidden="true" className="shrink-0 opacity-80" />}
+      {children}
+    </button>
   )
 }
 

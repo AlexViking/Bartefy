@@ -75,6 +75,7 @@ export function DetailsSection({ a }: { a: ReturnType<typeof useAddItem> }) {
           {CATEGORIES.map((c) => (
             <Chip
               key={c.id}
+              icon={c.icon}
               active={a.categories.includes(c.id)}
               onClick={() => a.toggleCategory(c.id)}
             >
@@ -147,7 +148,7 @@ export function WantsSection({ a }: { a: ReturnType<typeof useAddItem> }) {
 
       <div className="flex flex-wrap gap-2">
         {CATEGORIES.map((c) => (
-          <Chip key={c.id} active={a.wants.includes(c.id)} onClick={() => a.toggleWant(c.id)}>
+          <Chip key={c.id} icon={c.icon} active={a.wants.includes(c.id)} onClick={() => a.toggleWant(c.id)}>
             {t(c.label)}
           </Chip>
         ))}

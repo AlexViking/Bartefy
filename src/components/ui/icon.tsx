@@ -3,6 +3,9 @@ import {
   ArrowLeft, ArrowRight, Bell, Camera, Check, ChevronDown, ChevronLeft, ChevronRight,
   Clock, Compass, Heart, Info, MapPin, MessageCircle, Package, Plus, RotateCcw, Search,
   Settings, ShieldAlert, Sparkles, Star, Trash2, User, X,
+  // Category icons — one per entry in CATEGORIES, see lib/taxonomy.ts.
+  Armchair, Baby, Bike, Book, CookingPot, Gem, Hammer, Laptop, Music, Palette,
+  Shapes, Shirt, Sofa, Sprout,
   type LucideProps,
 } from 'lucide-react'
 
@@ -13,6 +16,8 @@ const ICONS = {
   ArrowLeft, ArrowRight, Bell, Camera, Check, ChevronDown, ChevronLeft, ChevronRight,
   Clock, Compass, Heart, Info, MapPin, MessageCircle, Package, Plus, RotateCcw, Search,
   Settings, ShieldAlert, Sparkles, Star, Trash2, User, X,
+  Armchair, Baby, Bike, Book, CookingPot, Gem, Hammer, Laptop, Music, Palette,
+  Shapes, Shirt, Sofa, Sprout,
 } as const
 
 export type IconName = keyof typeof ICONS

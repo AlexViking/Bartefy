@@ -34,7 +34,7 @@ export default function BrowseDesktop() {
 
           <div className="flex flex-wrap gap-2">
             {BROWSE_CATEGORIES.map((c) => (
-            <Chip key={c.id} active={b.cats.includes(c.id)} onClick={() => b.toggleCat(c.id)}>
+            <Chip key={c.id} icon={c.icon} active={b.cats.includes(c.id)} onClick={() => b.toggleCat(c.id)}>
               {t(c.label)}
             </Chip>
           ))}
