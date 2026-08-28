@@ -139,6 +139,20 @@ export async function updateSwapStatus(
   return supabase.from('swaps').update(patch).eq('id', swapId).select()
 }
 
+/** The reviews behind someone's star average (migration 010).
+ *
+ *  The RPC returns only revealed ratings — blind-until-revealed is enforced in
+ *  SQL, not here — along with the average and total computed from that same
+ *  set, so the header can never disagree with the rows.
+ */
+export async function getUserReviews(userId: string, limit = 20, offset = 0) {
+  return supabase.rpc('get_user_reviews', {
+    p_user: userId,
+    p_limit: limit,
+    p_offset: offset,
+  })
+}
+
 // ── Chat (server-stored) ────────────────────────────────────────────────
 
 export async function getMessages(swapId: string) {
@@ -150,6 +164,34 @@ export async function sendMessage(swapId: string, senderId: string, body: string
   return supabase.from('messages').insert({
     swap_id: swapId, sender_id: senderId, body, client_msg_id: clientMsgId,
   })
+}
+
+/** Messages waiting for you: unread, and not your own.
+ *
+ *  RLS already scopes messages to swaps you are part of, so this needs no
+ *  join — `sender_id != you` is the whole filter. Counted, not fetched: the
+ *  badge only ever needs the number.
+ */
+export async function getUnreadCount(userId: string) {
+  return supabase
+    .from('messages')
+    .select('id', { count: 'exact', head: true })
+    .is('read_at', null)
+    .neq('sender_id', userId)
+}
+
+/** Clear the badge for one thread. The recipient-update RLS policy permits
+ *  exactly this — setting read_at on messages sent TO you — so the sender_id
+ *  filter is not merely an optimisation: without it every row is rejected.
+ */
+export async function markThreadRead(swapId: string, userId: string) {
+  return supabase
+    .from('messages')
+    .update({ read_at: new Date().toISOString() })
+    .eq('swap_id', swapId)
+    .neq('sender_id', userId)
+    .is('read_at', null)
+    .select()
 }
 
 export function subscribeMessages(swapId: string, onMessage: (m: unknown) => void) {

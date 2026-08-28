@@ -22,6 +22,7 @@ import { SwapsInbox } from './screens/SwapsInbox'
 import { ItemDetail } from './screens/ItemDetail'
 import { Arrange } from './screens/Arrange'
 import SwapThread from './screens/SwapThread'
+import { Reviews } from './screens/Reviews'
 import { Membership } from './screens/Membership'
 import { ReportQueue } from './screens/admin/ReportQueue'
 
@@ -89,6 +90,8 @@ export function AppRouter() {
             thread; mobile renders Chat full-screen. See SwapThread. */}
         <Route path="/swaps/:swapId" element={guard(<SwapThread />)} />
         <Route path="/swaps/:swapId/arrange" element={guard(<Arrange />)} />
+        {/* Someone else's reviews. Reading them is ALWAYS_FREE. */}
+        <Route path="/reviews/:userId" element={guard(<Reviews />)} />
         <Route path="/membership" element={guard(<Membership />)} />
         <Route path="/settings" element={guard(<Settings />)} />
         <Route path="/settings/blocked" element={guard(<BlockedList />)} />

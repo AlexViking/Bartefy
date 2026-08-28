@@ -13,7 +13,16 @@ import { cn } from '@/lib/utils'
 /** Desktop navigation. The same four destinations in the same order as the
  *  mobile tab bar, so muscle memory survives moving between devices.
  */
-export function TopNav({ city = 'Berlin', radiusKm = 10 }: { city?: string; radiusKm?: number }) {
+export function TopNav({
+  city = 'Berlin',
+  radiusKm = 10,
+  unreadSwaps = 0,
+}: {
+  city?: string
+  radiusKm?: number
+  /** Mirrors TabBar: a dot on Swaps when messages are waiting. */
+  unreadSwaps?: number
+}) {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const { t } = useT()
@@ -36,16 +45,21 @@ export function TopNav({ city = 'Berlin', radiusKm = 10 }: { city?: string; radi
                 type="button"
                 onClick={() => navigate(d.path)}
                 aria-current={active ? 'page' : undefined}
-                data-i18n={labelKey}
                 className={cn(
-                  'border-b-[2.5px] pb-[3px] font-display text-base font-semibold',
+                  'relative border-b-[2.5px] pb-[3px] font-display text-base font-semibold',
                   'transition-colors duration-fast ease-brand',
                   active
                     ? 'border-primary text-primary'
                     : 'border-transparent text-foreground hover:text-primary',
                 )}
               >
-                {t(labelKey)}
+                <span data-i18n={labelKey}>{t(labelKey)}</span>
+                {d.id === 'swaps' && unreadSwaps > 0 && (
+                  <span
+                    className="absolute -right-2.5 top-0 size-2 rounded-pill bg-accent"
+                    aria-label={t('swaps.unread', { count: unreadSwaps })}
+                  />
+                )}
               </button>
             )
           })}
