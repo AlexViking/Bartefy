@@ -44,6 +44,8 @@ export async function insertItem(item: {
   images: string[]
   location_city: string
   status: string
+  /** NOT NULL with no default in the schema — the insert fails without it. */
+  expires_at: string
 }) {
   return supabase.from('items').insert(item).select().single()
 }
