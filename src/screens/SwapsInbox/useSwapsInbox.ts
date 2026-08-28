@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getMySwaps } from '@/lib/api'
 import { keys, STALE } from '@/lib/cache/queryClient'
 import { useAuthStore } from '@/store/auth'
-import type { SwapStatus } from '@/types/swap'
+import { STATUS_FROM_DB, type SwapStatus } from '@/types/swap'
 
 export type InboxTab = 'active' | 'activity' | 'closed'
 
@@ -34,12 +34,6 @@ const CLOSED: SwapStatus[] = ['done', 'cancelled']
  *  rest of the app only ever sees a SwapStatus. When the schema catches up to
  *  the nine-state model, this map is the single place to retire.
  */
-const STATUS_FROM_DB: Record<string, SwapStatus> = {
-  proposed: 'new',
-  confirmed: 'agreed',
-  completed: 'done',
-  cancelled: 'cancelled',
-}
 
 /** The inbox's data and tab state, with no layout in it. */
 export function useSwapsInbox() {
@@ -56,11 +50,21 @@ export function useSwapsInbox() {
       return (data ?? []).map((s: Record<string, unknown>): SwapRow => {
         const itemA = s.item_a as Record<string, unknown> | null
         const itemB = s.item_b as Record<string, unknown> | null
-        const theirItem = s.user_a_id === userId ? itemB : itemA
+
+        // item_a does NOT reliably belong to user_a in the existing rows, so
+        // choosing by a/b position shows you your own find. Decide by who
+        // actually owns each item, and fall back to position only when the
+        // item row could not be joined.
+        const aIsMine = itemA ? String(itemA.user_id ?? '') === userId : s.user_a_id === userId
+        const theirItem = aIsMine ? itemB : itemA
+        const myItem = aIsMine ? itemA : itemB
+
         const photos = theirItem?.images as string[] | undefined
         return {
           id: String(s.id),
-          title: String(theirItem?.title ?? ''),
+          // A swap whose other side was deleted still has to render — the row
+          // falls back to your own find's title rather than an empty row.
+          title: String(theirItem?.title ?? myItem?.title ?? ''),
           status: STATUS_FROM_DB[String(s.status ?? '')] ?? 'new',
           photoUrl: photos?.[0],
           photoColor: 'hsl(var(--illo-denim))',

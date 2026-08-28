@@ -3,8 +3,10 @@ import { useNavigate, useParams } from 'react-router'
 
 import {
   blockUser,
+  confirmReceipt,
   fileReport,
   getMessages,
+  rateSwap,
   sendMessage,
   subscribeMessages,
   updateSwapStatus,
@@ -12,6 +14,7 @@ import {
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth'
 import { useChatStore, type ChatMessage } from '@/store/chat'
+import { STATUS_FROM_DB } from '@/types/swap'
 
 export interface SwapContext {
   status: string
@@ -68,6 +71,7 @@ export function useChat() {
   const [agreeing, setAgreeing] = useState(false)
   const [agreeError, setAgreeError] = useState(false)
   const [troubleOpen, setTroubleOpen] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [ctx, setCtx] = useState<SwapContext | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -112,12 +116,23 @@ export function useChat() {
       }
 
       if (cancelled) return
+
+      // item_a does NOT reliably belong to user_a in the existing rows, so
+      // decide which find is yours by who owns it rather than by position.
+      // itemA is always *mine* and itemB always *theirs* downstream.
+      const aOwner = String(swap.item_a?.user_id ?? '')
+      const aIsMine = swap.item_a ? aOwner === userId : isUserA
+      const mine = aIsMine ? swap.item_a : swap.item_b
+      const theirs = aIsMine ? swap.item_b : swap.item_a
+
       setCtx({
-        status: String(swap.status ?? 'chatting'),
-        itemATitle: String(swap.item_a?.title ?? ''),
-        itemBTitle: String(swap.item_b?.title ?? ''),
-        itemAImages: Array.isArray(swap.item_a?.images) ? swap.item_a.images.map(String) : [],
-        itemBImages: Array.isArray(swap.item_b?.images) ? swap.item_b.images.map(String) : [],
+        // Map the DB's vocabulary in, or every `status === 'agreed'` check
+        // downstream silently never fires.
+        status: STATUS_FROM_DB[String(swap.status ?? '')] ?? 'chatting',
+        itemATitle: String(mine?.title ?? ''),
+        itemBTitle: String(theirs?.title ?? ''),
+        itemAImages: Array.isArray(mine?.images) ? mine.images.map(String) : [],
+        itemBImages: Array.isArray(theirs?.images) ? theirs.images.map(String) : [],
         otherName,
         otherId,
       })
@@ -171,6 +186,26 @@ export function useChat() {
       return
     }
     setCtx((c) => (c ? { ...c, status: 'agreed' } : c))
+  }
+
+  /** Confirming you received their find. The RPC behind this decides when
+   *  both sides are in and the swap is done — nothing is settled client-side.
+   *  Confirming a handover is ALWAYS_FREE. */
+  const confirmHandover = async () => {
+    if (!swapId) return
+    const { error } = await confirmReceipt(swapId)
+    if (error) return console.error('[chat] confirm receipt failed', error)
+    setCtx((c) => (c ? { ...c, status: 'received_one_side' } : c))
+  }
+
+  /** Ratings are blind: neither side sees the other's until both have left
+   *  one, which the server enforces. Rating is ALWAYS_FREE. */
+  const rate = async (stars: number, tags: string[]) => {
+    if (!swapId) return
+    const { error } = await rateSwap(swapId, stars, tags)
+    if (error) return console.error('[chat] rating failed', error)
+    setConfirmOpen(false)
+    navigate('/swaps')
   }
 
   /** Opens the trouble sheet. Reporting and backing out are ALWAYS_FREE, so
@@ -227,6 +262,10 @@ export function useChat() {
     setTroubleOpen,
     openTrouble,
     submitTrouble,
+    confirmOpen,
+    setConfirmOpen,
+    confirmHandover,
+    rate,
     bottomRef,
     goBack: () => navigate('/swaps'),
     goArrange: () => swapId && navigate(`/swaps/${swapId}/arrange`),

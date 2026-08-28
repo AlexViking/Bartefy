@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { ResponsiveSheet } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { TextField } from '@/components/ui/field'
+import { Checkbox } from '@/components/ui/checkbox'
 import { PhotoWell, PhotoWellGrid } from '@/components/ui/photo-well'
+import { T, useT } from '@/i18n/T'
 import { cn } from '@/lib/utils'
 
 /** F5 - cancel, no-show, not-as-described and unsafe behind one door.
@@ -11,27 +13,21 @@ import { cn } from '@/lib/utils'
  */
 export type TroubleReason = 'changed_mind' | 'no_show' | 'not_as_described' | 'unsafe'
 
+/** Title and consequence are translation keys, not copy. Every reason states
+ *  what will happen before it is picked. */
 const REASONS: { id: TroubleReason; title: string; consequence: string }[] = [
   {
     id: 'changed_mind',
-    title: 'I changed my mind',
-    consequence: 'We cancel it and both finds go back into the hunt.',
+    title: 'trouble.reasonChangedMind',
+    consequence: 'trouble.consequenceChangedMind',
   },
-  {
-    id: 'no_show',
-    title: 'They did not show up',
-    consequence: 'You can reschedule once, or close it with a note only we see.',
-  },
+  { id: 'no_show', title: 'trouble.reasonNoShow', consequence: 'trouble.consequenceNoShow' },
   {
     id: 'not_as_described',
-    title: 'It was not as described',
-    consequence: 'Add a photo or two. We freeze the swap and a person reads the thread.',
+    title: 'trouble.reasonNotAsDescribed',
+    consequence: 'trouble.consequenceNotAsDescribed',
   },
-  {
-    id: 'unsafe',
-    title: 'I felt unsafe',
-    consequence: 'We block them immediately. You do not have to explain anything to them.',
-  },
+  { id: 'unsafe', title: 'trouble.reasonUnsafe', consequence: 'trouble.consequenceUnsafe' },
 ]
 
 export function TroubleSheet({
@@ -47,6 +43,7 @@ export function TroubleSheet({
   presetReason?: TroubleReason
   onSubmit?: (reason: TroubleReason, note: string, block: boolean) => void
 }) {
+  const { t } = useT()
   const [reason, setReason] = useState<TroubleReason | null>(presetReason ?? null)
   const [step, setStep] = useState<1 | 2>(presetReason ? 2 : 1)
   const [note, setNote] = useState('')
@@ -58,16 +55,16 @@ export function TroubleSheet({
     <ResponsiveSheet
       open={open}
       onOpenChange={onOpenChange}
-      title="What happened with this swap?"
-      description="Nothing here is public, and nothing is decided by a machine."
+      title="trouble.heading"
+      description="trouble.subtitle"
       footer={
         step === 1 ? (
           <div className="flex items-center gap-2.5">
-            <Button fullWidth disabled={!reason} onClick={() => setStep(2)}>
-              Continue
+            <Button fullWidth disabled={!reason} onClick={() => setStep(2)} data-i18n="trouble.continue">
+              {t('trouble.continue')}
             </Button>
-            <Button variant="ghost" onClick={() => onOpenChange(false)}>
-              Never mind
+            <Button variant="ghost" onClick={() => onOpenChange(false)} data-i18n="trouble.neverMind">
+              {t('trouble.neverMind')}
             </Button>
           </div>
         ) : (
@@ -77,10 +74,10 @@ export function TroubleSheet({
               fullWidth
               onClick={() => reason && onSubmit?.(reason, note, block)}
             >
-              {reason === 'changed_mind' ? 'Cancel the swap' : 'Send to us'}
+              {reason === 'changed_mind' ? t('trouble.cancelSwap') : t('trouble.sendToUs')}
             </Button>
-            <Button variant="ghost" fullWidth onClick={() => setStep(1)}>
-              Go back
+            <Button variant="ghost" fullWidth onClick={() => setStep(1)} data-i18n="trouble.goBack">
+              {t('trouble.goBack')}
             </Button>
           </div>
         )
@@ -99,8 +96,8 @@ export function TroubleSheet({
                 reason === r.id ? 'border-2 border-primary bg-popover' : 'border border-border/[0.14] bg-card',
               )}
             >
-              <span className="font-display text-[15px] font-semibold">{r.title}</span>
-              <span className="font-body text-sm text-muted-foreground">{r.consequence}</span>
+              <T as="span" k={r.title} className="font-display text-[15px] font-semibold" />
+              <T as="span" k={r.consequence} className="font-body text-sm text-muted-foreground" />
             </button>
           ))}
         </div>
@@ -108,9 +105,9 @@ export function TroubleSheet({
         <div className="flex flex-col gap-4">
           {needsEvidence && (
             <div className="flex flex-col gap-2">
-              <span className="font-display text-base font-semibold">What did you get instead?</span>
+              <T as="span" k="trouble.evidenceLabel" className="font-display text-base font-semibold" />
               <PhotoWellGrid columns={3}>
-                <PhotoWell state="ready" swatch="hsl(var(--illo-terracotta))" onRemove={() => {}} />
+                <PhotoWell state="empty" />
                 <PhotoWell state="empty" />
                 <PhotoWell state="empty" />
               </PhotoWellGrid>
@@ -118,30 +115,30 @@ export function TroubleSheet({
           )}
 
           <TextField
-            label="Anything we should know?"
-            placeholder="The lens mount was cracked."
+            label="trouble.noteLabel"
+            placeholder="trouble.notePlaceholder"
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />
 
           <div className="flex flex-col gap-2 rounded-sm border border-border/[0.14] bg-popover p-3.5">
-            <span className="font-display text-caption uppercase tracking-[0.18em] text-muted-foreground">
-              What happens next
-            </span>
-            <p className="font-body text-[15px] leading-relaxed">
-              The swap freezes tonight. {otherName} sees that you raised something, not what you wrote. We reply
-              within two days, and neither rating counts until then.
-            </p>
+            <T
+              as="span"
+              k="trouble.nextTitle"
+              className="font-display text-caption uppercase tracking-[0.18em] text-muted-foreground"
+            />
+            <T
+              as="p"
+              k="trouble.nextBody"
+              values={{ name: otherName }}
+              className="font-body text-[15px] leading-relaxed"
+            />
           </div>
 
+          {/* shadcn's Checkbox, not a raw input — one UI library. */}
           <label className="flex items-center gap-2.5 font-body text-[15px]">
-            <input
-              type="checkbox"
-              checked={block}
-              onChange={(e) => setBlock(e.target.checked)}
-              className="h-5 w-5 rounded-sm accent-[hsl(var(--primary))]"
-            />
-            Also stop {otherName} from messaging me
+            <Checkbox checked={block} onCheckedChange={(v) => setBlock(v === true)} />
+            {t('trouble.blockLabelNamed', { name: otherName })}
           </label>
         </div>
       )}

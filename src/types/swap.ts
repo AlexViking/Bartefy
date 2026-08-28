@@ -39,3 +39,26 @@ export interface OfferSide {
   person: PersonRef
   items: ItemRef[]
 }
+
+/** swaps.status in Postgres is CHECK'd to four values; the UI speaks nine.
+ *  The schema was never migrated to the richer flow, so every read must map
+ *  in and every write must map out. Both directions live here so the inbox,
+ *  the chat screen and the API layer cannot drift apart.
+ */
+export const STATUS_FROM_DB: Record<string, SwapStatus> = {
+  proposed: 'new',
+  confirmed: 'agreed',
+  completed: 'done',
+  cancelled: 'cancelled',
+}
+
+export const STATUS_TO_DB: Record<string, string> = {
+  new: 'proposed',
+  chatting: 'proposed',
+  offered: 'proposed',
+  agreed: 'confirmed',
+  arranged: 'confirmed',
+  received_one_side: 'confirmed',
+  done: 'completed',
+  cancelled: 'cancelled',
+}

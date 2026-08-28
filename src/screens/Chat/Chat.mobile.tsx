@@ -2,6 +2,7 @@ import { ArrowLeft, MoreVertical } from 'lucide-react'
 import { useState } from 'react'
 
 import { AppShell } from '@/components/shell/AppShell'
+import { ConfirmAndRateSheet } from '@/components/swap/ConfirmAndRateSheet'
 import { TroubleSheet } from '@/components/swap/TroubleSheet'
 import { Button } from '@/components/ui/button'
 import { ResponsiveSheet } from '@/components/ui/responsive-sheet'
@@ -71,6 +72,19 @@ export default function ChatMobile() {
             <Button size="lg" variant="ghost" fullWidth onClick={c.goArrange}>
               {t('chat.arrange')}
             </Button>
+            {c.ctx?.status === 'agreed' && (
+              <Button
+                size="lg"
+                variant="ghost"
+                fullWidth
+                onClick={() => {
+                  setDetailsOpen(false)
+                  c.setConfirmOpen(true)
+                }}
+              >
+                {t('chat.markDone')}
+              </Button>
+            )}
             <Button
               variant="ghost"
               fullWidth
@@ -92,6 +106,21 @@ export default function ChatMobile() {
           />
         )}
       </ResponsiveSheet>
+
+      <ConfirmAndRateSheet
+        open={c.confirmOpen}
+        onOpenChange={c.setConfirmOpen}
+        mine={{ id: 'a', title: c.ctx?.itemATitle ?? '', photoUrl: c.ctx?.itemAImages[0] }}
+        theirs={{ id: 'b', title: c.ctx?.itemBTitle ?? '', photoUrl: c.ctx?.itemBImages[0] }}
+        otherName={c.ctx?.otherName ?? ''}
+        theyConfirmed={false}
+        onConfirm={() => void c.confirmHandover()}
+        onRate={(stars, tags) => void c.rate(stars, tags)}
+        onTrouble={() => {
+          c.setConfirmOpen(false)
+          c.openTrouble()
+        }}
+      />
 
       <TroubleSheet
         open={c.troubleOpen}

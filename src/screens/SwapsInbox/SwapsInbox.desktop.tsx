@@ -42,13 +42,19 @@ export default function SwapsInboxDesktop() {
           )}
         </section>
 
+        {/* The pane is a prompt, not a verdict: telling someone "no swaps yet"
+            while three of them sit in the list beside it is simply wrong. */}
         <section className="flex items-center justify-center p-8">
-          <EmptyState
-            title="swaps.emptyTitle"
-            body="swaps.emptyBody"
-            actionLabel="swaps.goHunt"
-            onAction={s.goHunt}
-          />
+          {s.rows.length > 0 ? (
+            <EmptyState title="swaps.pickTitle" body="swaps.pickBody" />
+          ) : (
+            <EmptyState
+              title="swaps.emptyTitle"
+              body="swaps.emptyBody"
+              actionLabel="swaps.goHunt"
+              onAction={s.goHunt}
+            />
+          )}
         </section>
       </div>
     </AppShell>

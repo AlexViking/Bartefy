@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { STATUS_TO_DB } from '@/types/swap'
 
 // ── Auth ────────────────────────────────────────────────────────────────────
 
@@ -122,16 +123,6 @@ export async function getMySwaps(userId: string) {
  *  in useSwapsInbox, and the same single place to retire once the schema
  *  catches up.
  */
-const STATUS_TO_DB: Record<string, string> = {
-  new: 'proposed',
-  chatting: 'proposed',
-  offered: 'proposed',
-  agreed: 'confirmed',
-  arranged: 'confirmed',
-  received_one_side: 'confirmed',
-  done: 'completed',
-  cancelled: 'cancelled',
-}
 
 export async function updateSwapStatus(
   swapId: string,
@@ -238,11 +229,22 @@ export async function createOffer(input: {
   note?: string
   counterOf?: string
 }) {
-  return supabase.functions.invoke('offer-create', { body: input })
+  // The deployed function is `offer`, and it reads snake_case with an action.
+  return supabase.functions.invoke('offer', {
+    body: {
+      action: 'create',
+      swap_id: input.swapId,
+      to_user: input.toUser,
+      offered_item_ids: input.offeredItemIds,
+      wanted_item_ids: input.wantedItemIds,
+      note: input.note,
+      counter_of: input.counterOf,
+    },
+  })
 }
 
 export async function respondToOffer(offerId: string, action: 'accept' | 'decline') {
-  return supabase.functions.invoke('offer-respond', { body: { offer_id: offerId, action } })
+  return supabase.functions.invoke('offer', { body: { action, offer_id: offerId } })
 }
 
 // ── Meetups ─────────────────────────────────────────────────────────────────
@@ -268,13 +270,21 @@ export async function acceptMeetup(meetupId: string) {
 }
 
 export async function getMeetupSuggestions(swapId: string) {
-  return supabase.functions.invoke('meetup-suggestions', { body: { swap_id: swapId } })
+  return supabase.functions.invoke('meetup', { body: { action: 'suggest', swap_id: swapId } })
 }
 
 // ── Handover ────────────────────────────────────────────────────────────────
 
-export async function confirmReceipt(swapId: string, userId: string) {
-  return supabase.functions.invoke('handover-confirm', { body: { swap_id: swapId, user_id: userId } })
+/** The handover function takes identity from the JWT, never the body — a
+ *  user_id in the payload would be a spoofing hole. */
+export async function confirmReceipt(swapId: string) {
+  return supabase.functions.invoke('handover', { body: { action: 'confirm', swap_id: swapId } })
+}
+
+export async function rateSwap(swapId: string, stars: number, tags: string[]) {
+  return supabase.functions.invoke('handover', {
+    body: { action: 'rate', swap_id: swapId, stars, tags },
+  })
 }
 
 // ── Trouble ─────────────────────────────────────────────────────────────────
@@ -288,7 +298,17 @@ export async function fileReport(input: {
   evidencePaths?: string[]
   block?: boolean
 }) {
-  return supabase.functions.invoke('report-create', { body: input })
+  // Deployed as `report`, reading snake_case. from_user comes from the JWT.
+  return supabase.functions.invoke('report', {
+    body: {
+      swap_id: input.swapId,
+      about_user: input.aboutUser,
+      reason: input.reason,
+      note: input.note,
+      evidence_paths: input.evidencePaths,
+      block: input.block,
+    },
+  })
 }
 
 export async function blockUser(blocker: string, blocked: string) {

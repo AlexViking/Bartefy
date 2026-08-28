@@ -171,7 +171,9 @@
     "statusWaiting": "Waiting on them",
     "statusYourTurn": "Your turn",
     "unread": "{{count}} new message",
-    "unread_other": "{{count}} new messages"
+    "unread_other": "{{count}} new messages",
+    "pickTitle": "Pick a swap",
+    "pickBody": "Choose one from the list to see the thread and what happens next."
   },
   "chat": {
     "placeholder": "Write a message",
@@ -186,7 +188,8 @@
     "systemDone": "Swap complete. Nice one.",
     "sending": "Sending…",
     "failedToSend": "Not sent — tap to retry",
-    "confirmFailed": "That did not go through. Try again in a moment."
+    "confirmFailed": "That did not go through. Try again in a moment.",
+    "markDone": "Did the swap happen?"
   },
   "arrange": {
     "title": "Arrange the swap",
@@ -202,7 +205,21 @@
     "safetyBody": "Meet in daylight in a public place. Tell someone where you are going. Trust your gut — you can back out at any point, for any reason, at no cost.",
     "evenWalk": "Even walk",
     "typePlace": "Or type a place",
-    "anotherTime": "Another time"
+    "anotherTime": "Another time",
+    "heading": "Where will you two meet?",
+    "modeMeetHelp": "Most swaps happen face to face, somewhere public.",
+    "modePostHelp": "Prepaid label, tracking in the thread. Both send on the same day.",
+    "placeLabel": "Pick a place",
+    "placeHelp": "We never suggest home addresses, and the thread strips them if typed.",
+    "placePlaceholder": "A cafe, a market, a station entrance…",
+    "proposeAction": "Propose {{when}}",
+    "proposeTime": "a time",
+    "sendLabel": "Send my label",
+    "oneTap": "They get one tap to accept, or to suggest another time.",
+    "needPlace": "Add a place first — anywhere public will do.",
+    "proposeFailed": "That did not send. Try again in a moment.",
+    "proposedMessage": "Shall we meet at {{place}}, {{when}}?",
+    "postMessage": "I will post mine — shall we both send on the same day?"
   },
   "confirm": {
     "title": "Did the swap happen?",
@@ -214,7 +231,16 @@
     "tagPunctual": "On time",
     "tagFriendly": "Friendly",
     "tagAsDescribed": "As described",
-    "tagEasyGoing": "Easy-going"
+    "tagEasyGoing": "Easy-going",
+    "waitingOn": "Waiting on {{name}} to confirm",
+    "theyConfirmed": "{{name}} confirmed they got yours",
+    "youConfirmed": "You confirmed",
+    "didYouGet": "Did you get theirs?",
+    "somethingWrong": "Something's wrong",
+    "blindNote": "Neither of you sees the other's rating until you have both left one.",
+    "leaveRating": "Leave rating",
+    "skip": "Skip",
+    "tagWouldAgain": "Would swap again"
   },
   "trouble": {
     "title": "What went wrong?",
@@ -226,7 +252,23 @@
     "noteLabel": "Anything else we should know?",
     "blockLabel": "Also block this person",
     "submit": "Send report",
-    "freeNote": "Reporting, blocking, and backing out are always free."
+    "freeNote": "Reporting, blocking, and backing out are always free.",
+    "heading": "What happened with this swap?",
+    "subtitle": "Nothing here is public, and nothing is decided by a machine.",
+    "consequenceChangedMind": "We cancel it and both finds go back into the hunt.",
+    "consequenceNoShow": "You can reschedule once, or close it with a note only we see.",
+    "consequenceNotAsDescribed": "Add a photo or two. We freeze the swap and a person reads the thread.",
+    "consequenceUnsafe": "We block them immediately. You do not have to explain anything to them.",
+    "continue": "Continue",
+    "neverMind": "Never mind",
+    "goBack": "Go back",
+    "cancelSwap": "Cancel the swap",
+    "sendToUs": "Send to us",
+    "blockLabelNamed": "Also stop {{name}} from messaging me",
+    "evidenceLabel": "Add a photo, if you have one",
+    "nextTitle": "What happens next",
+    "nextBody": "The swap freezes tonight. {{name}} sees that you raised something, not what you wrote. We reply within two days, and neither rating counts until then.",
+    "notePlaceholder": "Anything that helps us understand."
   },
   "profile": {
     "title": "Profile",
