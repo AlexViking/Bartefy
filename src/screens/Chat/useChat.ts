@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 
-import { getMessages, sendMessage, subscribeMessages, updateSwapStatus } from '@/lib/api'
+import {
+  blockUser,
+  fileReport,
+  getMessages,
+  sendMessage,
+  subscribeMessages,
+  updateSwapStatus,
+} from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth'
 import { useChatStore, type ChatMessage } from '@/store/chat'
@@ -58,6 +65,9 @@ export function useChat() {
 
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
+  const [agreeing, setAgreeing] = useState(false)
+  const [agreeError, setAgreeError] = useState(false)
+  const [troubleOpen, setTroubleOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [ctx, setCtx] = useState<SwapContext | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -148,10 +158,56 @@ export function useChat() {
   }
 
   const agree = async () => {
-    if (!swapId) return
+    if (!swapId || agreeing) return
+    setAgreeing(true)
+    setAgreeError(false)
+
     const { error } = await updateSwapStatus(swapId, 'agreed')
-    if (error) return console.error('[chat] agree failed', error)
+    setAgreeing(false)
+
+    if (error) {
+      console.error('[chat] agree failed', error)
+      setAgreeError(true)
+      return
+    }
     setCtx((c) => (c ? { ...c, status: 'agreed' } : c))
+  }
+
+  /** Opens the trouble sheet. Reporting and backing out are ALWAYS_FREE, so
+   *  this is never gated on tier. */
+  const openTrouble = () => setTroubleOpen(true)
+
+  /** Files the report, and blocks the other person if that was ticked.
+   *
+   *  Nothing is decided here: the report is recorded and a human reads it.
+   *  The block is applied immediately though, because someone who says they
+   *  felt unsafe should not have to wait on a queue to stop being contacted.
+   */
+  const submitTrouble = async (
+    reason: 'changed_mind' | 'no_show' | 'not_as_described' | 'unsafe',
+    note: string,
+    block: boolean,
+  ) => {
+    if (!userId) return
+    const otherId = ctx?.otherId
+
+    const { error } = await fileReport({
+      swapId: swapId ?? undefined,
+      fromUser: userId,
+      aboutUser: otherId || undefined,
+      reason,
+      note,
+      block,
+    })
+    if (error) console.error('[chat] report failed', error)
+
+    if (block && otherId) {
+      const { error: blockError } = await blockUser(userId, otherId)
+      if (blockError) console.error('[chat] block failed', blockError)
+    }
+
+    setTroubleOpen(false)
+    navigate('/swaps')
   }
 
   return {
@@ -165,6 +221,12 @@ export function useChat() {
     sending,
     send,
     agree,
+    agreeing,
+    agreeError,
+    troubleOpen,
+    setTroubleOpen,
+    openTrouble,
+    submitTrouble,
     bottomRef,
     goBack: () => navigate('/swaps'),
     goArrange: () => swapId && navigate(`/swaps/${swapId}/arrange`),

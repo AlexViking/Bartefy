@@ -2,11 +2,12 @@ import { ArrowLeft, MoreVertical } from 'lucide-react'
 import { useState } from 'react'
 
 import { AppShell } from '@/components/shell/AppShell'
+import { TroubleSheet } from '@/components/swap/TroubleSheet'
 import { Button } from '@/components/ui/button'
 import { ResponsiveSheet } from '@/components/ui/responsive-sheet'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { SwapPair } from '@/components/swap/SwapPair'
-import { useT } from '@/i18n/T'
+import { T, useT } from '@/i18n/T'
 import { Thread } from './Thread'
 import { useChat } from './useChat'
 
@@ -55,14 +56,30 @@ export default function ChatMobile() {
         footer={
           <>
             {c.ctx?.status !== 'agreed' && (
-              <Button size="lg" fullWidth onClick={() => void c.agree()}>
-                {t('chat.confirmSwap')}
+              <Button size="lg" fullWidth onClick={() => void c.agree()} disabled={c.agreeing}>
+                {c.agreeing ? t('common.loading') : t('chat.confirmSwap')}
               </Button>
+            )}
+            {c.agreeError && (
+              <T
+                as="p"
+                k="chat.confirmFailed"
+                className="text-center font-body text-sm text-destructive"
+                role="alert"
+              />
             )}
             <Button size="lg" variant="ghost" fullWidth onClick={c.goArrange}>
               {t('chat.arrange')}
             </Button>
-            <Button variant="ghost" fullWidth className="text-destructive">
+            <Button
+              variant="ghost"
+              fullWidth
+              className="text-destructive"
+              onClick={() => {
+                setDetailsOpen(false)
+                c.openTrouble()
+              }}
+            >
               {t('chat.trouble')}
             </Button>
           </>
@@ -75,6 +92,13 @@ export default function ChatMobile() {
           />
         )}
       </ResponsiveSheet>
+
+      <TroubleSheet
+        open={c.troubleOpen}
+        onOpenChange={c.setTroubleOpen}
+        otherName={c.ctx?.otherName ?? ''}
+        onSubmit={(reason, note, block) => void c.submitTrouble(reason, note, block)}
+      />
     </AppShell>
   )
 }

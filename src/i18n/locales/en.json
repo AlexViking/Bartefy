@@ -185,7 +185,8 @@
     "systemArranged": "Meeting arranged for {{when}}.",
     "systemDone": "Swap complete. Nice one.",
     "sending": "Sending…",
-    "failedToSend": "Not sent — tap to retry"
+    "failedToSend": "Not sent — tap to retry",
+    "confirmFailed": "That did not go through. Try again in a moment."
   },
   "arrange": {
     "title": "Arrange the swap",
