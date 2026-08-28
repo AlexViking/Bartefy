@@ -77,6 +77,7 @@ export function TasteStep({
         {TASTE_OPTIONS.map((tOpt) => (
           <Chip
             key={tOpt.id}
+            icon={tOpt.icon}
             active={tastes.includes(tOpt.id)}
             onClick={() => onToggle(tOpt.id)}
           >

@@ -46,7 +46,7 @@ export default function HuntDesktop() {
           </div>
           <div className="flex flex-wrap gap-2">
             {HUNT_CATEGORIES.map((c) => (
-              <Chip key={c.id} active={h.filters.includes(c.id)} onClick={() => h.toggleFilter(c.id)}>
+              <Chip key={c.id} icon={c.icon} active={h.filters.includes(c.id)} onClick={() => h.toggleFilter(c.id)}>
                 {t(c.label)}
               </Chip>
             ))}

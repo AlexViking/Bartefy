@@ -1,3 +1,5 @@
+import type { IconName } from '@/components/ui/icon'
+
 /** The one list of categories.
  *
  *  Before this there were four hardcoded lists that had already drifted apart
@@ -19,25 +21,37 @@
 export interface Category {
   id: string
   label: string
+  /** Shown beside the label wherever a category is offered or displayed. A
+   *  wall of identical pills is hard to scan; a shape is recognised before
+   *  the word is read, and it survives translation when the label does not. */
+  icon: IconName
 }
 
 export const CATEGORIES: Category[] = [
-  { id: 'electronics', label: 'category.electronics' },
-  { id: 'home_garden', label: 'category.homeGarden' },
-  { id: 'kitchen', label: 'category.kitchen' },
-  { id: 'furniture', label: 'category.furniture' },
-  { id: 'clothing', label: 'category.clothing' },
-  { id: 'bags_jewellery', label: 'category.bagsJewellery' },
-  { id: 'books_media', label: 'category.booksMedia' },
-  { id: 'music', label: 'category.music' },
-  { id: 'sport_outdoors', label: 'category.sportOutdoors' },
-  { id: 'toys_games', label: 'category.toysGames' },
-  { id: 'baby_kids', label: 'category.babyKids' },
-  { id: 'tools_diy', label: 'category.toolsDiy' },
-  { id: 'art_craft', label: 'category.artCraft' },
-  { id: 'collectables', label: 'category.collectables' },
-  { id: 'other', label: 'category.other' },
+  { id: 'electronics', label: 'category.electronics', icon: 'Laptop' },
+  { id: 'home_garden', label: 'category.homeGarden', icon: 'Sprout' },
+  { id: 'kitchen', label: 'category.kitchen', icon: 'CookingPot' },
+  { id: 'furniture', label: 'category.furniture', icon: 'Sofa' },
+  { id: 'clothing', label: 'category.clothing', icon: 'Shirt' },
+  { id: 'bags_jewellery', label: 'category.bagsJewellery', icon: 'Gem' },
+  { id: 'books_media', label: 'category.booksMedia', icon: 'Book' },
+  { id: 'music', label: 'category.music', icon: 'Music' },
+  { id: 'sport_outdoors', label: 'category.sportOutdoors', icon: 'Bike' },
+  { id: 'toys_games', label: 'category.toysGames', icon: 'Shapes' },
+  { id: 'baby_kids', label: 'category.babyKids', icon: 'Baby' },
+  { id: 'tools_diy', label: 'category.toolsDiy', icon: 'Hammer' },
+  { id: 'art_craft', label: 'category.artCraft', icon: 'Palette' },
+  { id: 'collectables', label: 'category.collectables', icon: 'Armchair' },
+  { id: 'other', label: 'category.other', icon: 'Package' },
 ]
+
+/** The icon for a category id, normalised through the legacy map so a v2 row
+ *  ("Fashion") gets the same shape as a current one. Falls back to the `other`
+ *  package rather than rendering nothing. */
+export function categoryIcon(raw: unknown): IconName {
+  const id = categoryId(raw)
+  return CATEGORIES.find((c) => c.id === id)?.icon ?? 'Package'
+}
 
 /** What v2 wrote into items.category, mapped onto the ids above. Rows listed
  *  before this taxonomy existed still have to render and still have to filter,
