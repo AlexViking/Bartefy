@@ -121,7 +121,11 @@
     "share": "Share",
     "report": "Report this listing",
     "reserved": "Reserved",
-    "paused": "Paused"
+    "paused": "Paused",
+    "offerSwap": "Offer a swap",
+    "reservedNote": "Reserved while another swap finishes. We will tell you if it comes back.",
+    "photoN": "Photo {{n}}",
+    "viewProfile": "Profile"
   },
   "add": {
     "title": "List a find",
@@ -141,7 +145,15 @@
     "limitTitle": "You have reached your listing limit",
     "limitBody": "Free members keep {{count}} finds on the table at once. Pause one, or upgrade for more room.",
     "nameIt": "Name it",
-    "storyOptional": "Tell its story"
+    "storyOptional": "Tell its story",
+    "photoStepTitle": "Show it. One photo is enough to start.",
+    "photoStepHelp": "Daylight, no styling needed. The worn bits are the point.",
+    "wantsStepTitle": "What would you like for it?",
+    "wantsStepHelp": "Rough is fine. This is what puts your find in front of the right people.",
+    "notNow": "Not now",
+    "stepPhotos": "Photos",
+    "stepDetails": "Details",
+    "stepWants": "Wants"
   },
   "swaps": {
     "title": "Swaps",
@@ -231,7 +243,11 @@
     "statEyeing": "Eyeing",
     "tabLive": "On the table",
     "tabPaused": "Paused",
-    "listAnother": "List another find"
+    "listAnother": "List another find",
+    "emptyPausedTitle": "Nothing paused",
+    "emptyPausedBody": "Finds you park land here. They keep their photos and story.",
+    "emptyEyeingTitle": "Nothing saved yet",
+    "emptyEyeingBody": "Save a find while you think about it — it will be here."
   },
   "membership": {
     "title": "Membership",

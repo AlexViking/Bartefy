@@ -16,6 +16,9 @@ export interface SwapContext {
   otherId: string
 }
 
+/** One frozen empty array, shared. See the selector note in useChat. */
+const EMPTY: ChatMessage[] = []
+
 function shape(m: Record<string, unknown>): ChatMessage {
   return {
     id: String(m.id ?? ''),
@@ -44,7 +47,12 @@ export function useChat() {
   const { swapId } = useParams<{ swapId: string }>()
   const userId = useAuthStore((s) => s.session?.user?.id)
 
-  const messages = useChatStore((s) => s.messages[swapId ?? ''] ?? [])
+  // Must not be `s.messages[id] ?? []`: the fallback allocates a new array on
+  // every render, so the selector never returns a stable reference and Zustand
+  // re-renders forever ("Maximum update depth exceeded"). Select the possibly
+  // undefined slice, then default outside the selector.
+  const stored = useChatStore((s) => s.messages[swapId ?? ''])
+  const messages = stored ?? EMPTY
   const setMessages = useChatStore((s) => s.setMessages)
   const addMessage = useChatStore((s) => s.addMessage)
 

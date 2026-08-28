@@ -17,9 +17,9 @@ export default function OnboardingDesktop() {
   const titleKey = o.steps[o.step].label
 
   return (
-    <div className="grid min-h-dvh grid-cols-[minmax(0,1fr)_minmax(520px,640px)] bg-background">
+    <div className="grid min-h-dvh grid-cols-[minmax(0,1fr)_minmax(0,560px)] overflow-x-hidden bg-background">
       <aside
-        className="relative hidden flex-col justify-between bg-primary p-10 xl:flex"
+        className="relative flex min-w-0 flex-col justify-between bg-primary p-10"
         style={{
           backgroundImage: `linear-gradient(rgba(47,106,82,0.92), rgba(47,106,82,0.92)), url(${mapUrl})`,
           backgroundSize: 'cover',
@@ -42,7 +42,7 @@ export default function OnboardingDesktop() {
         />
       </aside>
 
-      <main className="flex flex-col justify-center px-14 py-10">
+      <main className="flex min-w-0 flex-col justify-center px-10 py-10">
         <div className="mb-8 flex items-center justify-between">
           <FlowSteps steps={[...o.steps]} current={o.step} />
           <LanguageSwitcher />

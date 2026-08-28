@@ -46,7 +46,7 @@ export function Arrange() {
           </span>
         </div>
 
-        <h1 className="font-display text-2xl font-bold leading-tight text-foreground lg:text-h2">
+        <h1 className="font-display text-h2 leading-tight text-foreground">
           Where will you two meet?
         </h1>
 

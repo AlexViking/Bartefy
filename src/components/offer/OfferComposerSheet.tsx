@@ -60,7 +60,7 @@ export function OfferComposerSheet({
           >
             {counterOf ? 'Send counter' : 'Send offer'}
           </Button>
-          <span className="hidden shrink-0 font-body text-sm text-muted-foreground lg:block">
+          <span className="hidden shrink-0 font-body text-sm text-muted-foreground">
             Expires in 72 hours
           </span>
         </div>

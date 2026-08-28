@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { AppShell } from '@/components/shell/AppShell'
 import { T, useT } from '@/i18n/T'
+import { useIsDesktop } from '@/lib/platform'
 import { ToneBadge, Chip } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { TextField } from '@/components/ui/field'
@@ -17,6 +18,7 @@ type Status = 'open' | 'reviewing' | 'resolved'
  */
 export function ReportQueue() {
   const { t } = useT()
+  const isDesktop = useIsDesktop()
   const [status, setStatus] = useState<Status>('open')
   const [selected, setSelected] = useState<string | null>('r1')
   const [note, setNote] = useState('')
@@ -71,7 +73,7 @@ export function ReportQueue() {
         {shown.length === 0 ? (
           <EmptyState title="admin.emptyTitle" body="admin.emptyBody" />
         ) : (
-          <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+          <div className={cn('grid gap-4', isDesktop && 'grid-cols-[320px_1fr]')}>
             {/* List */}
             <ul className="flex flex-col gap-2">
               {shown.map((r) => (
@@ -109,7 +111,7 @@ export function ReportQueue() {
                   <span className="ml-auto font-body text-sm text-muted-foreground">{current.when}</span>
                 </div>
 
-                <div className="grid gap-3 lg:grid-cols-2">
+                <div className={cn('grid gap-3', isDesktop && 'grid-cols-2')}>
                   <div className="rounded-sm bg-popover p-3">
                     <span className="mb-2 block font-display text-caption uppercase tracking-[0.18em] text-muted-foreground">
                       Filed by
