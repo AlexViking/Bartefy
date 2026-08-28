@@ -116,14 +116,27 @@ export function useAddItem() {
         // 402 means the listing cap was hit — that is the upgrade sheet's
         // job, not a failed photo. FunctionsHttpError carries the response on
         // `context`, so read the status from either shape.
-        const e = err as { context?: { status?: number }; status?: number }
+        const e = err as {
+          context?: { status?: number; clone?: () => Response }
+          status?: number
+        }
         const status = e?.context?.status ?? e?.status
         if (status === 402) {
           setCapped(true)
           patchSlot(index, { state: 'empty', progress: 0 })
           return
         }
-        console.error('[add] photo upload failed', err)
+        // FunctionsHttpError carries the Response on `context` but never
+        // reads it, so the function's own message is otherwise lost and every
+        // cause looks identical. Read it before giving up.
+        let detail = ''
+        try {
+          const body = e?.context?.clone?.()
+          if (body) detail = await body.text()
+        } catch {
+          /* the body is optional; the status below is the part that matters */
+        }
+        console.error('[add] photo upload failed', { status, detail, err })
         patchSlot(index, { state: 'failed', progress: 0 })
       }
     },
