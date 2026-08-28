@@ -14,6 +14,7 @@ import { AddItem } from './screens/AddItem'
 import { Chat } from './screens/Chat'
 import { Profile } from './screens/Profile'
 import { Settings } from './screens/Settings'
+import { BlockedList } from './screens/BlockedList'
 import { Match } from './screens/Match'
 import { Rate } from './screens/Rate'
 import { Hunt } from './screens/Hunt'
@@ -88,6 +89,7 @@ export function AppRouter() {
         <Route path="/swaps/:swapId/arrange" element={guard(<Arrange />)} />
         <Route path="/membership" element={guard(<Membership />)} />
         <Route path="/settings" element={guard(<Settings />)} />
+        <Route path="/settings/blocked" element={guard(<BlockedList />)} />
 
         {/* Internal. The staff check lives inside ReportQueue, not just here. */}
         <Route path="/admin/reports" element={guard(<ReportQueue />)} />

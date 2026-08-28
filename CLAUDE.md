@@ -46,7 +46,7 @@ Bartefy is a peer-to-peer item-swap app: list items, swipe nearby finds, mutual 
 
 ### Screens
 Platform-split (folder with `.mobile`/`.desktop`/`use*`): Auth, Onboarding, Hunt, Browse, SwapsInbox, Chat.
-Single-file (layout is the same shape on both): AddItem, Arrange, ItemDetail, Membership, Profile, Settings, Verify, admin/ReportQueue.
+Single-file (layout is the same shape on both): AddItem, Arrange, BlockedList, ItemDetail, Membership, Profile, Settings, Verify, admin/ReportQueue.
 Redirect shims: Match, Rate — legacy push-notification targets whose UX now lives in sheets.
 
 Deleted in the V4 rebuild: the ten inline-style components, plus Login, Register, Welcome, CityPicker (now a shared component), Cancel (now TroubleSheet) and DesignProfile.
@@ -115,11 +115,10 @@ STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_COLLECTOR, STRIPE_PRICE_C
 5. **Image variant generation** — R2 worker for 200/640/1600 WebP + LQIP not built yet. `<Img>` takes a `photo` object; HuntCard and the Browse grid use a plain `<img>` until the worker exists.
 6. **meeting_spots table** — needs seeding per launch city.
 7. **profiles.is_staff** — staff gate on `/admin/reports` not implemented.
-8. **Blocked-list screen** — Settings links to `/settings/blocked`; the route does not exist yet.
-9. **Account deletion** — Settings records `deletion_requested_at` and signs out; real deletion needs a service-role job.
-10. **Language packs** — de/fr/es/lv are stubs. Keys fall back to EN until translated.
-11. **Logo asset** — RGB with no alpha, so it cannot sit on green. `Wordmark` sets the brand as type on dark surfaces; replace with a transparent SVG when one exists.
-12. **AddItem, ItemDetail, Arrange, Profile** — on shadcn and translated, but not yet platform-split; they are single-file with a max-width container.
+8. **Account deletion** — Settings records `deletion_requested_at` and signs out; real deletion needs a service-role job.
+9. **Language packs** — de/fr/es/lv are stubs. Keys fall back to EN until translated.
+10. **Logo asset** — RGB with no alpha, so it cannot sit on green. `Wordmark` sets the brand as type on dark surfaces; replace with a transparent SVG when one exists.
+11. **AddItem, ItemDetail, Arrange, Profile** — on shadcn and translated, but not yet platform-split; they are single-file with a max-width container.
 
 ## V3 design reference files (in the v2 repo)
 Located at `/Users/Alex/Dev/2026/Aug/16-BARTEFY-V2/v3/Barter Platform Design System/`:
