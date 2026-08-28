@@ -1,3 +1,4 @@
+import { categoryLabel } from '@/lib/taxonomy'
 import { InfoHint } from '@/components/guidance/InfoHint'
 import { useT } from '@/i18n/T'
 import { cn } from '@/lib/utils'
@@ -7,11 +8,14 @@ import { cn } from '@/lib/utils'
  */
 export function WantsRow({
   wants,
+  note,
   matchCount = 0,
   label = 'item.wants',
   className,
 }: {
   wants: string[]
+  /** Free-text wish, already split out of the stored array. */
+  note?: string
   matchCount?: number
   /** Translation key. */
   label?: string
@@ -50,10 +54,13 @@ export function WantsRow({
             key={w}
             className="rounded-pill bg-primary/[0.08] px-2.5 py-1 font-body text-xs font-semibold text-primary"
           >
-            {w}
+            {t(categoryLabel(w))}
           </span>
         ))}
       </div>
+      {/* The free-text wish reads as a sentence, never as a chip: a chip
+          implies something filterable, and this is a hope, not a filter. */}
+      {note && <p className="font-body text-sm text-muted-foreground">{note}</p>}
       {matchCount > 0 && (
         <span className="font-body text-sm font-semibold text-primary">
           {t('browse.resultCount', { count: matchCount })}

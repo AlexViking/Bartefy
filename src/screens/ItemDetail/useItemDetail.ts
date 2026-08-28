@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 
 import { getItem } from '@/lib/api'
+import { DEFAULT_CONDITION, categoryLabel, conditionAt, splitWants } from '@/lib/taxonomy'
 import { keys, STALE } from '@/lib/cache/queryClient'
 import type { ItemRef, PersonRef } from '@/types/swap'
 
@@ -49,10 +50,16 @@ export function useItemDetail() {
   const item = {
     id: String(data.id),
     title: String(data.title ?? ''),
-    category: String(data.category ?? ''),
-    condition: String(data.condition ?? ''),
+    // Stored values normalise through the taxonomy: v2 rows hold categories
+    // this build never defined, and they still have to render.
+    category: categoryLabel(data.category),
+    condition: conditionAt(Number(data.condition ?? DEFAULT_CONDITION)).label,
     description: String(data.description ?? ''),
-    wants: Array.isArray(data.wants_in_return) ? (data.wants_in_return as string[]) : [],
+    // get_item_detail returns `wants`, not the column name. The free-text
+    // wish is stored in the same array behind a prefix; it is shown as a
+    // sentence, not as a chip that looks matchable.
+    wants: splitWants(data.wants).categories,
+    wantsNote: splitWants(data.wants).note,
     eyeing: data.eyeing_count != null ? Number(data.eyeing_count) : 0,
     reserved: data.status === 'reserved',
   }

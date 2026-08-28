@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router'
+import { CATEGORIES } from '@/lib/taxonomy'
 
 import { ONBOARDING_STEPS, useOnboardingStore } from '@/store/onboarding'
 import { useAuthStore } from '@/store/auth'
@@ -7,20 +8,10 @@ import { useAuthStore } from '@/store/auth'
  *  Both Onboarding.mobile and Onboarding.desktop call this, so the two layouts
  *  can never drift apart in behaviour.
  */
-export const TASTE_OPTIONS = [
-  { id: 'cameras', label: 'Cameras' },
-  { id: 'books', label: 'Books' },
-  { id: 'vinyl', label: 'Vinyl' },
-  { id: 'clothing', label: 'Clothing' },
-  { id: 'furniture', label: 'Furniture' },
-  { id: 'plants', label: 'Plants' },
-  { id: 'tools', label: 'Tools' },
-  { id: 'games', label: 'Games' },
-  { id: 'kitchen', label: 'Kitchen' },
-  { id: 'art', label: 'Art' },
-  { id: 'bikes', label: 'Bikes' },
-  { id: 'curiosities', label: 'Curiosities' },
-] as const
+/** Tastes are category ids, so what someone picks here actually seeds Hunt's
+ *  filters. They used to be their own list ('cameras', 'plants', 'bikes'),
+ *  none of which matched a category, so the seeding silently matched nothing. */
+export const TASTE_OPTIONS = CATEGORIES
 
 /** Seeded from the cities we have meeting spots for. */
 export const CITY_OPTIONS = ['Berlin', 'Hamburg', 'Munich', 'Cologne', 'Leipzig'] as const

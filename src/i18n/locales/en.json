@@ -138,10 +138,10 @@
     "titlePlaceholder": "Pentax film camera",
     "descriptionLabel": "Tell its story",
     "descriptionPlaceholder": "Where it came from, how it has been used, anything that is not obvious from the photos.",
-    "categoryLabel": "Category",
-    "conditionLabel": "Condition",
+    "categoryLabel": "What kind of thing is it?",
+    "conditionLabel": "What shape is it in?",
     "wantsLabel": "What would you like in return?",
-    "wantsHelp": "Leave this empty to stay open to any offer.",
+    "wantsHelp": "Nobody has a catalogue — pick the directions you would trade toward, and say anything specific below.",
     "publish": "Put it on the table",
     "publishing": "Putting it on the table…",
     "limitTitle": "You have reached your listing limit",
@@ -156,7 +156,14 @@
     "stepPhotos": "Photos",
     "stepDetails": "Details",
     "stepWants": "Wants",
-    "publishFailed": "That did not save. Check your signal and try again."
+    "publishFailed": "That did not save. Check your signal and try again.",
+    "categoryHelp": "Pick the closest one. It is how people find it.",
+    "wantsHeading": "What would you like in return?",
+    "wantsAnything": "Open to anything",
+    "wantsAnythingHelp": "Leave the categories empty and any offer is welcome.",
+    "wantsNoteLabel": "Anything specific?",
+    "wantsNotePlaceholder": "Ideally a soldering station, but surprise me.",
+    "wantsNoteHelp": "A wish, not a promise — people will offer what they actually have."
   },
   "swaps": {
     "title": "Swaps",
@@ -394,5 +401,34 @@
     "cancelRelist": "Cancel the swap, relist both",
     "tabOpen": "Open",
     "tabClosed": "Closed"
+  },
+  "category": {
+    "electronics": "Electronics",
+    "homeGarden": "Home & garden",
+    "kitchen": "Kitchen",
+    "furniture": "Furniture",
+    "clothing": "Clothing & shoes",
+    "bagsJewellery": "Bags & jewellery",
+    "booksMedia": "Books & media",
+    "music": "Music & instruments",
+    "sportOutdoors": "Sport & outdoors",
+    "toysGames": "Toys & games",
+    "babyKids": "Baby & kids",
+    "toolsDiy": "Tools & DIY",
+    "artCraft": "Art & craft",
+    "collectables": "Collectables",
+    "other": "Something else"
+  },
+  "condition": {
+    "forParts": "For parts",
+    "forPartsHelp": "Broken or incomplete. Someone will still want it.",
+    "needsWork": "Needs work",
+    "needsWorkHelp": "Works, mostly. Say what is wrong in the story.",
+    "wellLoved": "Well loved",
+    "wellLovedHelp": "Used and it shows. The worn bits are the point.",
+    "good": "Good",
+    "goodHelp": "Used gently. Nothing that would put anyone off.",
+    "likeNew": "Like new",
+    "likeNewHelp": "Barely touched, or never used at all."
   }
 }

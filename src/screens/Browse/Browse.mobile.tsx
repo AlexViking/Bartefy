@@ -72,8 +72,8 @@ export default function BrowseMobile() {
       <ResponsiveSheet open={filtersOpen} onOpenChange={setFiltersOpen} title="browse.filters">
         <div className="flex flex-wrap gap-2 py-2">
           {BROWSE_CATEGORIES.map((c) => (
-            <Chip key={c} active={b.cats.includes(c)} onClick={() => b.toggleCat(c)}>
-              {c}
+            <Chip key={c.id} active={b.cats.includes(c.id)} onClick={() => b.toggleCat(c.id)}>
+              {t(c.label)}
             </Chip>
           ))}
         </div>
