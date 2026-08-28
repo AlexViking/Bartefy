@@ -11,7 +11,6 @@ import { Auth } from './screens/Auth'
 // folder (Screen.mobile.tsx / Screen.desktop.tsx) as the rebuild reaches it.
 import { Verify } from './screens/Verify'
 import { AddItem } from './screens/AddItem'
-import { Chat } from './screens/Chat'
 import { Profile } from './screens/Profile'
 import { Settings } from './screens/Settings'
 import { BlockedList } from './screens/BlockedList'
@@ -22,6 +21,7 @@ import { Browse } from './screens/Browse'
 import { SwapsInbox } from './screens/SwapsInbox'
 import { ItemDetail } from './screens/ItemDetail'
 import { Arrange } from './screens/Arrange'
+import SwapThread from './screens/SwapThread'
 import { Membership } from './screens/Membership'
 import { ReportQueue } from './screens/admin/ReportQueue'
 
@@ -85,7 +85,9 @@ export function AppRouter() {
 
         <Route path="/item/:itemId" element={guard(<ItemDetail />)} />
         <Route path="/add" element={guard(<AddItem />)} />
-        <Route path="/swaps/:swapId" element={guard(<Chat />)} />
+        {/* Desktop renders the inbox here so the swap list stays beside the
+            thread; mobile renders Chat full-screen. See SwapThread. */}
+        <Route path="/swaps/:swapId" element={guard(<SwapThread />)} />
         <Route path="/swaps/:swapId/arrange" element={guard(<Arrange />)} />
         <Route path="/membership" element={guard(<Membership />)} />
         <Route path="/settings" element={guard(<Settings />)} />
