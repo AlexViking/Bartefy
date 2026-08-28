@@ -26,7 +26,7 @@ export function Facts({ d }: { d: Ready }) {
         <OwnerRow person={d.owner} action={t('item.viewProfile')} onAction={d.goOwner} />
       </div>
 
-      <WantsRow wants={d.item.wants} matchCount={0} />
+      <WantsRow wants={d.item.wants} note={d.item.wantsNote} matchCount={0} />
 
       {d.item.reserved && (
         <T

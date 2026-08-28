@@ -6,22 +6,11 @@ import type { PhotoState } from '@/components/ui/photo-well'
 import { keys } from '@/lib/cache/queryClient'
 import { getR2UploadUrls, insertItem } from '@/lib/api'
 import { toWebP } from '@/lib/images'
+import { DEFAULT_CONDITION, WANT_NOTE_PREFIX } from '@/lib/taxonomy'
 import { useAuthStore } from '@/store/auth'
 import { useMembershipStore } from '@/store/membership'
 import { useOnboardingStore } from '@/store/onboarding'
 
-export const ADD_CATEGORIES = ['Cameras', 'Books', 'Clothing', 'Curiosities', 'Vinyl', 'Kitchen']
-export const ADD_CONDITIONS = ['Like new', 'Good', 'Well loved', 'Needs a fix']
-export const ADD_WANTS = ['Film lenses', 'Vinyl', 'Anything wool', 'Books', 'Plants', 'Surprise me']
-
-/** items.condition is a smallint 1-5. The picker shows words, the column
- *  stores a number, and this is the only place the two are tied together. */
-const CONDITION_VALUE: Record<string, number> = {
-  'Like new': 5,
-  Good: 4,
-  'Well loved': 3,
-  'Needs a fix': 2,
-}
 
 /** items.expires_at is NOT NULL with no default — an insert that omits it is
  *  rejected outright, and get_feed hides anything already expired. */
@@ -73,8 +62,9 @@ export function useAddItem() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState<string | null>(null)
-  const [condition, setCondition] = useState<string | null>(null)
+  const [condition, setCondition] = useState<number>(DEFAULT_CONDITION)
   const [wants, setWants] = useState<string[]>([])
+  const [wantsNote, setWantsNote] = useState('')
   const [capped, setCapped] = useState(false)
   const [publishing, setPublishing] = useState(false)
   const [publishError, setPublishError] = useState(false)
@@ -197,13 +187,19 @@ export function useAddItem() {
     const expires = new Date()
     expires.setDate(expires.getDate() + LISTING_DAYS)
 
+    // Category ids, plus the free-text wish behind its prefix. get_item_detail
+    // matches your finds against these, so ids stay matchable data while the
+    // note stays human.
+    const wantsColumn = [...wants]
+    if (wantsNote.trim()) wantsColumn.push(WANT_NOTE_PREFIX + wantsNote.trim())
+
     const { error } = await insertItem({
       user_id: userId,
       title: title.trim(),
       description: description.trim(),
-      category: category ?? '',
-      condition: condition ? (CONDITION_VALUE[condition] ?? 3) : 3,
-      wants_in_return: wants,
+      category: category ?? 'other',
+      condition,
+      wants_in_return: wantsColumn,
       images,
       location_city: city,
       status: 'active',
@@ -250,6 +246,8 @@ export function useAddItem() {
     setCondition,
     wants,
     toggleWant,
+    wantsNote,
+    setWantsNote,
     capped,
     setCapped,
     publishing,

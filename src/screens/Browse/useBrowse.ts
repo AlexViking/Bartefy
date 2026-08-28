@@ -1,11 +1,12 @@
 import { useState } from 'react'
+import { CATEGORIES } from '@/lib/taxonomy'
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 
 import { searchItems } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 
-export const BROWSE_CATEGORIES = ['Cameras', 'Books', 'Clothing', 'Curiosities', 'Vinyl', 'Kitchen']
+export const BROWSE_CATEGORIES = CATEGORIES
 
 const NEW_FOR_MS = 48 * 3600_000
 

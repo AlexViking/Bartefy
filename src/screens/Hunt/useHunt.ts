@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { CATEGORIES } from '@/lib/taxonomy'
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 
@@ -8,7 +9,9 @@ import { useAuthStore } from '@/store/auth'
 import { useHuntStore, type CardItem } from '@/store/hunt'
 import { useOnboardingStore } from '@/store/onboarding'
 
-export const HUNT_CATEGORIES = ['Cameras', 'Books', 'Clothing', 'Curiosities', 'Vinyl']
+/** One taxonomy for the whole app — see lib/taxonomy.ts. Hunt, Browse,
+ *  AddItem and onboarding all used to keep their own drifting copies. */
+export const HUNT_CATEGORIES = CATEGORIES
 
 /** All of Hunt's behaviour, with no layout in it. Both platform layouts call
  *  this, so the feed, the swipe rules and the match handling can never diverge
@@ -28,7 +31,7 @@ export function useHunt() {
   /** Onboarding's taste picker seeds the first filter set — the point of asking
    *  is that the first few cards are not random. */
   const [filters, setFilters] = useState<string[]>(() =>
-    HUNT_CATEGORIES.filter((c) => tastes.includes(c.toLowerCase())),
+    HUNT_CATEGORIES.filter((c) => tastes.includes(c.id)).map((c) => c.id),
   )
   const [radiusKm, setRadiusKm] = useState(10)
   const [matched, setMatched] = useState<CardItem | null>(null)

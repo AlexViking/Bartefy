@@ -2,7 +2,7 @@ import { Compass, HandHeart, PackageOpen, Sparkles } from 'lucide-react'
 
 import { Chip } from '@/components/ui/tone-badge'
 import { InfoHint } from '@/components/guidance/InfoHint'
-import { T } from '@/i18n/T'
+import { T, useT } from '@/i18n/T'
 import { CITY_OPTIONS, TASTE_OPTIONS } from './useOnboarding'
 import { cn } from '@/lib/utils'
 
@@ -66,6 +66,7 @@ export function TasteStep({
   tastes: string[]
   onToggle: (id: string) => void
 }) {
+  const { t } = useT()
   return (
     <div className="space-y-4">
       <div className="flex items-start gap-1.5">
@@ -79,7 +80,7 @@ export function TasteStep({
             active={tastes.includes(tOpt.id)}
             onClick={() => onToggle(tOpt.id)}
           >
-            {tOpt.label}
+            {t(tOpt.label)}
           </Chip>
         ))}
       </div>
