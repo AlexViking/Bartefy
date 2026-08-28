@@ -268,6 +268,8 @@ export function Settings() {
             {t('settings.deleteAccount')}
           </Button>
         </div>
+
+        <BuildStamp />
       </div>
 
       <ResponsiveSheet open={cityOpen} onOpenChange={setCityOpen} title="onboarding.cityTitle">
@@ -342,5 +344,41 @@ function Row({
       </div>
       {control}
     </div>
+  )
+}
+
+/** Which build is actually in front of you. Quiet by design — it is a
+ *  diagnostic, not a feature — but tappable, because the first thing anyone
+ *  asks about a bug report is which version it came from.
+ *
+ *  The values are frozen into the bundle by vite.config.ts, so they describe
+ *  the deployed build rather than whatever the client happens to fetch.
+ */
+function BuildStamp() {
+  const { t } = useT()
+  const [copied, setCopied] = useState(false)
+  const stamp = `v${__APP_VERSION__} · ${__APP_COMMIT__}`
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(`Bartefy ${stamp} · built ${__APP_BUILT_AT__}`)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Clipboard is blocked on insecure origins and in some embedded
+      // webviews. The text is on screen either way, so there is nothing to
+      // recover from — the stamp stays readable and copyable by hand.
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      title={`${t('settings.buildLabel')} — ${__APP_BUILT_AT__}`}
+      className="mx-auto mt-8 block rounded-pill px-3 py-2 font-body text-caption text-muted-foreground/70 transition-colors duration-fast ease-brand hover:text-muted-foreground"
+    >
+      {copied ? t('common.done') : stamp}
+    </button>
   )
 }

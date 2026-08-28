@@ -295,7 +295,8 @@
     "notifMessage": "New messages",
     "notifEmail": "Email me a summary",
     "replayTips": "Show the guidance again",
-    "replayTipsHelp": "Replays the welcome tour and brings back every tip you dismissed."
+    "replayTipsHelp": "Replays the welcome tour and brings back every tip you dismissed.",
+    "buildLabel": "Version"
   },
   "help": {
     "whatIsBartefy": "Bartefy is a straight swap: your item for theirs. No money changes hands.",
