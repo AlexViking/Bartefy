@@ -5,9 +5,17 @@ import { Chip } from '@/components/ui/badge'
 import { StarsInput } from '@/components/ui/stars'
 import { Icon } from '@/components/ui/icon'
 import { SwapPair } from './SwapPair'
+import { T, useT } from '@/i18n/T'
 import type { ItemRef } from '@/types/swap'
 
-const RATING_TAGS = ['On time', 'As described', 'Friendly', 'Would swap again']
+/** Keys, not copy. The value sent to the server is the key's stable id so a
+ *  rating means the same thing whatever language it was left in. */
+const RATING_TAGS = [
+  { id: 'punctual', label: 'confirm.tagPunctual' },
+  { id: 'as_described', label: 'confirm.tagAsDescribed' },
+  { id: 'friendly', label: 'confirm.tagFriendly' },
+  { id: 'would_again', label: 'confirm.tagWouldAgain' },
+]
 
 /** F4 - confirmation and rating in one step, because asking twice is how
  *  ratings die. Confirmation is required; stars are optional.
@@ -33,6 +41,7 @@ export function ConfirmAndRateSheet({
   onRate?: (stars: number, tags: string[]) => void
   onTrouble?: () => void
 }) {
+  const { t } = useT()
   const [confirmed, setConfirmed] = useState(false)
   const [stars, setStars] = useState(0)
   const [tags, setTags] = useState<string[]>([])
@@ -41,7 +50,7 @@ export function ConfirmAndRateSheet({
     setTags((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : prev.length < 3 ? [...prev, t] : prev))
 
   return (
-    <ResponsiveSheet open={open} onOpenChange={onOpenChange} title="Did the swap happen?">
+    <ResponsiveSheet open={open} onOpenChange={onOpenChange} title="confirm.title">
       <div className="flex flex-col gap-4">
         <div className="rounded-sm border border-border/[0.14] bg-popover p-3">
           <SwapPair mine={mine} theirs={theirs} />
@@ -50,10 +59,12 @@ export function ConfirmAndRateSheet({
         <div className="flex flex-col gap-2.5">
           <Row done={theyConfirmed}>
             {theyConfirmed
-              ? otherName + ' confirmed they got yours'
-              : 'Waiting on ' + otherName + ' to confirm'}
+              ? t('confirm.theyConfirmed', { name: otherName })
+              : t('confirm.waitingOn', { name: otherName })}
           </Row>
-          <Row done={confirmed}>{confirmed ? 'You confirmed' : 'Did you get theirs?'}</Row>
+          <Row done={confirmed}>
+            {confirmed ? t('confirm.youConfirmed') : t('confirm.didYouGet')}
+          </Row>
         </div>
 
         {!confirmed ? (
@@ -64,32 +75,32 @@ export function ConfirmAndRateSheet({
                 onConfirm?.()
               }}
             >
-              Yes, got it
+              {t('confirm.gotIt')}
             </Button>
-            <Button variant="ghost" onClick={onTrouble}>
-              Something{'\u2019'}s wrong
+            <Button variant="ghost" onClick={onTrouble} data-i18n="confirm.somethingWrong">
+              {t('confirm.somethingWrong')}
             </Button>
           </div>
         ) : (
           <div className="flex flex-col gap-3 border-t border-border/[0.14] pt-4">
-            <span className="font-display text-base font-semibold">How was swapping with {otherName}?</span>
+            <span data-i18n="confirm.rateTitle" className="font-display text-base font-semibold">
+              {t('confirm.rateTitle', { name: otherName })}
+            </span>
             <StarsInput value={stars} onChange={setStars} />
             <div className="flex flex-wrap gap-2">
-              {RATING_TAGS.map((t) => (
-                <Chip key={t} active={tags.includes(t)} onClick={() => toggleTag(t)}>
-                  {t}
+              {RATING_TAGS.map((tag) => (
+                <Chip key={tag.id} active={tags.includes(tag.id)} onClick={() => toggleTag(tag.id)}>
+                  {t(tag.label)}
                 </Chip>
               ))}
             </div>
-            <p className="font-body text-sm text-muted-foreground">
-              Neither of you sees the other{'\u2019'}s rating until you have both left one.
-            </p>
+            <T as="p" k="confirm.blindNote" className="font-body text-sm text-muted-foreground" />
             <div className="flex items-center gap-2.5">
               <Button variant="accent" disabled={stars === 0} onClick={() => onRate?.(stars, tags)}>
-                Leave rating
+                {t('confirm.leaveRating')}
               </Button>
-              <Button variant="ghost" onClick={() => onOpenChange(false)}>
-                Skip
+              <Button variant="ghost" onClick={() => onOpenChange(false)} data-i18n="confirm.skip">
+                {t('confirm.skip')}
               </Button>
             </div>
           </div>

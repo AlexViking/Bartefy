@@ -1,4 +1,5 @@
 import { AppShell } from '@/components/shell/AppShell'
+import { ConfirmAndRateSheet } from '@/components/swap/ConfirmAndRateSheet'
 import { TroubleSheet } from '@/components/swap/TroubleSheet'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -83,6 +84,18 @@ export default function ChatDesktop() {
             <Button variant="ghost" fullWidth onClick={c.goArrange} data-i18n="chat.arrange">
               {t('chat.arrange')}
             </Button>
+            {/* Confirming a handover and rating are both ALWAYS_FREE, so this
+                is offered as soon as the swap is agreed. */}
+            {c.ctx?.status === 'agreed' && (
+              <Button
+                variant="ghost"
+                fullWidth
+                onClick={() => c.setConfirmOpen(true)}
+                data-i18n="chat.markDone"
+              >
+                {t('chat.markDone')}
+              </Button>
+            )}
           </div>
 
           <div className="mt-auto space-y-2">
@@ -103,6 +116,21 @@ export default function ChatDesktop() {
           </div>
         </aside>
       </div>
+
+      <ConfirmAndRateSheet
+        open={c.confirmOpen}
+        onOpenChange={c.setConfirmOpen}
+        mine={{ id: 'a', title: c.ctx?.itemATitle ?? '', photoUrl: c.ctx?.itemAImages[0] }}
+        theirs={{ id: 'b', title: c.ctx?.itemBTitle ?? '', photoUrl: c.ctx?.itemBImages[0] }}
+        otherName={c.ctx?.otherName ?? ''}
+        theyConfirmed={false}
+        onConfirm={() => void c.confirmHandover()}
+        onRate={(stars, tags) => void c.rate(stars, tags)}
+        onTrouble={() => {
+          c.setConfirmOpen(false)
+          c.openTrouble()
+        }}
+      />
 
       <TroubleSheet
         open={c.troubleOpen}
