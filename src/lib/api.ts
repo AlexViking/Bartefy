@@ -152,6 +152,34 @@ export async function sendMessage(swapId: string, senderId: string, body: string
   })
 }
 
+/** Messages waiting for you: unread, and not your own.
+ *
+ *  RLS already scopes messages to swaps you are part of, so this needs no
+ *  join — `sender_id != you` is the whole filter. Counted, not fetched: the
+ *  badge only ever needs the number.
+ */
+export async function getUnreadCount(userId: string) {
+  return supabase
+    .from('messages')
+    .select('id', { count: 'exact', head: true })
+    .is('read_at', null)
+    .neq('sender_id', userId)
+}
+
+/** Clear the badge for one thread. The recipient-update RLS policy permits
+ *  exactly this — setting read_at on messages sent TO you — so the sender_id
+ *  filter is not merely an optimisation: without it every row is rejected.
+ */
+export async function markThreadRead(swapId: string, userId: string) {
+  return supabase
+    .from('messages')
+    .update({ read_at: new Date().toISOString() })
+    .eq('swap_id', swapId)
+    .neq('sender_id', userId)
+    .is('read_at', null)
+    .select()
+}
+
 export function subscribeMessages(swapId: string, onMessage: (m: unknown) => void) {
   return supabase.channel(`messages:${swapId}`)
     .on('postgres_changes',

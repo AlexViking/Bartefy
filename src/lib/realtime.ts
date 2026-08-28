@@ -30,6 +30,8 @@ export function useRealtime(userId: string | undefined) {
         ({ new: row }: { new: { swap_id: string } }) => {
           appendMessage(qc, row)
           qc.invalidateQueries({ queryKey: keys.swaps(userId) })
+          // The badge counts the same rows, so it moves on the same frame.
+          qc.invalidateQueries({ queryKey: keys.unread(userId) })
         },
       )
 

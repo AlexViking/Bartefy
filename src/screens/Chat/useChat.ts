@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
+import { useQueryClient } from '@tanstack/react-query'
 
 import {
   blockUser,
   confirmReceipt,
   fileReport,
   getMessages,
+  markThreadRead,
   rateSwap,
   sendMessage,
   subscribeMessages,
   updateSwapStatus,
 } from '@/lib/api'
+import { keys } from '@/lib/cache/queryClient'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth'
 import { useChatStore, type ChatMessage } from '@/store/chat'
@@ -76,10 +79,36 @@ export function useChat() {
   const [loading, setLoading] = useState(true)
   const [ctx, setCtx] = useState<SwapContext | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const qc = useQueryClient()
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  /** Reading the thread is what clears the badge.
+   *
+   *  Keyed on `messages` as well as the id, so a message arriving while the
+   *  thread is already open is marked read too — otherwise the dot would
+   *  reappear over a conversation the user is actively looking at.
+   *
+   *  The recipient-update RLS policy permits only messages sent TO you, and
+   *  markThreadRead filters on exactly that, so this is a no-op when there is
+   *  nothing unread rather than a rejected write.
+   */
+  useEffect(() => {
+    if (!swapId || !userId) return
+    const unread = messages.some((m) => m.sender_id !== userId && !m.read_at)
+    if (!unread) return
+
+    void (async () => {
+      const { error } = await markThreadRead(swapId, userId)
+      if (error) {
+        console.error('[chat] mark read failed', error)
+        return
+      }
+      qc.invalidateQueries({ queryKey: keys.unread(userId) })
+    })()
+  }, [swapId, userId, messages, qc])
 
   useEffect(() => {
     if (!swapId || !userId) return
