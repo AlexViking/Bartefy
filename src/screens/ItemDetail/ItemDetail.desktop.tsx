@@ -1,6 +1,9 @@
 import { ArrowLeft, Eye } from 'lucide-react'
 
+import { useNavigate } from 'react-router'
+
 import { AppShell } from '@/components/shell/AppShell'
+import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
 import { InfoHint } from '@/components/guidance/InfoHint'
 import { OfferComposerSheet } from '@/components/offer/OfferComposerSheet'
@@ -15,6 +18,22 @@ import { useItemDetail } from './useItemDetail'
 export default function ItemDetailDesktop() {
   const d = useItemDetail()
   const { t } = useT()
+  const navigate = useNavigate()
+
+  if (d.notFound) {
+    return (
+      <AppShell>
+        <div className="flex min-h-dvh items-center justify-center px-5">
+          <EmptyState
+            title="item.notFoundTitle"
+            body="item.notFoundBody"
+            actionLabel="nav.browse"
+            onAction={() => navigate('/browse')}
+          />
+        </div>
+      </AppShell>
+    )
+  }
 
   if (!d.ready) {
     return (

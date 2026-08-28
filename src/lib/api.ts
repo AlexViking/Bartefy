@@ -181,12 +181,19 @@ export async function submitRating({
 
 // ── Item detail ────────────────────────────────────────────────────────────
 
+/** One find, with everything the detail screen needs.
+ *
+ *  This used to be a PostgREST select with `owner:user_id(*)` embedded, which
+ *  could never work: items.user_id references auth.users, not
+ *  public.profiles, so the join failed with PGRST200 on every request and the
+ *  screen hung on its loading state forever.
+ *
+ *  get_item_detail (migration 006) was written for exactly this and returns
+ *  more besides — eyeing_count, saved_by_me, and how many of your own finds
+ *  match what they are asking for.
+ */
 export async function getItem(itemId: string) {
-  return supabase
-    .from('items')
-    .select('*, owner:user_id(*), eyeing:item_eyeing_counts(eyeing_count)')
-    .eq('id', itemId)
-    .single()
+  return supabase.rpc('get_item_detail', { p_item_id: Number(itemId) })
 }
 
 export async function searchItems(params: {
@@ -293,7 +300,7 @@ export async function fileReport(input: {
   swapId?: string
   fromUser: string
   aboutUser?: string
-  reason: 'changed_mind' | 'no_show' | 'not_as_described' | 'unsafe'
+  reason: 'changed_mind' | 'no_show' | 'not_as_described' | 'unsafe' | 'asked_for_money'
   note?: string
   evidencePaths?: string[]
   block?: boolean
