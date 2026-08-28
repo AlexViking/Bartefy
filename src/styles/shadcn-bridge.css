@@ -6,7 +6,6 @@
  *   import './styles/tokens.css'
  *   import './styles/shadcn-bridge.css'
  *   import './styles/global.css'
- *   import './styles/responsive.css'
  *
  * HSL triplets (no hsl() wrapper) because shadcn composes them as
  * hsl(var(--primary) / <alpha>).

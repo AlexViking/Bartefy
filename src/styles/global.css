@@ -1,5 +1,4 @@
 @import './tokens.css';
-@import './responsive.css';
 
 *, *::before, *::after {
   box-sizing: border-box;
