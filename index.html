@@ -3,7 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- maximum-scale/user-scalable lock zoom in the Capacitor wrapper and on
+         Android. iOS Safari has ignored user-scalable=no since iOS 10 (an
+         accessibility decision by Apple), so pinch still works there by
+         design. The auto-zoom that actually made the app feel broken came
+         from sub-16px inputs, fixed in input/textarea. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#2F6A52" />
     <title>Bartefy</title>
   </head>

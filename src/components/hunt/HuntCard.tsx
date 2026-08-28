@@ -1,6 +1,7 @@
 import { Eye } from 'lucide-react'
 
 import { Card } from '@/components/ui/card'
+import { Stars } from '@/components/ui/stars'
 import { ToneBadge } from '@/components/ui/tone-badge'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { useT } from '@/i18n/T'
@@ -58,7 +59,25 @@ export function HuntCard({
         </p>
         <div className="flex items-center gap-2">
           <UserAvatar name={item.owner} size="sm" />
-          <span className="font-display text-sm font-semibold text-foreground">{item.owner}</span>
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate font-display text-sm font-semibold text-foreground">
+              {item.owner}
+            </span>
+            {/* Trust belongs on the card, not only in a desktop side pane:
+                Hunt.mobile has no such pane, so without this a phone never
+                showed the owner's rating at all. */}
+            {item.rating != null && item.rating > 0 && (
+              <span className="flex items-center gap-1.5">
+                <Stars value={item.rating} size={11} />
+                <span className="font-body text-caption text-muted-foreground">
+                  {item.rating.toFixed(1)}
+                  {item.swapCount != null && item.swapCount > 0
+                    ? ' · ' + t('profile.swapsDone', { count: item.swapCount })
+                    : ''}
+                </span>
+              </span>
+            )}
+          </div>
         </div>
         {item.wants.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
