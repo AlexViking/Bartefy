@@ -33,6 +33,9 @@ export default function HuntDesktop() {
     <AppShell>
       <div className="grid h-[calc(100dvh-68px)] grid-cols-[260px_1fr_320px]">
         <aside className="flex flex-col gap-4 overflow-y-auto border-r border-border/[0.14] bg-card p-5">
+          {/* The panes carry caption labels, not headings, so the screen would
+              otherwise have no h1 for a screen reader to announce. */}
+          <T as="h1" k="hunt.title" className="sr-only" />
           <div className="flex items-center gap-1.5">
             <T
               as="span"

@@ -118,7 +118,7 @@ export function Settings() {
         </header>
 
         <Section title="settings.account">
-          <Row label={email} />
+          <Row label={email} literal />
           <Separator />
           <Row
             label="settings.language"
@@ -306,18 +306,27 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Row({
   label,
   help,
+  literal = false,
   control,
 }: {
+  /** A translation key, unless `literal` is set. */
   label: string
   help?: string
+  /** True when the label is user data (an email, a name) rather than a key.
+   *  Such a row renders the text as-is and carries no data-i18n, so the
+   *  translation sweep does not report it as an untranslated key. */
+  literal?: boolean
   control?: React.ReactNode
 }) {
   const { t } = useT()
   return (
     <div className="flex min-h-hit items-center justify-between gap-3 px-4 py-3">
       <div className="min-w-0">
-        <p data-i18n={label} className="truncate font-body text-base text-foreground">
-          {t(label)}
+        <p
+          data-i18n={literal ? undefined : label}
+          className="truncate font-body text-base text-foreground"
+        >
+          {literal ? label : t(label)}
         </p>
         {help && (
           <p data-i18n={help} className="mt-0.5 font-body text-sm text-muted-foreground">
