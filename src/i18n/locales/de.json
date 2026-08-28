@@ -1,0 +1,7 @@
+{
+  "_meta": {
+    "language": "de",
+    "source": "en.json",
+    "note": "Translated from English. Keys missing here fall back to EN at runtime."
+  }
+}

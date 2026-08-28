@@ -8,6 +8,9 @@ import { startOutbox, type Job } from '@/lib/outbox'
 import { useAuthStore } from '@/store/auth'
 import { supabase } from '@/lib/supabase'
 import { useEffect } from 'react'
+import { PlatformProvider } from '@/lib/platform'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { Toaster } from '@/components/ui/sonner'
 
 /** Cache restores before the first paint, so a cold start opens on the last
  *  known feed, threads and profile rather than an empty screen.
@@ -19,8 +22,13 @@ export function App() {
       persistOptions={{ persister: idbPersister, maxAge: 24 * 60 * 60_000 }}
     >
       <QueryClientProvider client={queryClient}>
-        <Live />
-        <AppRouter />
+        <PlatformProvider>
+          <TooltipProvider delayDuration={200}>
+            <Live />
+            <AppRouter />
+            <Toaster />
+          </TooltipProvider>
+        </PlatformProvider>
       </QueryClientProvider>
     </PersistQueryClientProvider>
   )

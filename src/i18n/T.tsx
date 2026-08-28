@@ -15,13 +15,19 @@ import { useTranslation } from 'react-i18next'
  *      <T k="hunt.empty.body" values={{ radius: 10 }} />
  *      <T k="swap.status" as="span" className="text-muted-foreground" />
  */
+/** Text-bearing HTML elements. Deliberately not `keyof JSX.IntrinsicElements`:
+ *  that includes SVG elements, which do not take HTML attributes. */
+export type TextTag =
+  | 'span' | 'p' | 'div' | 'label' | 'strong' | 'em' | 'small' | 'li' | 'dt' | 'dd'
+  | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'legend' | 'figcaption' | 'caption' | 'th' | 'td'
+
 export interface TProps extends Omit<React.HTMLAttributes<HTMLElement>, 'children'> {
   /** Translation key, e.g. "hunt.empty.title". */
   k: string
   /** Interpolation values, e.g. {{ radius }} in the EN string. */
   values?: Record<string, string | number>
   /** Element to render. Defaults to a span so <T> is inline-safe anywhere. */
-  as?: keyof JSX.IntrinsicElements
+  as?: TextTag
   /** Shown if the key is missing entirely — prefer fixing en.json instead. */
   fallback?: string
 }
