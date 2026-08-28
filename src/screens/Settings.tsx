@@ -1,231 +1,331 @@
-import React, { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
-import { Button } from '../components/Button'
-import { Toggle } from '../components/Toggle'
-import { Sheet } from '../components/Sheet'
-import { CityPicker } from './CityPicker'
-import { TopNav } from '@/components/shell/TopNav'
-import { useAuthStore } from '../store/auth'
-import { getProfile, updateProfile, signOut } from '../lib/api'
-import { supabase } from '../lib/supabase'
 
-type ProfileNotifs = {
+import { AppShell } from '@/components/shell/AppShell'
+import { CityPicker } from '@/components/CityPicker'
+import { LanguageSwitcher } from '@/components/LanguageSwitcher'
+import { InfoHint } from '@/components/guidance/InfoHint'
+import { resetNudges } from '@/components/guidance/NextStep'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { ResponsiveSheet } from '@/components/ui/responsive-sheet'
+import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
+import { ToneBadge } from '@/components/ui/tone-badge'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { T, useT } from '@/i18n/T'
+import { getProfile, signOut, updateProfile } from '@/lib/api'
+import { useAuthStore } from '@/store/auth'
+import { useOnboardingStore } from '@/store/onboarding'
+
+interface ProfileSettings {
   notif_match: boolean
   notif_push: boolean
   notif_email: boolean
   home_city: string
+  tier: string | null
 }
 
+/** Settings is one column on both platforms — a list of rows reads the same
+ *  everywhere, so it is width-constrained rather than platform-split.
+ */
 export function Settings() {
   const navigate = useNavigate()
-  const session = useAuthStore((s) => s.session)
-  const userId = session?.user?.id
+  const { t } = useT()
+  const userId = useAuthStore((s) => s.session?.user?.id)
+  const email = useAuthStore((s) => s.session?.user?.email) ?? ''
+  const setSelectedCity = useAuthStore((s) => s.setSelectedCity)
+  const resetOnboarding = useOnboardingStore((s) => s.reset)
 
   const [notifMatch, setNotifMatch] = useState(true)
   const [notifPush, setNotifPush] = useState(true)
   const [notifEmail, setNotifEmail] = useState(false)
   const [homeCity, setHomeCity] = useState('')
+  const [tier, setTier] = useState<string>('free')
   const [cityOpen, setCityOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const [deleting, setDeleting] = useState(false)
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!userId) return
-    loadProfile()
+    let cancelled = false
+    void (async () => {
+      const { data, error } = await getProfile(userId)
+      if (error || cancelled || !data) return
+      const p = data as unknown as ProfileSettings
+      setNotifMatch(p.notif_match ?? true)
+      setNotifPush(p.notif_push ?? true)
+      setNotifEmail(p.notif_email ?? false)
+      setHomeCity(p.home_city ?? '')
+      setTier(p.tier ?? 'free')
+    })()
+    return () => {
+      cancelled = true
+    }
   }, [userId])
 
-  async function loadProfile() {
+  /** Every toggle writes through immediately — a settings screen with a Save
+   *  button invites people to leave without pressing it. */
+  const patch = async (changes: Record<string, unknown>) => {
     if (!userId) return
-    setLoading(true)
-    try {
-      const { data } = await getProfile(userId)
-      if (data) {
-        const p = data as ProfileNotifs
-        setNotifMatch(p.notif_match ?? true)
-        setNotifPush(p.notif_push ?? true)
-        setNotifEmail(p.notif_email ?? false)
-        setHomeCity(p.home_city ?? '')
-      }
-    } finally {
-      setLoading(false)
-    }
+    const { error } = await updateProfile(userId, changes)
+    if (error) console.error('[settings] save failed', error)
   }
 
-  async function patch(changes: Record<string, unknown>) {
-    if (!userId) return
-    await updateProfile(userId, changes)
-  }
-
-  async function handleSignOut() {
-    await signOut()
-    navigate('/')
-  }
-
-  async function handleDeleteAccount() {
-    setDeleting(true)
-    try {
-      await supabase.auth.admin?.deleteUser?.(userId ?? '')
-      // Fallback: just sign out — actual deletion requires service role
-      await signOut()
-      navigate('/')
-    } finally {
-      setDeleting(false)
-      setDeleteOpen(false)
-    }
-  }
-
-  async function handleCitySelect(city: string) {
+  const chooseCity = async (city: string) => {
     setHomeCity(city)
+    setSelectedCity(city)
     setCityOpen(false)
     await patch({ home_city: city })
   }
 
-  const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-      <div style={{ padding: '0 0 8px', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '12px', letterSpacing: '0.18em', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-        {title}
-      </div>
-      <div className="settings-card" style={{ background: 'var(--surface-card)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-card-lg)', boxShadow: 'var(--shadow-card)', padding: '6px 16px', display: 'flex', flexDirection: 'column' }}>
-        {children}
-      </div>
-    </div>
-  )
+  const handleSignOut = async () => {
+    await signOut()
+    navigate('/')
+  }
 
-  const Row = ({ label, value, onPress }: { label: string; value?: string; onPress?: () => void }) => (
-    <button
-      onClick={onPress}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        width: '100%',
-        padding: '0',
-        minHeight: '48px',
-        background: 'none',
-        border: 'none',
-        borderBottom: '1px solid var(--border-subtle)',
-        cursor: 'pointer',
-        fontFamily: 'var(--font-body)',
-        fontSize: '16px',
-        color: 'var(--ink)',
-        textAlign: 'left',
-      }}
-    >
-      <span className="label" style={{ fontSize: '16px', color: 'var(--ink)' }}>{label}</span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }} className="link-val">
-        {value && <span style={{ fontSize: '15px', color: 'var(--text-muted)' }}>{value}</span>}
-        <ChevronRight size={15} color="var(--text-muted)" />
-      </div>
-    </button>
-  )
-
-  const ToggleRow = ({
-    label,
-    description,
-    checked,
-    onChange,
-  }: {
-    label: string
-    description?: string
-    checked: boolean
-    onChange: (v: boolean) => void
-  }) => (
-    <div style={{ borderBottom: '1px solid var(--border-subtle)', minHeight: '48px', display: 'flex', alignItems: 'center' }}>
-      <Toggle label={label} description={description} checked={checked} onChange={onChange} />
-    </div>
-  )
-
-  if (loading) return null
+  /** Real deletion needs the service role, so this asks the server and signs
+   *  out. Never pretend an account is gone when it is not. */
+  const handleDelete = async () => {
+    setDeleteOpen(false)
+    await patch({ deletion_requested_at: new Date().toISOString() })
+    await signOut()
+    navigate('/')
+  }
 
   return (
-    <main style={{ minHeight: '100dvh', background: 'var(--surface-page)', display: 'flex', flexDirection: 'column' }}>
-      <TopNav />
-      <header className="mobile-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 20px' }}>
-        <button
-          onClick={() => navigate(-1)}
-          style={{
-            width: '40px', height: '40px', borderRadius: '50%',
-            border: '1.5px solid var(--border-subtle)',
-            background: 'var(--surface-card)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', flexShrink: 0, padding: 0,
-          }}
-        >
-          <ArrowLeft size={19} color="var(--ink)" />
-        </button>
-        <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '18px', color: 'var(--ink)', margin: 0 }}>Settings</h3>
-        <span style={{ width: '40px' }} />
-      </header>
-
-      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px', padding: '8px 20px 32px' }}>
-        <Section title="Notifications">
-          <ToggleRow
-            label="New matches"
-            description="When someone likes your item back"
-            checked={notifMatch}
-            onChange={(v) => { setNotifMatch(v); patch({ notif_match: v }) }}
-          />
-          <ToggleRow
-            label="Push notifications"
-            checked={notifPush}
-            onChange={(v) => { setNotifPush(v); patch({ notif_push: v }) }}
-          />
-          <ToggleRow
-            label="Email notifications"
-            checked={notifEmail}
-            onChange={(v) => { setNotifEmail(v); patch({ notif_email: v }) }}
-          />
-        </Section>
-
-        <Section title="Preferences">
-          <Row label="City" value={homeCity || 'Choose city'} onPress={() => setCityOpen(true)} />
-          <Row label="Distance unit" value="km" />
-        </Section>
-
-        <Section title="Account">
-          <Row label="Email" value={session?.user?.email ?? ''} />
-        </Section>
-
-        <div style={{ flex: 1 }} />
-        <Button variant="ghost" size="md" fullWidth onClick={handleSignOut}>
-          Sign out
-        </Button>
-        <Button variant="danger" size="md" fullWidth onClick={() => setDeleteOpen(true)}>
-          Delete my account
-        </Button>
-      </div>
-
-      <Sheet open={cityOpen} onClose={() => setCityOpen(false)} title="Choose your city">
-        <CityPicker onSelect={handleCitySelect} />
-      </Sheet>
-
-      <Sheet open={deleteOpen} onClose={() => setDeleteOpen(false)} height="auto" title="Delete account?">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '16px' }}>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '16px', color: 'var(--text-muted)', margin: 0 }}>
-            This will permanently delete your account, all your items, and your swap history. This can't be undone.
-          </p>
-          <Button
-            variant="danger"
-            size="lg"
-            fullWidth
-            disabled={deleting}
-            onClick={handleDeleteAccount}
-            style={{ background: 'var(--terracotta)', color: '#fff', borderColor: 'var(--terracotta)' }}
+    <AppShell>
+      <div className="mx-auto w-full max-w-[640px] px-5 pb-10 pt-4">
+        <header className="mb-6 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            aria-label={t('common.back')}
+            className="flex size-11 items-center justify-center rounded-pill text-foreground hover:bg-foreground/[0.06]"
           >
-            {deleting ? 'Deleting…' : 'Yes, delete my account'}
+            <ArrowLeft className="size-5" aria-hidden="true" />
+          </button>
+          <T as="h1" k="settings.title" className="font-display text-h2 text-foreground" />
+        </header>
+
+        <Section title="settings.account">
+          <Row label={email} />
+          <Separator />
+          <Row
+            label="settings.language"
+            help="settings.languageHelp"
+            control={<LanguageSwitcher />}
+          />
+          <Separator />
+          <Row
+            label="onboarding.cityTitle"
+            control={
+              <button
+                type="button"
+                onClick={() => setCityOpen(true)}
+                className="flex min-h-hit items-center gap-1 font-body text-muted-foreground hover:text-foreground"
+              >
+                {homeCity || t('common.optional')}
+                <ChevronRight className="size-4" aria-hidden="true" />
+              </button>
+            }
+          />
+        </Section>
+
+        <Section title="settings.membership">
+          <Row
+            label="membership.title"
+            control={
+              <div className="flex items-center gap-2">
+                <ToneBadge tone={tier === 'free' ? 'quiet' : 'green'}>
+                  {t(`membership.tier${tier.charAt(0).toUpperCase()}${tier.slice(1)}`)}
+                </ToneBadge>
+                <Button variant="ghost" size="sm" onClick={() => navigate('/membership')}>
+                  {t('membership.manage')}
+                </Button>
+              </div>
+            }
+          />
+          <Separator />
+          <div className="px-4 py-3">
+            <div className="flex items-center gap-1.5">
+              <T
+                as="p"
+                k="membership.alwaysFreeTitle"
+                className="font-display text-[15px] font-semibold text-foreground"
+              />
+              <InfoHint k="help.whyNoMoney" />
+            </div>
+            <T
+              as="p"
+              k="membership.alwaysFreeBody"
+              className="mt-1 font-body text-sm leading-relaxed text-muted-foreground"
+            />
+          </div>
+        </Section>
+
+        <Section title="settings.notifications">
+          <Row
+            label="hunt.matchTitle"
+            control={
+              <Switch
+                checked={notifMatch}
+                onCheckedChange={(v) => {
+                  setNotifMatch(v)
+                  void patch({ notif_match: v })
+                }}
+              />
+            }
+          />
+          <Separator />
+          <Row
+            label="chat.placeholder"
+            control={
+              <Switch
+                checked={notifPush}
+                onCheckedChange={(v) => {
+                  setNotifPush(v)
+                  void patch({ notif_push: v })
+                }}
+              />
+            }
+          />
+          <Separator />
+          <Row
+            label="auth.emailLabel"
+            control={
+              <Switch
+                checked={notifEmail}
+                onCheckedChange={(v) => {
+                  setNotifEmail(v)
+                  void patch({ notif_email: v })
+                }}
+              />
+            }
+          />
+        </Section>
+
+        <Section title="stuck.title">
+          <Row
+            label="common.moreInfo"
+            help="onboarding.step1Body"
+            control={
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  resetNudges()
+                  resetOnboarding()
+                  navigate('/welcome')
+                }}
+              >
+                {t('common.retry')}
+              </Button>
+            }
+          />
+          <Separator />
+          <Row
+            label="settings.blocked"
+            control={
+              <button
+                type="button"
+                onClick={() => navigate('/settings/blocked')}
+                className="flex min-h-hit items-center text-muted-foreground hover:text-foreground"
+                aria-label={t('settings.blocked')}
+              >
+                <ChevronRight className="size-4" aria-hidden="true" />
+              </button>
+            }
+          />
+        </Section>
+
+        <div className="mt-6 flex flex-col gap-2">
+          <Button variant="ghost" fullWidth onClick={handleSignOut} data-i18n="settings.signOut">
+            {t('settings.signOut')}
           </Button>
           <Button
             variant="ghost"
-            size="lg"
             fullWidth
-            onClick={() => setDeleteOpen(false)}
+            onClick={() => setDeleteOpen(true)}
+            className="text-destructive"
+            data-i18n="settings.deleteAccount"
           >
-            Cancel
+            {t('settings.deleteAccount')}
           </Button>
         </div>
-      </Sheet>
-    </main>
+      </div>
+
+      <ResponsiveSheet open={cityOpen} onOpenChange={setCityOpen} title="onboarding.cityTitle">
+        <CityPicker value={homeCity} onSelect={chooseCity} />
+      </ResponsiveSheet>
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent className="rounded-hero">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display text-h3">
+              {t('settings.deleteAccount')}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="font-body text-muted-foreground">
+              {t('error.genericBody')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t('common.confirm')}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </AppShell>
+  )
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  const { t } = useT()
+  return (
+    <section className="mb-6">
+      <h2
+        data-i18n={title}
+        className="mb-2 px-1 font-display text-caption uppercase tracking-[0.18em] text-muted-foreground"
+      >
+        {t(title)}
+      </h2>
+      <Card className="overflow-hidden rounded border-border/[0.14] bg-card">{children}</Card>
+    </section>
+  )
+}
+
+function Row({
+  label,
+  help,
+  control,
+}: {
+  label: string
+  help?: string
+  control?: React.ReactNode
+}) {
+  const { t } = useT()
+  return (
+    <div className="flex min-h-hit items-center justify-between gap-3 px-4 py-3">
+      <div className="min-w-0">
+        <p data-i18n={label} className="truncate font-body text-base text-foreground">
+          {t(label)}
+        </p>
+        {help && (
+          <p data-i18n={help} className="mt-0.5 font-body text-sm text-muted-foreground">
+            {t(help)}
+          </p>
+        )}
+      </div>
+      {control}
+    </div>
   )
 }

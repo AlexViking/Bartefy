@@ -9,7 +9,6 @@ import { Auth } from './screens/Auth'
 
 // Screens not yet migrated to the platform split. Each moves into its own
 // folder (Screen.mobile.tsx / Screen.desktop.tsx) as the rebuild reaches it.
-import { DesignProfile } from './screens/DesignProfile'
 import { Verify } from './screens/Verify'
 import { AddItem } from './screens/AddItem'
 import { Chat } from './screens/Chat'
@@ -72,7 +71,6 @@ export function AppRouter() {
       <Routes>
         <Route path="/" element={<HomeRoute />} />
         <Route path="/welcome" element={<NeedsSession><Onboarding /></NeedsSession>} />
-        <Route path="/design" element={<DesignProfile />} />
         <Route path="/verify" element={<Verify />} />
         {/* Login and Register collapsed into the one progressive Auth screen */}
         <Route path="/login" element={<Navigate to="/" replace />} />
