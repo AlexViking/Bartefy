@@ -115,14 +115,34 @@ export async function getMySwaps(userId: string) {
     .order('created_at', { ascending: false })
 }
 
+/** swaps.status is CHECK'd to ('proposed','confirmed','completed','cancelled').
+ *  The UI speaks a richer nine-state vocabulary that was never migrated, so a
+ *  write of e.g. 'agreed' is rejected by the constraint. This maps the UI's
+ *  words back onto the four the column accepts — the mirror of STATUS_FROM_DB
+ *  in useSwapsInbox, and the same single place to retire once the schema
+ *  catches up.
+ */
+const STATUS_TO_DB: Record<string, string> = {
+  new: 'proposed',
+  chatting: 'proposed',
+  offered: 'proposed',
+  agreed: 'confirmed',
+  arranged: 'confirmed',
+  received_one_side: 'confirmed',
+  done: 'completed',
+  cancelled: 'cancelled',
+}
+
 export async function updateSwapStatus(
   swapId: string,
   status: string,
   cancelReason?: string | null,
 ) {
-  const patch: Record<string, unknown> = { status }
+  const patch: Record<string, unknown> = { status: STATUS_TO_DB[status] ?? status }
   if (cancelReason) patch.cancel_reason = cancelReason
-  return supabase.from('swaps').update(patch).eq('id', swapId)
+  // .select() so a rejected write surfaces as an error rather than a silent
+  // no-op — a constraint violation here used to look like a dead button.
+  return supabase.from('swaps').update(patch).eq('id', swapId).select()
 }
 
 // ── Chat (server-stored) ────────────────────────────────────────────────

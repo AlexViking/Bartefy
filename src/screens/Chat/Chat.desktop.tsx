@@ -1,4 +1,5 @@
 import { AppShell } from '@/components/shell/AppShell'
+import { TroubleSheet } from '@/components/swap/TroubleSheet'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { ToneBadge } from '@/components/ui/tone-badge'
@@ -62,9 +63,22 @@ export default function ChatDesktop() {
 
           <div className="flex flex-col gap-2">
             {c.ctx?.status !== 'agreed' && (
-              <Button fullWidth onClick={() => void c.agree()} data-i18n="chat.confirmSwap">
-                {t('chat.confirmSwap')}
+              <Button
+                fullWidth
+                onClick={() => void c.agree()}
+                disabled={c.agreeing}
+                data-i18n="chat.confirmSwap"
+              >
+                {c.agreeing ? t('common.loading') : t('chat.confirmSwap')}
               </Button>
+            )}
+            {c.agreeError && (
+              <T
+                as="p"
+                k="chat.confirmFailed"
+                className="font-body text-sm text-destructive"
+                role="alert"
+              />
             )}
             <Button variant="ghost" fullWidth onClick={c.goArrange} data-i18n="chat.arrange">
               {t('chat.arrange')}
@@ -77,12 +91,25 @@ export default function ChatDesktop() {
               k="arrange.safetyBody"
               className="font-body text-sm leading-relaxed text-muted-foreground"
             />
-            <Button variant="ghost" fullWidth className="text-destructive" data-i18n="chat.trouble">
+            <Button
+              variant="ghost"
+              fullWidth
+              className="text-destructive"
+              onClick={c.openTrouble}
+              data-i18n="chat.trouble"
+            >
               {t('chat.trouble')}
             </Button>
           </div>
         </aside>
       </div>
+
+      <TroubleSheet
+        open={c.troubleOpen}
+        onOpenChange={c.setTroubleOpen}
+        otherName={c.ctx?.otherName ?? ''}
+        onSubmit={(reason, note, block) => void c.submitTrouble(reason, note, block)}
+      />
     </AppShell>
   )
 }
