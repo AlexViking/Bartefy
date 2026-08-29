@@ -79,6 +79,24 @@ export function TopNav({
         <Button onClick={() => navigate(ADD_DESTINATION.path)} data-i18n="nav.add">
           {t('nav.add')}
         </Button>
+        {/* Settings used to live only as a chip inside Profile, which people
+            did not find — a gear in the bar is where anyone looks for it. The
+            mobile tab bar has no room for a fifth destination, so Profile
+            keeps its chip as the phone route in. */}
+        <button
+          type="button"
+          onClick={() => navigate('/settings')}
+          aria-label={t('settings.title')}
+          aria-current={pathname.startsWith('/settings') ? 'page' : undefined}
+          className={cn(
+            'flex size-11 items-center justify-center rounded-pill transition-colors duration-fast ease-brand',
+            pathname.startsWith('/settings')
+              ? 'text-primary'
+              : 'text-muted-foreground hover:bg-foreground/[0.06] hover:text-primary',
+          )}
+        >
+          <Icon name="Settings" size={20} />
+        </button>
         <UserAvatar
           name={email || 'Swapper'}
           size="md"

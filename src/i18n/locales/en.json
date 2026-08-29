@@ -72,6 +72,9 @@
   "hunt": {
     "title": "Hunt",
     "filtersTitle": "What you are hunting",
+    "offerLabel": "Offering",
+    "offerNone": "List a find to trade with",
+    "offerMine": "Your find",
     "detailTitle": "About this find",
     "detailEmpty": "Pick up a card to see its details.",
     "loading": "Finding treasures near you…",

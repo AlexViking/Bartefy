@@ -37,7 +37,11 @@ export function Img({
       style={{
         aspectRatio: aspectRatio(photo),
         backgroundImage: photo.lqip ? 'url(' + photo.lqip + ')' : undefined,
-        backgroundSize: 'cover',
+        // 'contain' to match the photo above it. With object-contain the
+        // letterboxed strips would otherwise show a cropped, zoomed LQIP that
+        // does not line up with the real image behind it.
+        backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
         backgroundPosition: 'center',
       }}
     >
@@ -53,7 +57,7 @@ export function Img({
         fetchPriority={priority ? 'high' : 'auto'}
         onLoad={() => setLoaded(true)}
         className={cn(
-          'h-full w-full object-cover transition-opacity duration-med ease-brand',
+          'h-full w-full object-contain transition-opacity duration-med ease-brand',
           loaded ? 'opacity-100' : 'opacity-0',
         )}
       />

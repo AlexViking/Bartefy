@@ -95,11 +95,21 @@ export async function fetchFeed({
 
 // ── Swipes (edge function) ───────────────────────────────────────────────────
 
-export async function recordSwipe({ targetItemId, targetOwnerId, isLike }: {
+export async function recordSwipe({ targetItemId, targetOwnerId, isLike, offerItemId }: {
   targetItemId: string; targetOwnerId: string; isLike: boolean
+  /** Which of my finds I am offering. Sent now so the client is ready; the
+   *  deployed swipe function ignores unknown body keys, and
+   *  record_swipe_and_match still chooses whichever of my items the other
+   *  person liked most recently until it is migrated to accept this. */
+  offerItemId?: string
 }) {
   return supabase.functions.invoke('swipe', {
-    body: { target_item_id: targetItemId, target_owner_id: targetOwnerId, is_like: isLike },
+    body: {
+      target_item_id: targetItemId,
+      target_owner_id: targetOwnerId,
+      is_like: isLike,
+      offer_item_id: offerItemId,
+    },
   })
 }
 
@@ -178,6 +188,29 @@ export async function getUnreadCount(userId: string) {
     .select('id', { count: 'exact', head: true })
     .is('read_at', null)
     .neq('sender_id', userId)
+}
+
+/** Unread counts per swap, for the dot on each inbox row.
+ *
+ *  One request for the whole inbox rather than one per row: it selects the
+ *  swap_id of every unread message addressed to you and tallies them here.
+ *  RLS already narrows this to swaps you are part of, exactly as
+ *  getUnreadCount relies on.
+ */
+export async function getUnreadBySwap(userId: string) {
+  const { data, error } = await supabase
+    .from('messages')
+    .select('swap_id')
+    .is('read_at', null)
+    .neq('sender_id', userId)
+
+  if (error) return { data: null, error }
+
+  const counts: Record<string, number> = {}
+  for (const row of (data ?? []) as { swap_id: string }[]) {
+    counts[row.swap_id] = (counts[row.swap_id] ?? 0) + 1
+  }
+  return { data: counts, error: null }
 }
 
 /** Clear the badge for one thread. The recipient-update RLS policy permits

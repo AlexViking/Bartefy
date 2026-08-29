@@ -1,7 +1,7 @@
 import { useNavigate, useSearchParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 
-import { getMySwaps } from '@/lib/api'
+import { getMySwaps, getUnreadBySwap } from '@/lib/api'
 import { keys, STALE } from '@/lib/cache/queryClient'
 import { useAuthStore } from '@/store/auth'
 import { STATUS_FROM_DB, type SwapStatus } from '@/types/swap'
@@ -20,6 +20,8 @@ export interface SwapRow {
   status: SwapStatus
   photoUrl?: string
   photoColor: string
+  /** Messages waiting in this thread, for the dot on the row. */
+  unread: number
 }
 
 const CLOSED: SwapStatus[] = ['done', 'cancelled']
@@ -68,6 +70,8 @@ export function useSwapsInbox() {
           status: STATUS_FROM_DB[String(s.status ?? '')] ?? 'new',
           photoUrl: photos?.[0],
           photoColor: 'hsl(var(--illo-denim))',
+          // Filled in below, once the per-swap counts have loaded.
+          unread: 0,
         }
       })
     },
@@ -75,8 +79,26 @@ export function useSwapsInbox() {
     staleTime: STALE.realtime,
   })
 
-  const active = swaps.filter((s) => !CLOSED.includes(s.status))
-  const closed = swaps.filter((s) => CLOSED.includes(s.status))
+  /** Which threads have something waiting. Keyed under the same 'unread'
+   *  prefix as the nav total, so the existing realtime invalidation refreshes
+   *  both on the frame a message arrives. */
+  const { data: unreadBySwap = {} } = useQuery({
+    queryKey: keys.unreadBySwap(userId ?? ''),
+    queryFn: async () => {
+      const { data, error } = await getUnreadBySwap(userId!)
+      if (error) throw error
+      return data ?? {}
+    },
+    enabled: !!userId,
+    staleTime: STALE.realtime,
+  })
+
+  // Merged after the fact rather than inside the swaps query, so a change to
+  // either count does not refetch the other.
+  const withUnread = swaps.map((s) => ({ ...s, unread: unreadBySwap[s.id] ?? 0 }))
+
+  const active = withUnread.filter((s) => !CLOSED.includes(s.status))
+  const closed = withUnread.filter((s) => CLOSED.includes(s.status))
   const rows = tab === 'closed' ? closed : active
 
   return {
