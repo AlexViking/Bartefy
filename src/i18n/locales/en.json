@@ -160,6 +160,8 @@
     "stepDetails": "Details",
     "stepWants": "Wants",
     "publishFailed": "That did not save. Check your signal and try again.",
+    "needDetails": "Add a name, a few words and a category first",
+    "needPhoto": "Add at least one photo",
     "categoryHelp": "Pick as many as fit. It is how people find it.",
     "wantsHeading": "What would you like in return?",
     "wantsAnything": "Open to anything",

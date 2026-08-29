@@ -41,7 +41,7 @@ export default function AddItemDesktop() {
             <Button
               size="lg"
               onClick={a.publish}
-              disabled={!a.hasPhoto || a.uploading || a.publishing}
+              disabled={!a.canPublish || a.publishing}
               data-i18n="add.publish"
             >
               {a.publishing ? t('common.loading') : t('add.publish')}
@@ -49,8 +49,15 @@ export default function AddItemDesktop() {
             <Button variant="ghost" size="lg" onClick={a.cancel} data-i18n="add.notNow">
               {t('add.notNow')}
             </Button>
-            {!a.hasPhoto && (
-              <T as="p" k="add.photosTitle" className="font-body text-sm text-muted-foreground" />
+            {/* This layout shows every section at once, so it names whichever
+                requirement is still outstanding rather than a step. Details
+                first: it is the one that produced a nameless live listing. */}
+            {!a.canPublish && !a.uploading && (
+              <T
+                as="p"
+                k={!a.detailsComplete ? 'add.needDetails' : 'add.needPhoto'}
+                className="font-body text-sm text-muted-foreground"
+              />
             )}
           </div>
         </section>
