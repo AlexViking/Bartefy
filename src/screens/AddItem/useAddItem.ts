@@ -17,8 +17,13 @@ import { useOnboardingStore } from '@/store/onboarding'
 const LISTING_DAYS = 30
 
 export const ADD_STEPS = [
-  { id: 'photos', label: 'add.stepPhotos' },
+  // Details first, deliberately. Photos used to be step 0, so an upload could
+  // start — and R2 storage be spent, and the listing cap counted against — for
+  // a find that had no title yet. One live item reached production with a
+  // photo and an empty title exactly that way. Describing the thing is cheap
+  // and local; uploading is neither, so it comes second.
   { id: 'details', label: 'add.stepDetails' },
+  { id: 'photos', label: 'add.stepPhotos' },
   { id: 'wants', label: 'add.stepWants' },
 ] as const
 
@@ -78,6 +83,31 @@ export function useAddItem() {
 
   const hasPhoto = photos.some((p) => p.state === 'ready')
   const uploading = photos.some((p) => p.state === 'uploading')
+
+  /** What each step needs before it can be left.
+   *
+   *  A find with no title renders as a nameless row wherever it appears — in
+   *  the inbox, in a swap pair, on the profile grid — and one such item is
+   *  live in production. The rules are enforced here rather than only on the
+   *  publish button so the gap cannot be walked past in the first place.
+   *
+   *  Trimmed, so a title of spaces does not pass. */
+  const detailsComplete =
+    title.trim().length > 0 && description.trim().length > 0 && categories.length > 0
+
+  /** Whether the current step may be left for the next one. Photos additionally
+   *  requires that nothing is still in flight, so publish cannot fire against a
+   *  half-written upload. */
+  const canAdvance =
+    ADD_STEPS[step].id === 'details'
+      ? detailsComplete
+      : ADD_STEPS[step].id === 'photos'
+        ? hasPhoto && !uploading
+        : true
+
+  /** Everything a listing needs. Re-checked at publish rather than trusted from
+   *  the step gate: back-navigation can empty a field after its step passed. */
+  const canPublish = detailsComplete && hasPhoto && !uploading
 
   const patchSlot = useCallback((index: number, patch: Partial<PhotoSlot>) => {
     setPhotos((ps) => ps.map((p, i) => (i === index ? { ...p, ...patch } : p)))
@@ -202,7 +232,9 @@ export function useAddItem() {
     if (!userId || publishing) return
 
     const images = photos.filter((p) => p.state === 'ready' && p.url).map((p) => p.url as string)
-    if (images.length === 0) return
+    // The last line of defence. insertItem would otherwise happily write
+    // title: '' — which is how a nameless find got into production.
+    if (images.length === 0 || !canPublish) return
 
     setPublishing(true)
     setPublishError(false)
@@ -250,7 +282,15 @@ export function useAddItem() {
     steps: ADD_STEPS,
     step,
     stepId: ADD_STEPS[step].id,
-    next: () => setStep((s) => Math.min(s + 1, ADD_STEPS.length - 1)),
+    // Gated: advancing past an incomplete step is what let an untitled find
+    // reach the photo upload, and then production.
+    next: () => {
+      if (!canAdvance) return
+      setStep((s) => Math.min(s + 1, ADD_STEPS.length - 1))
+    },
+    canAdvance,
+    canPublish,
+    detailsComplete,
     back: () => setStep((s) => Math.max(s - 1, 0)),
     isFirst: step === 0,
     isLast: step === ADD_STEPS.length - 1,
