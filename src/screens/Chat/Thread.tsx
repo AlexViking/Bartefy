@@ -16,7 +16,13 @@ export function Thread({ c }: { c: ReturnType<typeof useChat> }) {
 
   return (
     <>
-      <div className="flex flex-1 flex-col gap-2 overflow-y-auto px-5 py-4">
+      {/* min-h-0 is load-bearing. A flex child defaults to min-height:auto, so
+          without it this box refuses to shrink below the height of the whole
+          message list — it grows instead of scrolling, and pushes the composer
+          below the fold on any conversation long enough to need it. Both
+          callers wrap this in a flex column, so it belongs here rather than in
+          each of them. */}
+      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-5 py-4">
         {c.loading ? (
           <T as="p" k="common.loading" className="self-center font-body text-sm text-muted-foreground" />
         ) : (
@@ -55,7 +61,7 @@ export function Thread({ c }: { c: ReturnType<typeof useChat> }) {
         <div ref={c.bottomRef} />
       </div>
 
-      <div className="flex items-end gap-2 border-t border-border/[0.14] bg-card px-4 py-3">
+      <div className="flex shrink-0 items-end gap-2 border-t border-border/[0.14] bg-card px-4 py-3">
         <Textarea
           value={c.input}
           onChange={(e) => c.setInput(e.target.value)}

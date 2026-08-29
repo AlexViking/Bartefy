@@ -187,7 +187,7 @@ export function Profile() {
                       src={it.photoUrl}
                       alt={t('a11y.photoOf', { title: it.title })}
                       loading="lazy"
-                      className="size-full object-cover"
+                      className="size-full object-contain"
                     />
                   )}
                 </span>

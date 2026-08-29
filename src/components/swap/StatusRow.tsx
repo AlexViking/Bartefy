@@ -27,6 +27,7 @@ export function StatusRow({
   status,
   onClick,
   className,
+  unread = 0,
 }: {
   item?: ItemRef
   title: string
@@ -34,6 +35,9 @@ export function StatusRow({
   status: SwapStatus
   onClick?: () => void
   className?: string
+  /** Messages waiting in this thread. A dot, not a number: the count matters
+   *  far less than which conversation is asking for you. */
+  unread?: number
 }) {
   const { t } = useT()
   // A status this build does not know about must never blank the screen: an
@@ -55,10 +59,18 @@ export function StatusRow({
         className="size-11 shrink-0 overflow-hidden rounded-lg"
         style={{ background: item?.photoColor ?? 'hsl(var(--secondary))' }}
       >
-        {item?.photoUrl && <img src={item.photoUrl} alt="" className="size-full object-cover" />}
+        {item?.photoUrl && <img src={item.photoUrl} alt="" className="size-full object-contain" />}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate font-display text-[15px] font-semibold text-foreground">{title}</span>
+        <span className="flex items-center gap-1.5">
+          <span className="min-w-0 truncate font-display text-[15px] font-semibold text-foreground">{title}</span>
+          {unread > 0 && (
+            <span
+              className="size-2 shrink-0 rounded-pill bg-accent"
+              aria-label={t('swaps.unread', { count: unread })}
+            />
+          )}
+        </span>
         {subtitle && <span className="block truncate font-body text-sm text-muted-foreground">{subtitle}</span>}
       </span>
       <ToneBadge tone={meta.tone} data-i18n={meta.label}>

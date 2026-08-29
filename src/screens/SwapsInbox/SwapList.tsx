@@ -49,8 +49,17 @@ export function SwapList({
             item={{ id: s.id, title: s.title, photoColor: s.photoColor, photoUrl: s.photoUrl }}
             title={s.title}
             status={s.status}
+            unread={s.unread}
             onClick={() => onOpen(s.id)}
-            className={selectedId === s.id ? 'border-primary bg-popover' : undefined}
+            /* The open conversation has to be obvious at a glance: a green
+               border alone read as hover, since hover already changes the
+               background. The inset left bar is the unambiguous signal. */
+            className={
+              selectedId === s.id
+                ? 'border-primary bg-popover shadow-[inset_3px_0_0_0_hsl(var(--primary))]'
+                : undefined
+            }
+            aria-current={selectedId === s.id ? 'true' : undefined}
           />
         </li>
       ))}

@@ -41,7 +41,7 @@ export function ResultGrid({
                 src={r.photoUrl}
                 alt={t('a11y.photoOf', { title: r.title })}
                 loading="lazy"
-                className="size-full object-cover"
+                className="size-full object-contain"
               />
             )}
             {r.isNew && (

@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { OwnerRow } from '@/components/swap/OwnerRow'
+import { OfferPicker } from '@/components/hunt/OfferPicker'
 import { SwapPair } from '@/components/swap/SwapPair'
 import { WantsRow } from '@/components/swap/WantsRow'
 import { T, useT } from '@/i18n/T'
@@ -36,6 +37,17 @@ export default function HuntDesktop() {
           {/* The panes carry caption labels, not headings, so the screen would
               otherwise have no h1 for a screen reader to announce. */}
           <T as="h1" k="hunt.title" className="sr-only" />
+
+          {/* Your side of the trade, at the top of the rail that already
+              answers "what am I hunting for" — the two halves of the same
+              question belong together. */}
+          <OfferPicker
+            offers={h.offers}
+            selectedId={h.selectedOfferId}
+            onSelect={h.setSelectedOfferId}
+            onAdd={h.goAdd}
+          />
+
           <div className="flex items-center gap-1.5">
             <T
               as="span"
@@ -126,7 +138,14 @@ export default function HuntDesktop() {
           {h.matched && (
             <div className="py-4">
               <SwapPair
-                mine={{ id: 'mine', title: 'Your item', photoColor: 'hsl(var(--illo-denim))' }}
+                mine={{
+                  id: h.selectedOffer?.id ?? 'mine',
+                  // Was the bare string 'Your item' — English in JSX, and wrong
+                  // besides: this is the find you chose to offer.
+                  title: h.selectedOffer?.title ?? t('hunt.offerMine'),
+                  photoUrl: h.selectedOffer?.photoUrl,
+                  photoColor: 'hsl(var(--illo-denim))',
+                }}
                 theirs={{
                   id: h.matched.id,
                   title: h.matched.title,

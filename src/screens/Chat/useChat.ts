@@ -68,6 +68,7 @@ export function useChat() {
   const stored = useChatStore((s) => s.messages[swapId ?? ''])
   const messages = stored ?? EMPTY
   const setMessages = useChatStore((s) => s.setMessages)
+  const markLocalRead = useChatStore((s) => s.markLocalRead)
   const addMessage = useChatStore((s) => s.addMessage)
 
   const [input, setInput] = useState('')
@@ -106,9 +107,16 @@ export function useChat() {
         console.error('[chat] mark read failed', error)
         return
       }
+      // Mirror the write into the store. Without this the messages here still
+      // carry read_at === null, so `unread` above stays true, the effect fires
+      // again on the next render, and the badge never clears however many
+      // times the UPDATE succeeds.
+      markLocalRead(swapId, userId, new Date().toISOString())
+      // Invalidates the nav total and the per-row counts together — both live
+      // under the 'unread' prefix.
       qc.invalidateQueries({ queryKey: keys.unread(userId) })
     })()
-  }, [swapId, userId, messages, qc])
+  }, [swapId, userId, messages, markLocalRead, qc])
 
   useEffect(() => {
     if (!swapId || !userId) return

@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CATEGORIES } from '@/lib/taxonomy'
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 
-import { fetchFeed, recordSwipe } from '@/lib/api'
+import { fetchFeed, getMyItems, recordSwipe } from '@/lib/api'
 import { keys, STALE } from '@/lib/cache/queryClient'
 import { useAuthStore } from '@/store/auth'
 import { useHuntStore, type CardItem } from '@/store/hunt'
@@ -12,6 +12,13 @@ import { useOnboardingStore } from '@/store/onboarding'
 /** One taxonomy for the whole app — see lib/taxonomy.ts. Hunt, Browse,
  *  AddItem and onboarding all used to keep their own drifting copies. */
 export const HUNT_CATEGORIES = CATEGORIES
+
+/** One of my finds, as offered in the hunt picker. */
+export interface OfferOption {
+  id: string
+  title: string
+  photoUrl?: string
+}
 
 /** All of Hunt's behaviour, with no layout in it. Both platform layouts call
  *  this, so the feed, the swipe rules and the match handling can never diverge
@@ -24,6 +31,8 @@ export function useHunt() {
   const tastes = useOnboardingStore((s) => s.tastes)
 
   const cards = useHuntStore((s) => s.cardQueue)
+  const selectedOfferId = useHuntStore((s) => s.selectedOfferId)
+  const setSelectedOfferId = useHuntStore((s) => s.setSelectedOfferId)
   const setCardQueue = useHuntStore((s) => s.setCardQueue)
   const removeTopCard = useHuntStore((s) => s.removeTopCard)
   const addToLikeHistory = useHuntStore((s) => s.addToLikeHistory)
@@ -35,6 +44,39 @@ export function useHunt() {
   )
   const [radiusKm, setRadiusKm] = useState(10)
   const [matched, setMatched] = useState<CardItem | null>(null)
+
+  /** The finds I could put on the table. Hunting is a trade, so which of my
+   *  own items I am offering is part of the question — it was previously
+   *  decided for me by whichever item the other person happened to like last. */
+  const { data: myItems = [] } = useQuery({
+    queryKey: keys.myItems(userId ?? ''),
+    queryFn: async () => {
+      const { data, error: itemsError } = await getMyItems(userId!)
+      if (itemsError) throw itemsError
+      return (data ?? []) as Record<string, unknown>[]
+    },
+    enabled: !!userId,
+  })
+
+  const offers: OfferOption[] = myItems.map((it) => ({
+    id: String(it.id),
+    title: String(it.title ?? ''),
+    photoUrl: Array.isArray(it.images) && it.images.length > 0 ? String(it.images[0]) : undefined,
+  }))
+
+  /** Pick the first find by default, and drop a stale choice: an item that has
+   *  since been swapped or deleted is no longer offerable, and leaving it
+   *  selected would silently offer something the user no longer has. */
+  // Depends on the joined ids rather than `offers`, which is a fresh array on
+  // every render and would make this effect re-run forever.
+  const offerIds = offers.map((o) => o.id).join(',')
+  useEffect(() => {
+    const ids = offerIds ? offerIds.split(',') : []
+    if (ids.length === 0) return
+    if (!selectedOfferId || !ids.includes(selectedOfferId)) {
+      setSelectedOfferId(ids[0])
+    }
+  }, [offerIds, selectedOfferId, setSelectedOfferId])
 
   const { isLoading, error } = useQuery({
     queryKey: keys.feed(filters, radiusKm),
@@ -75,6 +117,10 @@ export function useHunt() {
         targetItemId: item.id,
         targetOwnerId: item.ownerId,
         isLike: true,
+        // Which of my finds I am putting up. Recorded on the swipe itself, so
+        // that when the other person swipes back their match lookup can pair
+        // on what I actually offered.
+        offerItemId: selectedOfferId ?? undefined,
       })
       if (data?.matched) setMatched(item)
     }
@@ -87,6 +133,10 @@ export function useHunt() {
   return {
     cards,
     top,
+    offers,
+    selectedOfferId,
+    setSelectedOfferId,
+    selectedOffer: offers.find((o) => o.id === selectedOfferId),
     isLoading,
     error,
     filters,

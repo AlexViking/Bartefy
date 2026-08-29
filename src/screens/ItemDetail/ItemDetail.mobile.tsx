@@ -57,7 +57,7 @@ export default function ItemDetailMobile() {
             <img
               src={current.url}
               alt={t('a11y.photoOf', { title: d.item.title })}
-              className="size-full object-cover"
+              className="size-full object-contain"
             />
           )}
           <button

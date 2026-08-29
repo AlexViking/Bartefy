@@ -64,7 +64,7 @@ export function PhotoWell({
 
   return (
     <div className={cn(base, className)} style={{ background: swatch }}>
-      {src && <img src={src} alt="" className="h-full w-full object-cover" />}
+      {src && <img src={src} alt="" className="h-full w-full object-contain" />}
       {state === 'uploading' && (
         <div className="absolute inset-x-2 bottom-2 h-1.5 overflow-hidden rounded-pill bg-card/70">
           <div

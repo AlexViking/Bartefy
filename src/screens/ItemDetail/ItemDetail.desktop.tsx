@@ -65,7 +65,7 @@ export default function ItemDetailDesktop() {
                 <img
                   src={current.url}
                   alt={t('a11y.photoOf', { title: d.item.title })}
-                  className="size-full object-cover"
+                  className="size-full object-contain"
                 />
               )}
             </div>
@@ -86,7 +86,7 @@ export default function ItemDetailDesktop() {
                     }
                     style={{ background: g.color }}
                   >
-                    {g.url && <img src={g.url} alt="" loading="lazy" className="size-full object-cover" />}
+                    {g.url && <img src={g.url} alt="" loading="lazy" className="size-full object-contain" />}
                   </button>
                 ))}
               </div>

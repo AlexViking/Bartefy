@@ -14,7 +14,12 @@ export function Facts({ d }: { d: Ready }) {
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
         <span className="font-display text-caption uppercase tracking-[0.18em] text-muted-foreground">
-          {d.item.category} {'·'} {d.owner.distanceLabel} {'·'} {d.item.condition}
+          {/* categoryLabel() and conditionAt() return translation KEYS, not
+              copy. Rendering them raw put "CATEGORY.TOOLSDIY · CONDITION.LIKENEW"
+              in front of users — uppercased by the tracking style above, which
+              is what made it look deliberate. The city is user data and is not
+              translated. */}
+          {t(d.item.category)} {'·'} {d.owner.distanceLabel} {'·'} {t(d.item.condition)}
         </span>
         <h1 className="font-display text-h2 leading-tight text-foreground">{d.item.title}</h1>
         <p className="font-body text-base text-muted-foreground" style={{ textWrap: 'pretty' }}>

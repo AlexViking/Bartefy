@@ -35,7 +35,7 @@ export function HuntCard({
             src={item.photoUrl}
             alt={t('a11y.photoOf', { title: item.title })}
             loading="lazy"
-            className="size-full object-cover"
+            className="size-full object-contain"
           />
         )}
         <div className="absolute inset-x-3 top-3 flex justify-between gap-2">
