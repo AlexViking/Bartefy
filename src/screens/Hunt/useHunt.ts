@@ -117,9 +117,9 @@ export function useHunt() {
         targetItemId: item.id,
         targetOwnerId: item.ownerId,
         isLike: true,
-        // Which of my finds I am putting up. The swipe function ignores this
-        // until record_swipe_and_match takes an offered item — until then the
-        // RPC still picks whichever of my items they liked most recently.
+        // Which of my finds I am putting up. Recorded on the swipe itself, so
+        // that when the other person swipes back their match lookup can pair
+        // on what I actually offered.
         offerItemId: selectedOfferId ?? undefined,
       })
       if (data?.matched) setMatched(item)

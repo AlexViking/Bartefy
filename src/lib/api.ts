@@ -97,10 +97,11 @@ export async function fetchFeed({
 
 export async function recordSwipe({ targetItemId, targetOwnerId, isLike, offerItemId }: {
   targetItemId: string; targetOwnerId: string; isLike: boolean
-  /** Which of my finds I am offering. Sent now so the client is ready; the
-   *  deployed swipe function ignores unknown body keys, and
-   *  record_swipe_and_match still chooses whichever of my items the other
-   *  person liked most recently until it is migrated to accept this. */
+  /** Which of my finds I am offering. Honoured end to end since migration 011
+   *  and swipe v8: the id is recorded on the swipe, and the matcher pairs on
+   *  it rather than on whichever of my items the other person liked last.
+   *  Optional — the RPC defaults it to NULL and falls back to the old
+   *  behaviour, which is what keeps pre-011 swipe rows valid. */
   offerItemId?: string
 }) {
   return supabase.functions.invoke('swipe', {
