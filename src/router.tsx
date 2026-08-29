@@ -100,10 +100,13 @@ export function AppRouter() {
         <Route path="/admin/reports" element={guard(<ReportQueue />)} />
 
         {/* Retired routes kept as redirects so old links and notifications work.
-            Activity is a tab inside Swaps; Match is a sheet over Hunt; Cancel is
-            the TroubleSheet; Rate is merged into ConfirmAndRateSheet. */}
+            Match is a sheet over Hunt; Cancel is the TroubleSheet; Rate is
+            merged into ConfirmAndRateSheet. Activity was a tab inside Swaps
+            that never got an implementation — it rendered the empty state
+            unconditionally — so this now lands on the inbox itself rather than
+            on a tab that is permanently blank. */}
         <Route path="/matches" element={<Navigate to="/swaps" replace />} />
-        <Route path="/activity" element={<Navigate to="/swaps?tab=activity" replace />} />
+        <Route path="/activity" element={<Navigate to="/swaps" replace />} />
         <Route path="/chat/:swapId" element={<RedirectSwap />} />
         <Route path="/cancel/:swapId" element={<RedirectSwap />} />
         {/* Deep-link fallbacks for push notifications that predate the sheets */}

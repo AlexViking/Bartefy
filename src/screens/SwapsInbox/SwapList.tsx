@@ -14,7 +14,7 @@ export function SwapList({
 }: {
   rows: SwapRow[]
   isLoading: boolean
-  tab: 'active' | 'activity' | 'closed'
+  tab: 'active' | 'closed'
   onOpen: (id: string) => void
   onGoHunt: () => void
   /** Desktop only: which row is showing in the pane beside the list. */
@@ -24,10 +24,6 @@ export function SwapList({
     return (
       <T as="p" k="common.loading" className="py-10 text-center font-body text-sm text-muted-foreground" />
     )
-  }
-
-  if (tab === 'activity') {
-    return <EmptyState title="swaps.emptyTitle" body="swaps.emptyBody" />
   }
 
   if (rows.length === 0) {

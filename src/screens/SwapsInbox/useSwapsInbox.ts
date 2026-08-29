@@ -6,11 +6,15 @@ import { keys, STALE } from '@/lib/cache/queryClient'
 import { useAuthStore } from '@/store/auth'
 import { STATUS_FROM_DB, type SwapStatus } from '@/types/swap'
 
-export type InboxTab = 'active' | 'activity' | 'closed'
+export type InboxTab = 'active' | 'closed'
 
+/** Two tabs, not three. 'activity' sat between these and was hardcoded to
+ *  render the empty state before it read any rows, so it was blank for every
+ *  user however much had happened. Active and Done already partition every
+ *  swap between them, so nothing is lost by dropping it. A real activity feed
+ *  — offers, reveals, who is eyeing a find — would be a different surface. */
 export const INBOX_TABS: { id: InboxTab; label: string }[] = [
   { id: 'active', label: 'swaps.tabActive' },
-  { id: 'activity', label: 'swaps.tabActivity' },
   { id: 'closed', label: 'swaps.tabDone' },
 ]
 
@@ -42,7 +46,14 @@ export function useSwapsInbox() {
   const navigate = useNavigate()
   const userId = useAuthStore((s) => s.session?.user?.id)
   const [params, setParams] = useSearchParams()
-  const tab = (params.get('tab') as InboxTab) ?? 'active'
+  // Validated rather than cast: a bookmarked ?tab=activity, or any other
+  // stale value, would otherwise be a tab that matches no filter and lights no
+  // button — the list would show closed swaps with nothing selected. Anything
+  // unrecognised falls back to Active.
+  const rawTab = params.get('tab')
+  const tab: InboxTab = INBOX_TABS.some((t) => t.id === rawTab)
+    ? (rawTab as InboxTab)
+    : 'active'
 
   const { data: swaps = [], isLoading } = useQuery({
     queryKey: keys.swaps(userId ?? ''),
