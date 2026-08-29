@@ -50,7 +50,7 @@ function Side({
         className={cn('w-full overflow-hidden rounded-sm', size === 'sm' ? 'aspect-square' : 'aspect-[4/3]')}
         style={{ background: first?.photoColor ?? 'hsl(var(--secondary))' }}
       >
-        {first?.photoUrl && <img src={first.photoUrl} alt="" loading="lazy" className="size-full object-contain" />}
+        {first?.photoUrl && <img src={first.photoUrl} alt="" loading="lazy" className="size-full object-cover" />}
       </div>
       <span className="truncate font-display text-sm font-semibold text-foreground">
         {items.length > 1 ? label : (first?.title ?? label)}

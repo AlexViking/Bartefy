@@ -6,6 +6,7 @@ import { useT } from '@/i18n/T'
 import { useIsDesktop } from '@/lib/platform'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { ToneBadge, Chip } from '@/components/ui/badge'
+import { Masonry, MasonryPhoto } from '@/components/ui/masonry'
 import { Button } from '@/components/ui/button'
 import { Stars } from '@/components/ui/stars'
 import { Stat } from '@/components/ui/stat'
@@ -167,7 +168,10 @@ export function Profile() {
             onAction={() => navigate(tab === 'live' ? '/add' : '/hunt')}
           />
         ) : (
-          <div className={cn('mt-4 grid gap-3', isDesktop ? 'grid-cols-4' : 'grid-cols-2')}>
+          /* Masonry: a find keeps the shape it was photographed in. The fixed
+             4:3 cell here was padding portrait photos and screenshots with
+             bars of background, which is what made this grid look wrong. */
+          <Masonry columns={isDesktop ? 4 : 2} gap={12} className="mt-4">
             {shown.map((it) => (
               <button
                 key={it.id}
@@ -178,24 +182,16 @@ export function Profile() {
                   tab === 'paused' && 'opacity-70',
                 )}
               >
-                <span
-                  className="block aspect-[4/3] w-full overflow-hidden rounded-sm"
-                  style={{ background: it.photoColor }}
-                >
-                  {it.photoUrl && (
-                    <img
-                      src={it.photoUrl}
-                      alt={t('a11y.photoOf', { title: it.title })}
-                      loading="lazy"
-                      className="size-full object-contain"
-                    />
-                  )}
-                </span>
+                <MasonryPhoto
+                  src={it.photoUrl}
+                  alt={t('a11y.photoOf', { title: it.title })}
+                  fallbackColor={it.photoColor}
+                />
                 <span className="truncate font-display text-base font-semibold">{it.title}</span>
                 {tab === 'paused' && <ToneBadge tone="quiet">{t('profile.tabPaused')}</ToneBadge>}
               </button>
             ))}
-          </div>
+          </Masonry>
         )}
 
         {tab === 'live' && (

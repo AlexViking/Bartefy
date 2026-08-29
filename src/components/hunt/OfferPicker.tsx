@@ -65,7 +65,7 @@ export function OfferPicker({
               aria-hidden="true"
             >
               {selected.photoUrl && (
-                <img src={selected.photoUrl} alt="" className="size-full object-contain" />
+                <img src={selected.photoUrl} alt="" className="size-full object-cover" />
               )}
             </span>
             {/* The title is the user's own words, so it carries no data-i18n. */}
@@ -84,7 +84,7 @@ export function OfferPicker({
               className="flex items-center gap-2"
             >
               <span className="size-7 shrink-0 overflow-hidden rounded-lg bg-secondary" aria-hidden="true">
-                {o.photoUrl && <img src={o.photoUrl} alt="" className="size-full object-contain" />}
+                {o.photoUrl && <img src={o.photoUrl} alt="" className="size-full object-cover" />}
               </span>
               <span className="min-w-0 flex-1 truncate font-body text-sm">{o.title}</span>
               {o.id === selected.id && (

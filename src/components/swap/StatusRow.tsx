@@ -59,7 +59,7 @@ export function StatusRow({
         className="size-11 shrink-0 overflow-hidden rounded-lg"
         style={{ background: item?.photoColor ?? 'hsl(var(--secondary))' }}
       >
-        {item?.photoUrl && <img src={item.photoUrl} alt="" className="size-full object-contain" />}
+        {item?.photoUrl && <img src={item.photoUrl} alt="" className="size-full object-cover" />}
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1.5">
