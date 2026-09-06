@@ -104,12 +104,27 @@ export function useAuthScreen(mode: AuthMode) {
    */
   const messageFor = (raw: string, where: 'send' | 'verify'): string => {
     const m = raw.toLowerCase()
-    if (m.includes('rate limit') || m.includes('too many') || m.includes('security purposes'))
+    // Underscored codes as well as prose: Supabase answers
+    // over_email_send_rate_limit and over_request_rate_limit, neither of which
+    // contains "rate limit" with a space, so matching prose alone let a
+    // throttled send fall through to the generic message.
+    if (
+      m.includes('rate limit') ||
+      m.includes('rate_limit') ||
+      m.includes('too many') ||
+      m.includes('security purposes')
+    )
       return t('auth.errorRateLimited')
     if (where === 'verify') {
       // Supabase answers "Token has expired or is invalid" for a mistyped code
       // and a stale one alike, so one message has to cover both honestly
       // rather than assert which of the two it was.
+      //
+      // What it must NOT do is tell the person to ask for a fresh code. A
+      // resend is the one action that spends the quota they may already be
+      // against, and requesting one invalidates the code sitting in their
+      // inbox -- so advising it turns one failure into a loop. Retyping is
+      // free; the resend button is right there when they want it.
       if (m.includes('expired') || m.includes('invalid') || m.includes('token'))
         return t('auth.errorBadCode')
       return t('auth.errorGeneric')
