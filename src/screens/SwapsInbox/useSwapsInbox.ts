@@ -1,16 +1,20 @@
 import { useNavigate, useSearchParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 
-import { getMySwaps } from '@/lib/api'
+import { getMySwaps, getUnreadBySwap } from '@/lib/api'
 import { keys, STALE } from '@/lib/cache/queryClient'
 import { useAuthStore } from '@/store/auth'
 import { STATUS_FROM_DB, type SwapStatus } from '@/types/swap'
 
-export type InboxTab = 'active' | 'activity' | 'closed'
+export type InboxTab = 'active' | 'closed'
 
+/** Two tabs, not three. 'activity' sat between these and was hardcoded to
+ *  render the empty state before it read any rows, so it was blank for every
+ *  user however much had happened. Active and Done already partition every
+ *  swap between them, so nothing is lost by dropping it. A real activity feed
+ *  — offers, reveals, who is eyeing a find — would be a different surface. */
 export const INBOX_TABS: { id: InboxTab; label: string }[] = [
   { id: 'active', label: 'swaps.tabActive' },
-  { id: 'activity', label: 'swaps.tabActivity' },
   { id: 'closed', label: 'swaps.tabDone' },
 ]
 
@@ -20,6 +24,8 @@ export interface SwapRow {
   status: SwapStatus
   photoUrl?: string
   photoColor: string
+  /** Messages waiting in this thread, for the dot on the row. */
+  unread: number
 }
 
 const CLOSED: SwapStatus[] = ['done', 'cancelled']
@@ -40,7 +46,14 @@ export function useSwapsInbox() {
   const navigate = useNavigate()
   const userId = useAuthStore((s) => s.session?.user?.id)
   const [params, setParams] = useSearchParams()
-  const tab = (params.get('tab') as InboxTab) ?? 'active'
+  // Validated rather than cast: a bookmarked ?tab=activity, or any other
+  // stale value, would otherwise be a tab that matches no filter and lights no
+  // button — the list would show closed swaps with nothing selected. Anything
+  // unrecognised falls back to Active.
+  const rawTab = params.get('tab')
+  const tab: InboxTab = INBOX_TABS.some((t) => t.id === rawTab)
+    ? (rawTab as InboxTab)
+    : 'active'
 
   const { data: swaps = [], isLoading } = useQuery({
     queryKey: keys.swaps(userId ?? ''),
@@ -68,6 +81,8 @@ export function useSwapsInbox() {
           status: STATUS_FROM_DB[String(s.status ?? '')] ?? 'new',
           photoUrl: photos?.[0],
           photoColor: 'hsl(var(--illo-denim))',
+          // Filled in below, once the per-swap counts have loaded.
+          unread: 0,
         }
       })
     },
@@ -75,8 +90,26 @@ export function useSwapsInbox() {
     staleTime: STALE.realtime,
   })
 
-  const active = swaps.filter((s) => !CLOSED.includes(s.status))
-  const closed = swaps.filter((s) => CLOSED.includes(s.status))
+  /** Which threads have something waiting. Keyed under the same 'unread'
+   *  prefix as the nav total, so the existing realtime invalidation refreshes
+   *  both on the frame a message arrives. */
+  const { data: unreadBySwap = {} } = useQuery({
+    queryKey: keys.unreadBySwap(userId ?? ''),
+    queryFn: async () => {
+      const { data, error } = await getUnreadBySwap(userId!)
+      if (error) throw error
+      return data ?? {}
+    },
+    enabled: !!userId,
+    staleTime: STALE.realtime,
+  })
+
+  // Merged after the fact rather than inside the swaps query, so a change to
+  // either count does not refetch the other.
+  const withUnread = swaps.map((s) => ({ ...s, unread: unreadBySwap[s.id] ?? 0 }))
+
+  const active = withUnread.filter((s) => !CLOSED.includes(s.status))
+  const closed = withUnread.filter((s) => CLOSED.includes(s.status))
   const rows = tab === 'closed' ? closed : active
 
   return {

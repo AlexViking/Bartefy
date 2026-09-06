@@ -47,6 +47,10 @@ export const keys = {
   myItems: (userId: string) => ['my-items', userId] as const,
   swaps: (userId: string) => ['swaps', userId] as const,
   unread: (userId: string) => ['unread', userId] as const,
+  // Deliberately nested under the same 'unread' prefix, so the single
+  // invalidateQueries({ queryKey: keys.unread(id) }) in realtime.ts refreshes
+  // the total and the per-row counts together and they cannot disagree.
+  unreadBySwap: (userId: string) => ['unread', userId, 'by-swap'] as const,
   thread: (swapId: string) => ['thread', swapId] as const,
   offers: (swapId: string) => ['offers', swapId] as const,
   eyeing: (itemId: string) => ['eyeing', itemId] as const,

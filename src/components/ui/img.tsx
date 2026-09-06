@@ -37,6 +37,9 @@ export function Img({
       style={{
         aspectRatio: aspectRatio(photo),
         backgroundImage: photo.lqip ? 'url(' + photo.lqip + ')' : undefined,
+        // 'cover' is right because the box is already the photo's own aspect
+        // ratio (set from the stored intrinsic size just above), so there is
+        // nothing to letterbox and the blur fills the frame exactly.
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
@@ -53,6 +56,8 @@ export function Img({
         fetchPriority={priority ? 'high' : 'auto'}
         onLoad={() => setLoaded(true)}
         className={cn(
+          // The box carries the photo's own aspect ratio, so cover crops
+          // nothing here — it only absorbs sub-pixel rounding.
           'h-full w-full object-cover transition-opacity duration-med ease-brand',
           loaded ? 'opacity-100' : 'opacity-0',
         )}

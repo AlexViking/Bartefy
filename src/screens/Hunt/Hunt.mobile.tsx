@@ -4,6 +4,7 @@ import { SlidersHorizontal } from 'lucide-react'
 import { AppShell } from '@/components/shell/AppShell'
 import { EmptyState } from '@/components/EmptyState'
 import { HuntStack } from '@/components/hunt/HuntStack'
+import { OfferPicker } from '@/components/hunt/OfferPicker'
 import { NextStep } from '@/components/guidance/NextStep'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/tone-badge'
@@ -71,6 +72,16 @@ export default function HuntMobile() {
           </Sheet>
         </header>
 
+        {/* What you are putting on the table, in view while you swipe. */}
+        <div className="px-5 pb-2">
+          <OfferPicker
+            offers={h.offers}
+            selectedId={h.selectedOfferId}
+            onSelect={h.setSelectedOfferId}
+            onAdd={h.goAdd}
+          />
+        </div>
+
         <section className="flex flex-1 flex-col items-center justify-center gap-4 px-5 pb-6">
           {h.isLoading ? (
             <T as="p" k="hunt.loading" className="font-body text-sm text-muted-foreground" />
@@ -121,7 +132,15 @@ export default function HuntMobile() {
           {h.matched && (
             <div className="py-5">
               <SwapPair
-                mine={{ id: 'mine', title: 'Your item', photoColor: 'hsl(var(--illo-denim))' }}
+                mine={{
+                  id: h.selectedOffer?.id ?? 'mine',
+                  // Was the bare string 'Your item'. It is now the find you
+                  // actually chose to offer, and falls back to translated copy
+                  // rather than English in JSX.
+                  title: h.selectedOffer?.title ?? t('hunt.offerMine'),
+                  photoUrl: h.selectedOffer?.photoUrl,
+                  photoColor: 'hsl(var(--illo-denim))',
+                }}
                 theirs={{
                   id: h.matched.id,
                   title: h.matched.title,

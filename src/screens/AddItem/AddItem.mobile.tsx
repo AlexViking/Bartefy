@@ -50,12 +50,21 @@ export default function AddItemMobile() {
               role="alert"
             />
           )}
+          {/* Say why the button is dead. A disabled control with no reason is
+              a dead end — the person cannot tell what is missing. */}
+          {!a.canAdvance && !a.uploading && (
+            <T
+              as="p"
+              k={a.stepId === 'details' ? 'add.needDetails' : 'add.needPhoto'}
+              className="text-center font-body text-sm text-muted-foreground"
+            />
+          )}
           {a.isLast ? (
             <Button
               size="lg"
               fullWidth
               onClick={a.publish}
-              disabled={!a.hasPhoto || a.uploading || a.publishing}
+              disabled={!a.canPublish || a.publishing}
               data-i18n="add.publish"
             >
               {a.publishing ? t('common.loading') : t('add.publish')}
@@ -64,7 +73,7 @@ export default function AddItemMobile() {
             <Button
               size="lg"
               fullWidth
-              disabled={a.stepId === 'photos' && !a.hasPhoto}
+              disabled={!a.canAdvance}
               onClick={a.next}
               data-i18n="common.continue"
             >

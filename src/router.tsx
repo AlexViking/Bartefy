@@ -9,7 +9,6 @@ import { Auth } from './screens/Auth'
 
 // Screens not yet migrated to the platform split. Each moves into its own
 // folder (Screen.mobile.tsx / Screen.desktop.tsx) as the rebuild reaches it.
-import { Verify } from './screens/Verify'
 import { AddItem } from './screens/AddItem'
 import { Profile } from './screens/Profile'
 import { Settings } from './screens/Settings'
@@ -73,7 +72,10 @@ export function AppRouter() {
       <Routes>
         <Route path="/" element={<HomeRoute />} />
         <Route path="/welcome" element={<NeedsSession><Onboarding /></NeedsSession>} />
-        <Route path="/verify" element={<Verify />} />
+        {/* The code is typed on the Auth screen itself now, so there is no
+            second page to send anyone to. Kept as a redirect for old push
+            notifications and bookmarks. */}
+        <Route path="/verify" element={<Navigate to="/" replace />} />
         {/* Login and Register collapsed into the one progressive Auth screen */}
         <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="/register" element={<Navigate to="/" replace />} />
@@ -100,10 +102,13 @@ export function AppRouter() {
         <Route path="/admin/reports" element={guard(<ReportQueue />)} />
 
         {/* Retired routes kept as redirects so old links and notifications work.
-            Activity is a tab inside Swaps; Match is a sheet over Hunt; Cancel is
-            the TroubleSheet; Rate is merged into ConfirmAndRateSheet. */}
+            Match is a sheet over Hunt; Cancel is the TroubleSheet; Rate is
+            merged into ConfirmAndRateSheet. Activity was a tab inside Swaps
+            that never got an implementation — it rendered the empty state
+            unconditionally — so this now lands on the inbox itself rather than
+            on a tab that is permanently blank. */}
         <Route path="/matches" element={<Navigate to="/swaps" replace />} />
-        <Route path="/activity" element={<Navigate to="/swaps?tab=activity" replace />} />
+        <Route path="/activity" element={<Navigate to="/swaps" replace />} />
         <Route path="/chat/:swapId" element={<RedirectSwap />} />
         <Route path="/cancel/:swapId" element={<RedirectSwap />} />
         {/* Deep-link fallbacks for push notifications that predate the sheets */}

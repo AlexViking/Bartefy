@@ -24,7 +24,7 @@ export function ChatPane() {
   return (
     <>
       <div className="grid h-full grid-cols-[1fr_340px]">
-        <section className="flex min-w-0 flex-col border-r border-border/[0.14]">
+        <section className="flex min-h-0 min-w-0 flex-col border-r border-border/[0.14]">
           <header className="flex items-center gap-3 border-b border-border/[0.14] bg-card px-5 py-3">
             <OwnerRow
               person={{
