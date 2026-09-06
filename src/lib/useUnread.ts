@@ -22,6 +22,11 @@ export function useUnread() {
       return count ?? 0
     },
     enabled: !!userId,
+    /* Same reason as the offers badge in AppShell: the shell remounts on every
+     * navigation, and a query with no staleTime refetches each time, blinking
+     * the badge off and on. Realtime keeps the count current between refetches
+     * (lib/realtime), so this is a floor on churn, not on freshness. */
+    staleTime: 60_000,
   })
 
   return data

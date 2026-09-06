@@ -12,10 +12,12 @@ import { ADD_DESTINATION, DESTINATIONS } from '@/navigation/destinations'
 /** The desktop navigation: a collapsible left rail, replacing the horizontal
  *  top nav.
  *
- *  The active pill is ONE element that slides between rows rather than fading
- *  in and out of each -- that continuity is most of what makes the rail feel
- *  alive rather than switched. framer-motion's layoutId does the work; two
- *  separate elements cross-fading looks like a bug by comparison.
+ *  AppShell is rendered inside each screen rather than above the router, so a
+ *  navigation unmounts this component and mounts a new one. framer-motion
+ *  treats a fresh mount as an entrance and replays whatever is in `animate`,
+ *  so nothing here may animate a layout property: the rail's width is a CSS
+ *  transition (see below), and every framer animation left is on transform or
+ *  opacity and carries `initial={false}`.
  *
  *  Collapsed, labels become tooltips rather than disappearing: an icon rail
  *  nobody can read is a puzzle, not a navigation.
@@ -43,10 +45,29 @@ export function Sidebar({
   const secondary = rows.filter((d) => !d.onTabBar)
 
   return (
-    <motion.nav
-      animate={{ width: collapsed ? 68 : 224 }}
-      transition={spring.gentle}
-      className="sticky top-0 hidden h-dvh shrink-0 flex-col gap-1 border-r border-border/[0.14] bg-card/40 p-3 md:flex"
+    /* Width is a CSS transition on a plain <nav>, not a framer spring.
+     *
+     * Two reasons, and the second is the bug you can see:
+     *
+     * 1. `width` is a layout property. A spring on it re-lays out the entire
+     *    page on every frame of the animation -- the same rule that already
+     *    banned animating fontSize and height in this codebase.
+     *
+     * 2. AppShell renders inside each screen rather than above the router, so
+     *    every navigation unmounts this component and mounts a new one. A
+     *    framer `animate` on a fresh mount is an entrance: it re-runs from
+     *    whatever it considers the start, which made the rail visibly contract
+     *    and spring back out on each click. `initial={false}` suppresses that
+     *    for a mount React reuses -- but this component is genuinely new each
+     *    time, so there is nothing for framer to diff against and the guard
+     *    does not help.
+     *
+     * A CSS transition has no concept of an entrance. The element renders at
+     * whatever width its class says and only animates when that class changes,
+     * which is exactly the behaviour wanted. */
+    <nav
+      style={{ width: collapsed ? 68 : 224 }}
+      className="sticky top-0 hidden h-dvh shrink-0 flex-col gap-1 border-r border-border/[0.14] bg-card/40 p-3 [transition:width_240ms_var(--ease-out)] md:flex"
     >
       <div className="mb-2 flex h-11 items-center gap-2 px-1">
         {/* The lockup, not type. It disappears when collapsed rather than
@@ -60,6 +81,7 @@ export function Sidebar({
           className="ml-auto grid size-8 place-items-center rounded-card-sm text-muted-foreground transition-colors duration-fast hover:bg-secondary hover:text-foreground"
         >
           <motion.span
+            initial={false}
             animate={{ rotate: collapsed ? 180 : 0 }}
             transition={spring.gentle}
             className="flex"
@@ -104,6 +126,7 @@ export function Sidebar({
             )}
             <motion.span
               className="relative z-10 flex"
+              initial={false}
               animate={{ scale: active ? 1.12 : 1 }}
               whileTap={{ scale: 0.92 }}
               transition={spring.pop}
@@ -127,6 +150,7 @@ export function Sidebar({
               )}
             </motion.span>
             <motion.span
+              initial={false}
               animate={{ opacity: collapsed ? 0 : 1, x: collapsed ? -6 : 0 }}
               transition={tween.fast}
               data-i18n={item.label}
@@ -137,9 +161,7 @@ export function Sidebar({
             {/* Expanded, the count sits at the end of the row. The collapsed
                 one lives on the icon above. */}
             {!collapsed && count > 0 && (
-              <motion.span
-                layout
-                transition={spring.pop}
+              <span
                 className={cn(
                   'relative z-10 ml-auto grid min-w-5 place-items-center rounded-pill px-1.5 py-0.5 font-body text-[10px] font-bold',
                   active
@@ -148,7 +170,7 @@ export function Sidebar({
                 )}
               >
                 {count}
-              </motion.span>
+              </span>
             )}
           </button>
         )
@@ -191,15 +213,9 @@ export function Sidebar({
                 claims width, which is what pushed the glyph out of a 44px
                 button. */}
             {!collapsed && (
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={tween.fast}
-                data-i18n="nav.add"
-                className="truncate"
-              >
+              <span data-i18n="nav.add" className="truncate">
                 {t('nav.add')}
-              </motion.span>
+              </span>
             )}
           </button>
         )
@@ -212,6 +228,6 @@ export function Sidebar({
           addBtn
         )
       })()}
-    </motion.nav>
+    </nav>
   )
 }

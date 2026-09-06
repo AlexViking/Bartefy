@@ -13,6 +13,41 @@ import { useUnread } from '@/lib/useUnread'
 
 const COLLAPSE_KEY = 'bartefy.sidebar.collapsed'
 
+/** The rail's width, kept outside React.
+ *
+ *  AppShell is rendered inside each screen rather than above the router, so a
+ *  navigation unmounts the whole shell and mounts a fresh one. Component state
+ *  would be re-initialised on every click; reading localStorage in a useState
+ *  initialiser gets the right value but still counts as a first render, which
+ *  is enough to make anything animating off it replay.
+ *
+ *  A module-level value plus subscribers means the rail's width is simply a
+ *  fact that outlives any one mount.
+ */
+let collapsedValue = (() => {
+  try {
+    return localStorage.getItem(COLLAPSE_KEY) === '1'
+  } catch {
+    return false
+  }
+})()
+const collapsedSubscribers = new Set<() => void>()
+
+function subscribeCollapsed(fn: () => void) {
+  collapsedSubscribers.add(fn)
+  return () => void collapsedSubscribers.delete(fn)
+}
+
+function setCollapsedValue(next: boolean) {
+  collapsedValue = next
+  try {
+    localStorage.setItem(COLLAPSE_KEY, next ? '1' : '0')
+  } catch {
+    // A rail that forgets its width is a small annoyance, not a failure.
+  }
+  collapsedSubscribers.forEach((fn) => fn())
+}
+
 /** One shell for every signed-in screen.
  *
  *  Desktop is a rail plus a topbar, ported from V5; mobile keeps the tab bar,
@@ -37,24 +72,13 @@ export function AppShell({
    *  changes nothing at all, so the button was simply dead. */
   const [menuOpen, setMenuOpen] = React.useState(false)
 
-  const [collapsed, setCollapsed] = React.useState(() => {
-    try {
-      return localStorage.getItem(COLLAPSE_KEY) === '1'
-    } catch {
-      return false
-    }
-  })
+  const collapsed = React.useSyncExternalStore(
+    subscribeCollapsed,
+    () => collapsedValue,
+    () => false,
+  )
 
-  const toggleCollapse = () =>
-    setCollapsed((c) => {
-      const next = !c
-      try {
-        localStorage.setItem(COLLAPSE_KEY, next ? '1' : '0')
-      } catch {
-        // A rail that forgets its width is a small annoyance, not a failure.
-      }
-      return next
-    })
+  const toggleCollapse = () => setCollapsedValue(!collapsedValue)
 
   /** Offers waiting on me. The shell owns this because the shell owns the
    *  badge; one query however many screens are mounted. */
@@ -66,6 +90,13 @@ export function AppShell({
       return (data ?? []).length
     },
     enabled: !!userId,
+    /* Without a staleTime this is stale the instant it resolves, and because
+     * AppShell remounts on every navigation it refetched on every click --
+     * dropping the badge to its `= 0` default and popping it back a moment
+     * later, which made the whole rail row twitch each time you moved between
+     * destinations. Realtime pushes new offers into the cache (lib/realtime),
+     * so a minute of staleness costs nothing. */
+    staleTime: 60_000,
   })
 
   /** Staff rows are hidden, not disabled: a moderation link that refuses you

@@ -59,7 +59,13 @@ export function Topbar({
       className={cn(
         'sticky top-0 z-40 flex w-full items-center gap-3 px-4',
         'bg-background/85 backdrop-blur-md transition-shadow duration-200',
-        scrolled ? 'border-b border-border/[0.14]' : 'border-b border-transparent',
+        // The rule is permanent, matching the rail's own right border, so the
+        // bar reads as chrome rather than as content floating above content.
+        // It used to appear only once scrolled, which left the topbar and the
+        // first thing under it sharing an edge with nothing between them.
+        'border-b border-border/[0.14]',
+        // Scrolling adds depth rather than the line itself.
+        scrolled && 'shadow-card',
       )}
     >
       {/* The rail is desktop-only, so the phone needs its own way in. */}
@@ -83,6 +89,7 @@ export function Topbar({
       <motion.button
         type="button"
         onClick={() => navigate('/discover')}
+        initial={false}
         animate={{ scale: scrolled ? 0.86 : 1 }}
         transition={spring.gentle}
         style={{ transformOrigin: 'left center' }}
