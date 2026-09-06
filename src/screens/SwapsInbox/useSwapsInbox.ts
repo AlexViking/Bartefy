@@ -138,7 +138,7 @@ export function useSwapsInbox() {
     active,
     closed,
     isLoading,
-    openSwap: (id: string) => navigate('/swaps/' + id),
-    goHunt: () => navigate('/hunt'),
+    openSwap: (id: string) => navigate('/matches/' + id),
+    goHunt: () => navigate('/discover'),
   }
 }

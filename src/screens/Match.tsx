@@ -7,5 +7,5 @@ import { Navigate, useParams } from 'react-router'
  */
 export function Match() {
   const { matchId } = useParams<{ matchId: string }>()
-  return <Navigate to={matchId ? `/swaps/${matchId}` : '/swaps'} replace />
+  return <Navigate to={matchId ? `/matches/${matchId}` : '/matches'} replace />
 }

@@ -57,7 +57,7 @@ function HomeRoute() {
 
   useEffect(() => {
     if (!initialized || !session) return
-    navigate(onboarded ? '/hunt' : '/welcome', { replace: true })
+    navigate(onboarded ? '/discover' : '/welcome', { replace: true })
   }, [session, initialized, onboarded, navigate])
 
   return <Auth />
@@ -84,9 +84,9 @@ export function AppRouter() {
         <Route path="/register" element={<Navigate to="/signup" replace />} />
 
         {/* Four destinations, matching TabBar and TopNav exactly */}
-        <Route path="/hunt" element={guard(<Hunt />)} />
-        <Route path="/browse" element={guard(<Browse />)} />
-        <Route path="/swaps" element={guard(<SwapsInbox />)} />
+        <Route path="/discover" element={guard(<Hunt />)} />
+        <Route path="/items" element={guard(<Browse />)} />
+        <Route path="/matches" element={guard(<SwapsInbox />)} />
         <Route path="/offers" element={guard(<Offers />)} />
         <Route path="/profile" element={guard(<Profile />)} />
 
@@ -94,8 +94,8 @@ export function AppRouter() {
         <Route path="/add" element={guard(<AddItem />)} />
         {/* Desktop renders the inbox here so the swap list stays beside the
             thread; mobile renders Chat full-screen. See SwapThread. */}
-        <Route path="/swaps/:swapId" element={guard(<MatchThread />)} />
-        <Route path="/swaps/:swapId/arrange" element={guard(<Arrange />)} />
+        <Route path="/matches/:swapId" element={guard(<MatchThread />)} />
+        <Route path="/matches/:swapId/arrange" element={guard(<Arrange />)} />
         {/* Someone else's reviews. Reading them is ALWAYS_FREE. */}
         <Route path="/membership" element={guard(<Membership />)} />
         <Route path="/settings" element={guard(<Settings />)} />
@@ -110,8 +110,14 @@ export function AppRouter() {
             that never got an implementation — it rendered the empty state
             unconditionally — so this now lands on the inbox itself rather than
             on a tab that is permanently blank. */}
-        <Route path="/matches" element={<Navigate to="/swaps" replace />} />
-        <Route path="/activity" element={<Navigate to="/swaps" replace />} />
+        {/* Old paths kept as redirects: they are in push notifications,
+            bookmarks and anything already shared. A renamed nav must not
+            break a link somebody was sent last week. */}
+        <Route path="/hunt" element={<Navigate to="/discover" replace />} />
+        <Route path="/browse" element={<Navigate to="/items" replace />} />
+        <Route path="/swaps" element={<Navigate to="/matches" replace />} />
+        <Route path="/swaps/:swapId" element={<RedirectSwap />} />
+        <Route path="/activity" element={<Navigate to="/matches" replace />} />
         <Route path="/chat/:swapId" element={<RedirectSwap />} />
         <Route path="/cancel/:swapId" element={<RedirectSwap />} />
         {/* Deep-link fallbacks for push notifications that predate the sheets */}
@@ -123,7 +129,11 @@ export function AppRouter() {
   )
 }
 
+/** Old thread links -- /swaps/:id, /chat/:id, /cancel/:id -- onto the current
+ *  path. Reading the id positionally works because all three have it second.
+ *  Must NOT target /swaps/: that path now redirects here, and pointing back at
+ *  it is an infinite loop. */
 function RedirectSwap() {
   const id = window.location.pathname.split('/')[2]
-  return <Navigate to={'/swaps/' + id} replace />
+  return <Navigate to={'/matches/' + id} replace />
 }

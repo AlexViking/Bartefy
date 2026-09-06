@@ -25,9 +25,9 @@ export interface Destination {
 }
 
 export const DESTINATIONS: Destination[] = [
-  { id: 'discover', label: 'nav.discover', path: '/hunt', icon: 'Layers', onTabBar: true },
-  { id: 'matches', label: 'nav.matches', path: '/swaps', icon: 'Heart', badge: 'unread', onTabBar: true },
-  { id: 'items', label: 'nav.items', path: '/browse', icon: 'Package', onTabBar: true },
+  { id: 'discover', label: 'nav.discover', path: '/discover', icon: 'Layers', onTabBar: true },
+  { id: 'matches', label: 'nav.matches', path: '/matches', icon: 'Heart', badge: 'unread', onTabBar: true },
+  { id: 'items', label: 'nav.items', path: '/items', icon: 'Package', onTabBar: true },
   { id: 'profile', label: 'nav.profile', path: '/profile', icon: 'User', onTabBar: true },
   { id: 'settings', label: 'nav.settings', path: '/settings', icon: 'Settings' },
   { id: 'moderation', label: 'nav.moderation', path: '/admin/reports', icon: 'ShieldAlert', staffOnly: true },

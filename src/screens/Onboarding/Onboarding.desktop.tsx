@@ -70,7 +70,7 @@ export default function OnboardingDesktop() {
               <Button
                 variant="ghost"
                 size="lg"
-                onClick={() => void o.finish('/hunt')}
+                onClick={() => void o.finish('/discover')}
                 data-i18n="onboarding.startHunting"
               >
                 {t('onboarding.startHunting')}

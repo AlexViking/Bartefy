@@ -121,7 +121,7 @@ export function useOffers() {
       // and a match appears, and the cascade may have cancelled rivals.
       qc.invalidateQueries({ queryKey: ['barter'] })
       // Accepting opens a chat, and the whole point of accepting is to talk.
-      if (accept && match?.id) navigate('/swaps/' + match.id)
+      if (accept && match?.id) navigate('/matches/' + match.id)
     },
     onError: (e: { code?: string }) => setErrorKey(barterErrorKey(e)),
   })
@@ -137,6 +137,6 @@ export function useOffers() {
     accept: (offerId: string) => respond.mutate({ offerId, accept: true }),
     decline: (offerId: string) => respond.mutate({ offerId, accept: false }),
     openItem: (id: number) => navigate('/item/' + id),
-    goHunt: () => navigate('/hunt'),
+    goHunt: () => navigate('/discover'),
   }
 }

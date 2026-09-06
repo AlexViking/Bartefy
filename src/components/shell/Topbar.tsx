@@ -64,7 +64,7 @@ export function Topbar({
           this size, and it already sits in the sidebar. */}
       <motion.button
         type="button"
-        onClick={() => navigate('/hunt')}
+        onClick={() => navigate('/discover')}
         animate={{ fontSize: scrolled ? '1.05rem' : '1.25rem' }}
         transition={spring.gentle}
         className="font-display font-bold tracking-tight text-primary md:hidden"
@@ -74,7 +74,7 @@ export function Topbar({
 
       <button
         type="button"
-        onClick={() => navigate('/browse?focus=1')}
+        onClick={() => navigate('/items?focus=1')}
         className={cn(
           'group ml-2 hidden max-w-[420px] flex-1 items-center gap-2 rounded-pill border-[1.5px] border-border/[0.14] bg-card px-4 py-2 md:flex',
           'text-left font-body text-sm text-muted-foreground',

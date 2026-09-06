@@ -82,7 +82,7 @@ export function Arrange() {
       setFailed(true)
       return
     }
-    navigate('/swaps/' + swapId)
+    navigate('/matches/' + swapId)
   }
 
   return (

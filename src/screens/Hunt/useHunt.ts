@@ -209,8 +209,8 @@ export function useHunt() {
     sentTitle,
     dismissSent: () => setSentTitle(null),
     openItem: (id: string) => navigate('/item/' + id),
-    openSwap: (id: string) => navigate('/swaps/' + id),
-    goBrowse: () => navigate('/browse'),
+    openSwap: (id: string) => navigate('/matches/' + id),
+    goBrowse: () => navigate('/items'),
     goAdd: () => navigate('/add'),
   }
 }

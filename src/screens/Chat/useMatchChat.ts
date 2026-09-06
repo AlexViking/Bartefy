@@ -268,6 +268,6 @@ export function useMatchChat() {
     /** The thread is read-only once the swap closes. Disabled, never deleted:
      *  the history is what settles a dispute later. */
     canSend: ctx?.status === 'active',
-    goBack: () => navigate('/swaps'),
+    goBack: () => navigate('/matches'),
   }
 }

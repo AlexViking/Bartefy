@@ -202,7 +202,7 @@ export function Profile() {
                   : 'profile.emptyEyeingBody'
             }
             actionLabel={tab === 'live' ? 'nav.add' : tab === 'eyeing' ? 'swaps.goHunt' : undefined}
-            onAction={() => navigate(tab === 'live' ? '/add' : '/hunt')}
+            onAction={() => navigate(tab === 'live' ? '/add' : '/discover')}
           />
         ) : (
           /* Masonry: a find keeps the shape it was photographed in. The fixed

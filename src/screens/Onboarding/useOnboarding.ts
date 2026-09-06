@@ -78,7 +78,7 @@ export function useOnboarding() {
     if (error) console.error('[onboarding] could not save city', error)
   }
 
-  const finish = async (destination: '/add' | '/hunt') => {
+  const finish = async (destination: '/add' | '/discover') => {
     await persistCity(city)
     complete()
     navigate(destination, { replace: true })
@@ -89,7 +89,7 @@ export function useOnboarding() {
   const skip = async () => {
     await persistCity(city)
     complete()
-    navigate('/hunt', { replace: true })
+    navigate('/discover', { replace: true })
   }
 
   return {

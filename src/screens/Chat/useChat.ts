@@ -245,7 +245,7 @@ export function useChat() {
     const { error } = await rateSwap(swapId, stars, tags)
     if (error) return console.error('[chat] rating failed', error)
     setConfirmOpen(false)
-    navigate('/swaps')
+    navigate('/matches')
   }
 
   /** Opens the trouble sheet. Reporting and backing out are ALWAYS_FREE, so
@@ -278,7 +278,7 @@ export function useChat() {
     }
 
     setTroubleOpen(false)
-    navigate('/swaps')
+    navigate('/matches')
   }
 
   return {
@@ -303,7 +303,7 @@ export function useChat() {
     confirmHandover,
     rate,
     bottomRef,
-    goBack: () => navigate('/swaps'),
-    goArrange: () => swapId && navigate(`/swaps/${swapId}/arrange`),
+    goBack: () => navigate('/matches'),
+    goArrange: () => swapId && navigate(`/matches/${swapId}/arrange`),
   }
 }

@@ -28,7 +28,7 @@ export default function ItemDetailDesktop() {
             title="item.notFoundTitle"
             body="item.notFoundBody"
             actionLabel="nav.browse"
-            onAction={() => navigate('/browse')}
+            onAction={() => navigate('/items')}
           />
         </div>
       </AppShell>

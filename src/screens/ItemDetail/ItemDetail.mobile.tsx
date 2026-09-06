@@ -27,7 +27,7 @@ export default function ItemDetailMobile() {
             title="item.notFoundTitle"
             body="item.notFoundBody"
             actionLabel="nav.browse"
-            onAction={() => navigate('/browse')}
+            onAction={() => navigate('/items')}
           />
         </div>
       </AppShell>

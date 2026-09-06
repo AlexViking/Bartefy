@@ -59,7 +59,7 @@ export default function OnboardingMobile() {
               variant="ghost"
               size="lg"
               fullWidth
-              onClick={() => void o.finish('/hunt')}
+              onClick={() => void o.finish('/discover')}
               data-i18n="onboarding.startHunting"
             >
               {t('onboarding.startHunting')}
