@@ -33,7 +33,7 @@ export default function OnboardingMobile() {
         <FlowSteps steps={[...o.steps]} current={o.step} />
         <button
           type="button"
-          onClick={o.skip}
+          onClick={() => void o.skip()}
           data-i18n="common.skip"
           className="min-h-11 px-2 font-display text-[15px] font-semibold text-muted-foreground"
         >
@@ -52,14 +52,14 @@ export default function OnboardingMobile() {
       <footer className="space-y-2 border-t border-border/[0.14] bg-card px-5 pb-[max(16px,env(safe-area-inset-bottom))] pt-4">
         {o.isLast ? (
           <>
-            <Button size="lg" fullWidth onClick={() => o.finish('/add')} data-i18n="onboarding.listFirst">
+            <Button size="lg" fullWidth onClick={() => void o.finish('/add')} data-i18n="onboarding.listFirst">
               {t('onboarding.listFirst')}
             </Button>
             <Button
               variant="ghost"
               size="lg"
               fullWidth
-              onClick={() => o.finish('/hunt')}
+              onClick={() => void o.finish('/hunt')}
               data-i18n="onboarding.startHunting"
             >
               {t('onboarding.startHunting')}

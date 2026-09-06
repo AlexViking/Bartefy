@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils'
 import { getProfile, getMyItems } from '@/lib/api'
 import { keys, STALE } from '@/lib/cache/queryClient'
 import type { ItemRef } from '@/types/swap'
+import { DEFAULT_CITY } from '@/screens/Onboarding/useOnboarding'
 
 type Tab = 'live' | 'paused' | 'eyeing'
 
@@ -76,7 +77,7 @@ export function Profile() {
   const swapCount = me?.swap_count != null ? Number(me.swap_count) : 0
   const verified = Boolean(me?.verified)
   const memberSince = me?.created_at ? new Date(String(me.created_at)).getFullYear().toString() : ''
-  const city = String(me?.location_city ?? me?.city ?? 'Berlin')
+  const city = String(me?.location_city ?? me?.city ?? DEFAULT_CITY)
 
   const shown = tab === 'live' ? live : tab === 'paused' ? paused : eyeing
 

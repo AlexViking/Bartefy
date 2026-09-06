@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 
 import { searchItems } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
+import { DEFAULT_CITY } from '@/screens/Onboarding/useOnboarding'
 
 export const BROWSE_CATEGORIES = CATEGORIES
 
@@ -23,7 +24,7 @@ export interface BrowseItem {
 /** Search state and results, with no layout in it. */
 export function useBrowse() {
   const navigate = useNavigate()
-  const city = useAuthStore((s) => s.selectedCity) || 'Berlin'
+  const city = useAuthStore((s) => s.selectedCity) || DEFAULT_CITY
   const [query, setQuery] = useState('')
   const [cats, setCats] = useState<string[]>([])
   const [radiusKm, setRadiusKm] = useState(15)
