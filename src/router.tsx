@@ -76,9 +76,13 @@ export function AppRouter() {
             second page to send anyone to. Kept as a redirect for old push
             notifications and bookmarks. */}
         <Route path="/verify" element={<Navigate to="/" replace />} />
-        {/* Login and Register collapsed into the one progressive Auth screen */}
-        <Route path="/login" element={<Navigate to="/" replace />} />
-        <Route path="/register" element={<Navigate to="/" replace />} />
+        {/* Sign-in and sign-up are separate screens again. One Auth component
+            serves both: the route decides the mode, because the difference is
+            an invite field and which Supabase flag gets set, not a layout. */}
+        <Route path="/login" element={<Auth />} />
+        <Route path="/signup" element={<Auth />} />
+        {/* /register predates the split and is still in old links. */}
+        <Route path="/register" element={<Navigate to="/signup" replace />} />
 
         {/* Four destinations, matching TabBar and TopNav exactly */}
         <Route path="/hunt" element={guard(<Hunt />)} />

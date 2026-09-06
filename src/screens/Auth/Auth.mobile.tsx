@@ -3,13 +3,14 @@ import mapUrl from '@/assets/bartefy-bg-treasure-map.png'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { T } from '@/i18n/T'
 import { AuthForm } from './AuthForm'
+import { useAuthMode } from './useAuthMode'
 import { useAuthScreen } from './useAuth'
 
 /** Auth, phone shape: a green header carrying the brand, the form below on
  *  parchment. One column, nothing to scroll past before the field.
  */
 export default function AuthMobile() {
-  const a = useAuthScreen()
+  const a = useAuthScreen(useAuthMode())
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">

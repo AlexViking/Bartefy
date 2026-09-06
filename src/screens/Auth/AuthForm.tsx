@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Mail } from 'lucide-react'
+import { Check, Mail } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Field } from '@/components/ui/field'
@@ -8,11 +8,16 @@ import { T, useT } from '@/i18n/T'
 import { CODE_LENGTH } from './useAuth'
 import type { useAuthScreen } from './useAuth'
 
-/** The email step and the code step, shared by both layouts. */
+/** The email step and the code step, shared by sign-in and sign-up and by both
+ *  platform layouts. The two screens differ by one field and one footer line,
+ *  which is not enough to justify two copies of the code entry.
+ */
 export function AuthForm({ a }: { a: ReturnType<typeof useAuthScreen> }) {
   const { t } = useT()
 
   if (a.step === 'code') return <CodeStep a={a} />
+
+  const isSignUp = a.mode === 'signup'
 
   return (
     <form
@@ -22,6 +27,12 @@ export function AuthForm({ a }: { a: ReturnType<typeof useAuthScreen> }) {
         void a.send()
       }}
     >
+      <T
+        as="h2"
+        k={isSignUp ? 'auth.signUpTitle' : 'auth.signInTitle'}
+        className="font-display text-h3 text-foreground"
+      />
+
       <Field
         type="email"
         inputMode="email"
@@ -32,18 +43,75 @@ export function AuthForm({ a }: { a: ReturnType<typeof useAuthScreen> }) {
         placeholder="auth.emailPlaceholder"
         value={a.email}
         onChange={(e) => a.setEmail(e.target.value)}
-        error={a.error ?? undefined}
         required
       />
+
+      {isSignUp && (
+        <div className="relative">
+          <Field
+            label="auth.inviteLabel"
+            hint="auth.inviteHint"
+            placeholder="auth.invitePlaceholder"
+            help={a.referralValid === true ? undefined : 'auth.inviteHelp'}
+            value={a.referral}
+            onChange={(e) => a.setReferral(e.target.value)}
+            // Uppercase as typed, so the field always looks like the printed
+            // code. autoCapitalize covers the mobile keyboard, which ignores
+            // CSS text-transform.
+            autoCapitalize="characters"
+            autoCorrect="off"
+            spellCheck={false}
+            // Uppercasing the input must not reach the placeholder, which is a
+            // lowercase example sentence and reads as shouting in caps.
+            className="uppercase placeholder:normal-case"
+          />
+          {/* A recognised code is worth confirming; an unrecognised one is not
+              worth an error, because the field is optional and the check is
+              unavailable until migration 012 is applied. */}
+          {a.referralValid === true && (
+            <p className="mt-1 flex items-center gap-1 font-body text-sm text-primary">
+              <Check className="size-3.5" aria-hidden="true" />
+              <T k="auth.inviteFound" />
+            </p>
+          )}
+        </div>
+      )}
+
+      {a.error && (
+        <p role="alert" className="font-body text-sm leading-relaxed text-destructive">
+          {a.error}
+        </p>
+      )}
+
       <Button
         type="submit"
         size="lg"
         fullWidth
         disabled={!a.valid || a.busy}
-        data-i18n="auth.sendCode"
+        data-i18n={isSignUp ? 'auth.createAccount' : 'auth.sendCode'}
       >
-        {a.busy ? t('common.loading') : t('auth.sendCode')}
+        {a.busy ? t('common.loading') : t(isSignUp ? 'auth.createAccount' : 'auth.sendCode')}
       </Button>
+
+      {/* "Continue with Google" belongs here per the wireframe, and is left out
+          until the provider is actually configured. A button that cannot work
+          is worse than one that is not there yet. */}
+
+      <div className="flex items-center justify-center gap-1">
+        <T
+          as="span"
+          k={isSignUp ? 'auth.haveAccount' : 'auth.needAccount'}
+          className="font-body text-sm text-muted-foreground"
+        />
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => a.switchTo(isSignUp ? 'signin' : 'signup')}
+          data-i18n={isSignUp ? 'auth.logIn' : 'auth.signUp'}
+        >
+          {t(isSignUp ? 'auth.logIn' : 'auth.signUp')}
+        </Button>
+      </div>
     </form>
   )
 }

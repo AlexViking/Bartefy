@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router'
 
-import { requestOTP, verifyOTP } from '@/lib/api'
+import { checkReferralCode, requestSignInOTP, requestSignUpOTP, verifyOTP } from '@/lib/api'
 import { useT } from '@/i18n/T'
 import { useAuthStore } from '@/store/auth'
 
@@ -13,33 +14,80 @@ import { useAuthStore } from '@/store/auth'
 export const CODE_LENGTH = 6
 const RESEND_SECONDS = 60
 
-/** Sign-in is one email field, then the six digits we email back. There is no
- *  password to forget, so there is no "forgot password" and no register screen —
- *  an address we have not seen gets an account on the way through.
- *
- *  Both steps live on this one screen on purpose. The code replaced a magic
- *  link precisely so nobody has to leave the tab they started in: sending the
- *  person to another page to type it would give back the context switch the
- *  link was costing.
+/** Which screen is using this hook. Both ask for an email and then a code, so
+ *  they share one engine — but they must not share a request, because the whole
+ *  point of splitting them is that a typo on sign-in should say "no account
+ *  here" instead of silently creating one.
  */
-export function useAuthScreen() {
+export type AuthMode = 'signin' | 'signup'
+
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
+
+/** Invite codes are generated from an alphabet with no O/0 or I/1/L, so anything
+ *  outside this set is a typo rather than a code we could look up. Accepting the
+ *  hyphen keeps the ALEX-7F3 shape from the wireframe typeable.
+ */
+const CODE_RE = /^[A-Z0-9-]{3,16}$/
+
+export function useAuthScreen(mode: AuthMode) {
   const { t } = useT()
+  const navigate = useNavigate()
+  const location = useLocation()
   const setPendingEmail = useAuthStore((s) => s.setPendingEmail)
 
   const [step, setStep] = useState<'email' | 'code'>('email')
-  const [email, setEmail] = useState('')
+  /** switchTo carries the address across, so someone told "no account here"
+   *  does not retype it just to act on being told. */
+  const [email, setEmail] = useState(
+    () => (location.state as { email?: string } | null)?.email ?? '',
+  )
+  const [referral, setReferralRaw] = useState('')
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [countdown, setCountdown] = useState(0)
+  /** null = not checked or not checkable. The field stays optional either way;
+   *  this only ever softens into a hint, never a block. */
+  const [referralValid, setReferralValid] = useState<boolean | null>(null)
 
-  const valid = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())
+  const emailValid = EMAIL_RE.test(email.trim())
+  // An invite code is optional, so an empty one is valid. A malformed one is
+  // not worth sending — but it never blocks signup, only warns.
+  const referralWellFormed = referral.trim() === '' || CODE_RE.test(referral.trim())
+  const valid = emailValid && referralWellFormed
 
   useEffect(() => {
     if (countdown <= 0) return
     const id = setTimeout(() => setCountdown((c) => c - 1), 1000)
     return () => clearTimeout(id)
   }, [countdown])
+
+  /** Codes are shown and printed uppercase, and nobody types an invite the way
+   *  it was printed. Uppercasing as they type means the field always looks like
+   *  the code they were given. */
+  const setReferral = (value: string) => {
+    setReferralRaw(value.toUpperCase())
+    setReferralValid(null)
+    if (error) setError(null)
+  }
+
+  /** Check the code once typing settles, so the person hears about a bad invite
+   *  before they commit rather than after the account exists. Debounced because
+   *  this fires per keystroke otherwise. */
+  useEffect(() => {
+    if (mode !== 'signup') return
+    const value = referral.trim()
+    if (!value || !CODE_RE.test(value)) return
+    let cancelled = false
+    const id = setTimeout(async () => {
+      const result = await checkReferralCode(value)
+      if (!cancelled) setReferralValid(result)
+    }, 500)
+    return () => {
+      cancelled = true
+      clearTimeout(id)
+    }
+  }, [referral, mode])
 
   /** Which step failed decides the wording. Supabase says "invalid" for both a
    *  rejected address and a rejected code, so matching on the text alone would
@@ -57,6 +105,13 @@ export function useAuthScreen() {
         return t('auth.errorBadCode')
       return t('auth.errorGeneric')
     }
+    // Sign-in with shouldCreateUser:false answers otp_disabled for an address
+    // that has no account. That is the entire reason these are two screens, so
+    // it gets its own message pointing at the other one.
+    if (m.includes('signups not allowed') || m.includes('otp_disabled'))
+      return t('auth.errorNoAccount')
+    if (m.includes('already registered') || m.includes('already been registered'))
+      return t('auth.errorHaveAccount')
     if (m.includes('invalid') || m.includes('email')) return t('auth.errorBadEmail')
     return t('auth.errorGeneric')
   }
@@ -68,7 +123,12 @@ export function useAuthScreen() {
     setBusy(true)
     setError(null)
     const address = email.trim()
-    const { error: otpError } = await requestOTP(address)
+
+    const { error: otpError } =
+      mode === 'signup'
+        ? await requestSignUpOTP(address, referral.trim() || undefined)
+        : await requestSignInOTP(address)
+
     setBusy(false)
     if (otpError) {
       setError(messageFor(otpError.message, 'send'))
@@ -112,12 +172,27 @@ export function useAuthScreen() {
     if (error) setError(null)
   }
 
+  /** Move to the other screen carrying the address across. Someone told "no
+   *  account here" should not have to type their email a second time to act on
+   *  it, and the same in reverse. */
+  const switchTo = (target: AuthMode) => {
+    navigate(target === 'signup' ? '/signup' : '/login', {
+      replace: true,
+      state: { email: email.trim() },
+    })
+  }
+
   return {
+    mode,
     step,
     email,
     setEmail,
+    referral,
+    setReferral,
+    referralValid,
     code,
     setCode: changeCode,
+    emailValid,
     valid,
     busy,
     error,
@@ -125,6 +200,7 @@ export function useAuthScreen() {
     canResend: countdown === 0 && !busy,
     send,
     verify,
+    switchTo,
     /** Back to the email field — "that is the wrong address". */
     reset: () => {
       setStep('email')

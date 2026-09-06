@@ -3,6 +3,7 @@ import mapUrl from '@/assets/bartefy-bg-treasure-map.png'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { T } from '@/i18n/T'
 import { AuthForm } from './AuthForm'
+import { useAuthMode } from './useAuthMode'
 import { useAuthScreen } from './useAuth'
 
 /** Auth, desktop shape: the brand holds the left half, the form the right.
@@ -10,7 +11,7 @@ import { useAuthScreen } from './useAuth'
  *  across a wide screen reads as a mistake.
  */
 export default function AuthDesktop() {
-  const a = useAuthScreen()
+  const a = useAuthScreen(useAuthMode())
 
   return (
     <div className="grid min-h-dvh grid-cols-2 bg-background">
