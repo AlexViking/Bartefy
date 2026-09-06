@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router'
 import logoUrl from '@/assets/bartefy-logo-lockup.webp'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
+import { ThemeToggle } from './ThemeToggle'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { DESTINATIONS, ADD_DESTINATION } from '@/navigation/destinations'
@@ -98,6 +99,7 @@ export function TopNav({
         >
           <Icon name="Settings" size={20} />
         </button>
+        <ThemeToggle />
         <UserAvatar
           name={email || 'Swapper'}
           size="md"

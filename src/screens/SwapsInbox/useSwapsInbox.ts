@@ -1,10 +1,11 @@
 import { useNavigate, useSearchParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 
-import { getMySwaps, getUnreadBySwap } from '@/lib/api'
+import { getUnreadBySwap } from '@/lib/api'
+import { getMyMatches } from '@/lib/barter'
 import { keys, STALE } from '@/lib/cache/queryClient'
 import { useAuthStore } from '@/store/auth'
-import { STATUS_FROM_DB, type SwapStatus } from '@/types/swap'
+import type { SwapStatus } from '@/types/swap'
 
 export type InboxTab = 'active' | 'closed'
 
@@ -55,36 +56,54 @@ export function useSwapsInbox() {
     ? (rawTab as InboxTab)
     : 'active'
 
+  /** Reads barter_matches, not the old swaps table.
+   *
+   *  The three match states map onto the UI's richer vocabulary at this
+   *  boundary: the engine only knows active/completed/cancelled, and the tab
+   *  filter only needs to know whether a row is finished.
+   */
   const { data: swaps = [], isLoading } = useQuery({
-    queryKey: keys.swaps(userId ?? ''),
+    queryKey: ['barter', 'matches', userId ?? ''],
     queryFn: async () => {
-      const { data, error } = await getMySwaps(userId!)
+      const { data, error } = await getMyMatches(userId!)
       if (error) throw error
-      return (data ?? []).map((s: Record<string, unknown>): SwapRow => {
-        const itemA = s.item_a as Record<string, unknown> | null
-        const itemB = s.item_b as Record<string, unknown> | null
+      return (data ?? [])
+        .filter((m: Record<string, unknown>) => {
+          // Archiving is per side: a row one person tidied away must stay in
+          // the other person's list.
+          const isA = String(m.user_a) === userId
+          return !(isA ? m.a_archived : m.b_archived)
+        })
+        .map((m: Record<string, unknown>): SwapRow => {
+          const one = (v: unknown) =>
+            (Array.isArray(v) ? v[0] : v) as Record<string, unknown> | null
+          const itemA = one(m.itemA)
+          const itemB = one(m.itemB)
 
-        // item_a does NOT reliably belong to user_a in the existing rows, so
-        // choosing by a/b position shows you your own find. Decide by who
-        // actually owns each item, and fall back to position only when the
-        // item row could not be joined.
-        const aIsMine = itemA ? String(itemA.user_id ?? '') === userId : s.user_a_id === userId
-        const theirItem = aIsMine ? itemB : itemA
-        const myItem = aIsMine ? itemA : itemB
+          // By ownership, never by a/b position: position would show you your
+          // own find on half the rows.
+          const aIsMine = itemA ? String(itemA.user_id ?? '') === userId : String(m.user_a) === userId
+          const theirItem = aIsMine ? itemB : itemA
+          const myItem = aIsMine ? itemA : itemB
 
-        const photos = theirItem?.images as string[] | undefined
-        return {
-          id: String(s.id),
-          // A swap whose other side was deleted still has to render — the row
-          // falls back to your own find's title rather than an empty row.
-          title: String(theirItem?.title ?? myItem?.title ?? ''),
-          status: STATUS_FROM_DB[String(s.status ?? '')] ?? 'new',
-          photoUrl: photos?.[0],
-          photoColor: 'hsl(var(--illo-denim))',
-          // Filled in below, once the per-swap counts have loaded.
-          unread: 0,
-        }
-      })
+          const photos = theirItem?.images as string[] | undefined
+          const dbStatus = String(m.status ?? 'active')
+          return {
+            id: String(m.id),
+            // A match whose other side was removed still has to render, so
+            // fall back to your own find rather than an empty row.
+            title: String(theirItem?.title ?? myItem?.title ?? ''),
+            status:
+              dbStatus === 'completed'
+                ? 'done'
+                : dbStatus === 'cancelled'
+                  ? 'cancelled'
+                  : 'chatting',
+            photoUrl: photos?.[0],
+            photoColor: 'hsl(var(--illo-denim))',
+            unread: 0,
+          }
+        })
     },
     enabled: !!userId,
     staleTime: STALE.realtime,

@@ -24,7 +24,8 @@
     "km": "{{count}} km",
     "moreInfo": "More about this",
     "youAreHere": "You are here",
-    "stepOf": "Step {{current}} of {{total}}"
+    "stepOf": "Step {{current}} of {{total}}",
+    "notYet": "Not yet"
   },
   "nav": {
     "hunt": "Hunt",
@@ -151,7 +152,8 @@
     "photoN": "Photo {{n}}",
     "viewProfile": "Profile",
     "notFoundTitle": "This find is not here",
-    "notFoundBody": "It may have been swapped, paused or taken down. Have a look at what else is around."
+    "notFoundBody": "It may have been swapped, paused or taken down. Have a look at what else is around.",
+    "manage": "Manage this find"
   },
   "add": {
     "title": "List a find",
@@ -207,7 +209,8 @@
     "unread": "{{count}} new message",
     "unread_other": "{{count}} new messages",
     "pickTitle": "Pick a swap",
-    "pickBody": "Choose one from the list to see the thread and what happens next."
+    "pickBody": "Choose one from the list to see the thread and what happens next.",
+    "someone": "Someone"
   },
   "chat": {
     "placeholder": "Write a message",
@@ -223,7 +226,9 @@
     "sending": "Sending…",
     "failedToSend": "Not sent — tap to retry",
     "confirmFailed": "That did not go through. Try again in a moment.",
-    "markDone": "Did the swap happen?"
+    "markDone": "Did the swap happen?",
+    "yourFind": "You give",
+    "theirFind": "You get"
   },
   "arrange": {
     "title": "Arrange the swap",
@@ -328,7 +333,9 @@
     "emptyPausedTitle": "Nothing paused",
     "emptyPausedBody": "Finds you park land here. They keep their photos and story.",
     "emptyEyeingTitle": "Nothing saved yet",
-    "emptyEyeingBody": "Save a find while you think about it — it will be here."
+    "emptyEyeingBody": "Save a find while you think about it — it will be here.",
+    "inviteTitle": "Your invite code",
+    "inviteBody": "Share it. You both get credit when they finish their first swap."
   },
   "membership": {
     "title": "Membership",
@@ -425,7 +432,24 @@
     "unfreeze": "Unfreeze and let it finish",
     "cancelRelist": "Cancel the swap, relist both",
     "tabOpen": "Open",
-    "tabClosed": "Closed"
+    "tabClosed": "Closed",
+    "subtitle": "Internal. Freeze first, decide slowly, tell both sides plainly.",
+    "noAccessTitle": "Staff only",
+    "noAccessBody": "This queue is for moderators. If you should have access, ask an admin to grant it.",
+    "heldTitle": "Waiting on a photo check",
+    "publish": "Publish",
+    "remove": "Remove",
+    "evidence": "Evidence",
+    "markReviewing": "Start reviewing",
+    "markResolved": "Mark resolved",
+    "status_open": "Open",
+    "status_reviewing": "Reviewing",
+    "status_resolved": "Resolved",
+    "reason_changed_mind": "Changed their mind",
+    "reason_no_show": "Did not show up",
+    "reason_not_as_described": "Not as described",
+    "reason_unsafe": "Felt unsafe",
+    "reason_asked_for_money": "Asked for money"
   },
   "category": {
     "electronics": "Electronics",
@@ -466,5 +490,57 @@
     "failed": "Could not load the reviews. Try again in a moment.",
     "fromCancelled": "From a swap that fell through",
     "seeAll": "See reviews"
+  },
+  "theme": {
+    "switchToDark": "Switch to dark",
+    "switchToLight": "Switch to light",
+    "label": "Appearance",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "Match my device"
+  },
+  "barter": {
+    "offerTitle": "What are you offering?",
+    "offerBody": "Pick one of yours to put up for {{title}}.",
+    "offerSend": "Send offer",
+    "offerCancel": "Not this one",
+    "offerNoItems": "List something first and you can start making offers.",
+    "offerAddItem": "Add a find",
+    "offerSent": "Offer sent. They will let you know.",
+    "offerNoteLabel": "Add a note",
+    "offerNotePlaceholder": "Anything they should know?",
+    "inboxTitle": "Offers for you",
+    "inboxEmpty": "No offers waiting. They arrive here when someone wants one of your finds.",
+    "inboxWants": "wants",
+    "inboxOffers": "and offers",
+    "accept": "Accept",
+    "decline": "Decline",
+    "accepted": "It's a bartefy! Say hello and arrange the swap.",
+    "declined": "Offer declined.",
+    "sentTitle": "Offers you sent",
+    "sentPending": "Waiting to hear back",
+    "confirmTitle": "Did you swap?",
+    "confirmBody": "Confirm once you have met and handed the items over.",
+    "confirmAction": "We swapped",
+    "confirmWaiting": "Waiting for them to confirm too",
+    "confirmDone": "It's done. Enjoy your treasure.",
+    "cancelAction": "Call it off",
+    "cancelled": "Swap cancelled. Both finds are back on the table.",
+    "cancelledElsewhere": "One of these finds was swapped with someone else.",
+    "trustScore": "{{count}} swaps completed",
+    "trustScoreNone": "No swaps yet",
+    "errorGeneric": "That did not go through. Try again.",
+    "errorSignedOut": "Sign in first.",
+    "errorNotYourItem": "That find is not yours to offer, or is no longer available.",
+    "errorItemGone": "That find is no longer available.",
+    "errorOwnItem": "You cannot make an offer on your own find.",
+    "errorAlreadyOffered": "You already have an offer waiting on that find.",
+    "errorNotFound": "We could not find that.",
+    "errorAlreadyAnswered": "That offer has already been answered.",
+    "errorClosed": "That swap is already closed.",
+    "errorNotYours": "That is not yours to answer.",
+    "inboxLink": "Offers",
+    "inboxCount": "{{count}} waiting",
+    "cancelConfirmBody": "Both finds go back on the table. You can always offer again."
   }
 }

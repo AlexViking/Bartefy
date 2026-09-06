@@ -16,6 +16,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#2F6A52" />
     <title>Bartefy</title>
+    <!-- Applies the saved theme before first paint. Without this a person who
+         chose dark gets a parchment flash on every load, because React has not
+         mounted yet when the browser paints the first frame. Kept inline and
+         tiny on purpose -- an external file would be a second round trip in
+         front of the render. -->
+    <script>
+      (function () {
+        try {
+          var pref = localStorage.getItem('bartefy.theme') || 'system'
+          var dark =
+            pref === 'dark' ||
+            (pref === 'system' &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches)
+          if (dark) {
+            document.documentElement.setAttribute('data-theme', 'dark')
+            var m = document.querySelector('meta[name="theme-color"]')
+            if (m) m.setAttribute('content', '#121210')
+          }
+        } catch (e) {
+          /* Blocked site data: fall through to light, which is the default. */
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

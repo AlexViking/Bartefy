@@ -53,8 +53,71 @@
 
     /* shadcn reads --radius for its own components */
     --radius: var(--radius-card);
+
+    /* Brand-surface pair. These two do NOT flip with the theme: the green
+       panel behind the logo is the brand, and parchment is what stays legible
+       on it. Using --primary/--primary-foreground there would paint near-black
+       text on green the moment the dark theme lifted the green. */
+    --brand-deep: 156 39% 30%; /* #2F6A52 the book green, both themes */
+    --parchment-on-brand: 46 58% 93%; /* #F7F2E1 both themes */
+
+    /* Swipe semantics. The deck needs three unambiguous colours; these are
+       the only place terracotta and denim carry meaning rather than
+       decoration, because a swipe direction is not a status badge. */
+    --swipe-pass: 17 50% 45%;
+    --swipe-offer: 156 39% 30%;
+    --swipe-super: 217 35% 47%;
   }
 
-  /* No .dark block on purpose: parchment is the identity. Do not add one
-     without a brand decision — an inverted parchment is not a dark theme. */
+  /* Dark theme, ported from V5's globals.css.
+   *
+   * The earlier note here said an inverted parchment is not a dark theme, and
+   * that is still true -- so this is not an inversion. V5 drew a warm dark
+   * ground (#121210, never blue-black) and lifted the green to #4E9E7C so it
+   * keeps contrast against it. Parchment survives as the text colour, which is
+   * what stops the dark theme reading as a different product.
+   *
+   * Selected by attribute, not by class, so it matches V5 and can be set on
+   * <html> before first paint. Light remains the default: a new user still
+   * meets parchment.
+   */
+  [data-theme='dark'] {
+    --background: 60 6% 7%; /* #121210 warm dark, never blue-black */
+    --foreground: 47 41% 91%; /* #F2EEE0 parchment, inverted into text */
+
+    --card: 45 8% 10%; /* #1B1A17 */
+    --card-foreground: 47 41% 91%;
+
+    --popover: 48 8% 12%; /* #201F1B */
+    --popover-foreground: 47 41% 91%;
+
+    /* Lifted from the book green so it holds contrast on a dark ground. */
+    --primary: 154 34% 46%; /* #4E9E7C */
+    --primary-foreground: 154 20% 7%; /* #0E1512 */
+
+    --secondary: 40 4% 13%; /* #232220 */
+    --secondary-foreground: 46 30% 86%; /* #E7E2D2 */
+
+    /* Brass is unchanged: it was already a warm accent and reads on both. */
+    --accent: 32 68% 73%; /* #E9BE8C */
+    --accent-foreground: 33 31% 13%; /* #2A2116 */
+
+    --muted: 40 4% 13%;
+    --muted-foreground: 49 8% 61%; /* #A3A093 */
+
+    --destructive: 11 60% 56%; /* #D2624A terracotta, pushed for legibility */
+    --destructive-foreground: 16 41% 7%;
+
+    --border: 43 8% 17%; /* #2E2C27 */
+    --input: 43 8% 17%;
+    --ring: 154 34% 46%;
+
+    --illo-terracotta: 11 60% 56%;
+    --illo-denim: 217 42% 60%;
+    --illo-sage: 100 13% 52%;
+
+    --swipe-pass: 11 60% 56%;
+    --swipe-offer: 154 34% 46%;
+    --swipe-super: 217 42% 60%;
+  }
 }

@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { T, useT } from '@/i18n/T'
 import { getProfile, signOut, updateProfile } from '@/lib/api'
+import { resetLocal } from '@/lib/resetLocal'
 import { useAuthStore } from '@/store/auth'
 import { useOnboardingStore } from '@/store/onboarding'
 
@@ -88,8 +89,18 @@ export function Settings() {
     await patch({ home_city: city })
   }
 
+  /** Signing out clears the local caches as well as the session.
+   *
+   *  The persisted query cache lives in IndexedDB and outlives a sign-out, so
+   *  without this the next person to sign in on the same browser sees the
+   *  previous account's items and swaps until each query refetches. That was
+   *  always wrong; it became urgent with the V4 wipe, where the cached rows
+   *  refer to records that no longer exist at all.
+   *
+   *  The theme preference deliberately survives -- see lib/resetLocal.
+   */
   const handleSignOut = async () => {
-    await signOut()
+    await resetLocal({ signOut })
     navigate('/')
   }
 

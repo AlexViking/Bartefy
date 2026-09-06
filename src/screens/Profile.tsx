@@ -2,13 +2,12 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { AppShell } from '@/components/shell/AppShell'
-import { useT } from '@/i18n/T'
+import { T, useT } from '@/i18n/T'
 import { useIsDesktop } from '@/lib/platform'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { ToneBadge, Chip } from '@/components/ui/badge'
 import { Masonry, MasonryPhoto } from '@/components/ui/masonry'
 import { Button } from '@/components/ui/button'
-import { Stars } from '@/components/ui/stars'
 import { Stat } from '@/components/ui/stat'
 import { EmptyState } from '@/components/EmptyState'
 import { PausedFindsSheet } from '@/components/membership/PausedFindsSheet'
@@ -73,9 +72,11 @@ export function Profile() {
   const eyeing: ItemRef[] = [] // TODO: fetch saves
 
   const profileName = String(me?.name ?? me?.display_name ?? 'You')
-  const rating = me?.rating != null ? Number(me.rating) : 0
-  const swapCount = me?.swap_count != null ? Number(me.swap_count) : 0
+  // completed_trades is the trust score (migration 015). swap_count is the
+  // old column, kept as a fallback only until it is dropped.
+  const swapCount = Number(me?.completed_trades ?? me?.swap_count ?? 0)
   const verified = Boolean(me?.verified)
+  const referralCode = me?.referral_code ? String(me.referral_code) : ''
   const memberSince = me?.created_at ? new Date(String(me.created_at)).getFullYear().toString() : ''
   const city = String(me?.location_city ?? me?.city ?? DEFAULT_CITY)
 
@@ -95,10 +96,11 @@ export function Profile() {
               <h1 className="font-display text-h2 text-foreground">{profileName}</h1>
               {verified && <ToneBadge tone="green">{t('profile.verified')}</ToneBadge>}
             </div>
+            {/* No stars. Trust is the count of finished swaps, shown in the
+                stat row below -- peer ratings are cut from the product. */}
             <div className="flex items-center gap-2">
-              <Stars value={rating} />
               <span className="font-body text-sm text-muted-foreground">
-                {rating.toFixed(1)} {'\u00b7'} {city}
+                {city}
                 {memberSince ? ` \u00b7 ${t('profile.memberSince', { date: memberSince })}` : ''}
               </span>
             </div>
@@ -109,6 +111,40 @@ export function Profile() {
             <Stat value={eyeing.length} label={t('profile.statEyeing')} />
           </div>
         </div>
+
+        {/* Your invite code. Migration 012 has given every profile one since
+            6 September and nothing in the app showed it, so the whole referral
+            feature was inert -- there was no way to invite anyone.
+
+            The reward lands on the invitee's first real trade, never at
+            signup: paying at signup is what makes fake accounts worth farming.
+            profiles_own_read (migration 008) lets me read my own row in full,
+            and the code is correctly absent from profiles_public -- someone
+            else's invite code is not public data. */}
+        {referralCode && (
+          <div className="mt-3 flex items-center gap-3 rounded-card border-[1.5px] border-accent/50 bg-accent/[0.12] p-3.5">
+            <span className="min-w-0 flex-1">
+              <T
+                as="span"
+                k="profile.inviteTitle"
+                className="block font-display text-[15px] font-semibold text-foreground"
+              />
+              <T
+                as="span"
+                k="profile.inviteBody"
+                className="block font-body text-sm text-muted-foreground"
+              />
+            </span>
+            {/* data-selectable: global.css turns selection off app-wide, and a
+                code you cannot select is a code you cannot share. */}
+            <code
+              data-selectable
+              className="shrink-0 rounded-card-sm bg-card px-2.5 py-1.5 font-display text-[15px] font-bold tracking-wider text-foreground"
+            >
+              {referralCode}
+            </code>
+          </div>
+        )}
 
         {/* Membership row */}
         <button

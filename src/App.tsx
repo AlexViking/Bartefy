@@ -9,6 +9,7 @@ import { useAuthStore } from '@/store/auth'
 import { supabase } from '@/lib/supabase'
 import { useEffect } from 'react'
 import { PlatformProvider } from '@/lib/platform'
+import { ThemeProvider } from '@/lib/theme'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
 
@@ -22,13 +23,15 @@ export function App() {
       persistOptions={{ persister: idbPersister, maxAge: 24 * 60 * 60_000 }}
     >
       <QueryClientProvider client={queryClient}>
-        <PlatformProvider>
-          <TooltipProvider delayDuration={200}>
-            <Live />
-            <AppRouter />
-            <Toaster />
-          </TooltipProvider>
-        </PlatformProvider>
+        <ThemeProvider>
+          <PlatformProvider>
+            <TooltipProvider delayDuration={200}>
+              <Live />
+              <AppRouter />
+              <Toaster />
+            </TooltipProvider>
+          </PlatformProvider>
+        </ThemeProvider>
       </QueryClientProvider>
     </PersistQueryClientProvider>
   )

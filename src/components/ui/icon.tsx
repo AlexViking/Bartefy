@@ -2,7 +2,7 @@ import * as React from 'react'
 import {
   ArrowLeft, ArrowRight, Bell, Camera, Check, ChevronDown, ChevronLeft, ChevronRight,
   Clock, Compass, Heart, Info, MapPin, MessageCircle, Package, Plus, RotateCcw, Search,
-  Settings, ShieldAlert, Sparkles, Star, Trash2, User, X,
+  Settings, ShieldAlert, Sparkles, Star, Sun, Moon, Trash2, User, X,
   // Category icons — one per entry in CATEGORIES, see lib/taxonomy.ts.
   Armchair, Baby, Bike, Book, CookingPot, Gem, Hammer, Laptop, Music, Palette,
   Shapes, Shirt, Sofa, Sprout,
@@ -15,7 +15,7 @@ import {
 const ICONS = {
   ArrowLeft, ArrowRight, Bell, Camera, Check, ChevronDown, ChevronLeft, ChevronRight,
   Clock, Compass, Heart, Info, MapPin, MessageCircle, Package, Plus, RotateCcw, Search,
-  Settings, ShieldAlert, Sparkles, Star, Trash2, User, X,
+  Settings, ShieldAlert, Sparkles, Star, Sun, Moon, Trash2, User, X,
   Armchair, Baby, Bike, Book, CookingPot, Gem, Hammer, Laptop, Music, Palette,
   Shapes, Shirt, Sofa, Sprout,
 } as const
