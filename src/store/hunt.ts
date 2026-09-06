@@ -35,6 +35,13 @@ interface HuntState {
   /** The last card passed on, kept so it can be put back. Only one: undo is
    *  for the swipe you did not mean, not a browsable history. */
   lastPassed: CardItem | null
+  /** Ids decided in this session, so a refetch cannot put them back.
+   *
+   *  The feed excludes what the server knows about, but a refetch in flight
+   *  when you swipe was built before that swipe existed -- and the queue is
+   *  replaced wholesale from the response. Without this, a card you just
+   *  offered on reappears, and offering again raises P0004. */
+  decided: string[]
   setCardQueue: (queue: CardItem[]) => void
   removeTopCard: () => void
   /** Pass, remembering the card so `unpass` can restore it. */
@@ -52,15 +59,38 @@ export const useHuntStore = create<HuntState>()(
       selectedOfferId: null,
       likeHistory: [],
       lastPassed: null,
-      setCardQueue: (cardQueue) => set({ cardQueue, lastPassed: null }),
+      decided: [],
+      setCardQueue: (cardQueue) =>
+        set((state) => ({
+          // Anything decided this session stays gone, whatever the server
+          // just said.
+          cardQueue: cardQueue.filter((c) => !state.decided.includes(c.id)),
+          lastPassed: null,
+        })),
       removeTopCard: () =>
-        set((state) => ({ cardQueue: state.cardQueue.slice(1) })),
+        set((state) => {
+          const top = state.cardQueue[0]
+          return {
+            cardQueue: state.cardQueue.slice(1),
+            decided: top ? [...state.decided, top.id] : state.decided,
+          }
+        }),
       passTopCard: (card) =>
-        set((state) => ({ cardQueue: state.cardQueue.slice(1), lastPassed: card })),
+        set((state) => ({
+          cardQueue: state.cardQueue.slice(1),
+          lastPassed: card,
+          decided: [...state.decided, card.id],
+        })),
       unpass: () =>
         set((state) =>
           state.lastPassed
-            ? { cardQueue: [state.lastPassed, ...state.cardQueue], lastPassed: null }
+            ? {
+                cardQueue: [state.lastPassed, ...state.cardQueue],
+                // Undoing a pass makes it undecided again, so a refetch is
+                // allowed to serve it.
+                decided: state.decided.filter((id) => id !== state.lastPassed!.id),
+                lastPassed: null,
+              }
             : state,
         ),
       setSelectedOfferId: (selectedOfferId) => set({ selectedOfferId }),
