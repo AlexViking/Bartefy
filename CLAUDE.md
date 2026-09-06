@@ -104,6 +104,17 @@ conversation, never in the schema.
   redirect.
 - Dark theme is the DEFAULT.
 
+### TODO — the UI is not validated
+**No screen has been compared to its wireframe artboard side by side.** Pieces
+were ported as problems surfaced, not systematically. Before calling any screen
+done: open its artboard in `files/Bartefy_Wireframes_v2.html`, open the same
+screen in `Bartefy V5 Pilot.html`, then drive the app with Puppeteer and
+compare — both themes, 390x844 and 1440x900. Measure rather than eyeball.
+
+Specifically unchecked: every screen in **dark theme** (now the default, and
+most were only ever seen in light), **Settings**, and **desktop at 1440**
+beyond the Hunt screen. 14 of the pilot's 18 animations are ported but unused.
+
 ### Read the wireframes before building UI
 `files/Bartefy_Wireframes_v2.html` is the spec — 16 screens. Its tab bar is
 **Deck / Matches / + / Profile**, four items, and "my items" lives inside
