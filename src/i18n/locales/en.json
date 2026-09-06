@@ -225,7 +225,9 @@
     "sending": "Sending…",
     "failedToSend": "Not sent — tap to retry",
     "confirmFailed": "That did not go through. Try again in a moment.",
-    "markDone": "Did the swap happen?"
+    "markDone": "Did the swap happen?",
+    "yourFind": "You give",
+    "theirFind": "You get"
   },
   "arrange": {
     "title": "Arrange the swap",

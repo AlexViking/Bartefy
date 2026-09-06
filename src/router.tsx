@@ -19,9 +19,9 @@ import { Hunt } from './screens/Hunt'
 import { Browse } from './screens/Browse'
 import { SwapsInbox } from './screens/SwapsInbox'
 import Offers from './screens/Offers/Offers'
+import MatchThread from './screens/Chat/MatchThread'
 import { ItemDetail } from './screens/ItemDetail'
 import { Arrange } from './screens/Arrange'
-import SwapThread from './screens/SwapThread'
 import { Reviews } from './screens/Reviews'
 import { Membership } from './screens/Membership'
 import { ReportQueue } from './screens/admin/ReportQueue'
@@ -96,7 +96,7 @@ export function AppRouter() {
         <Route path="/add" element={guard(<AddItem />)} />
         {/* Desktop renders the inbox here so the swap list stays beside the
             thread; mobile renders Chat full-screen. See SwapThread. */}
-        <Route path="/swaps/:swapId" element={guard(<SwapThread />)} />
+        <Route path="/swaps/:swapId" element={guard(<MatchThread />)} />
         <Route path="/swaps/:swapId/arrange" element={guard(<Arrange />)} />
         {/* Someone else's reviews. Reading them is ALWAYS_FREE. */}
         <Route path="/reviews/:userId" element={guard(<Reviews />)} />
