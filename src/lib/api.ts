@@ -3,18 +3,62 @@ import { STATUS_TO_DB } from '@/types/swap'
 
 // ── Auth ────────────────────────────────────────────────────────────────────
 
-/** Email a six-digit code. The same call also underpins first-time sign-up:
- *  shouldCreateUser defaults to true, so an address we have never seen gets an
- *  account and a code in one step — there is no separate register screen.
+/** No emailRedirectTo on either call, deliberately. The Supabase email template
+ *  renders {{ .Token }} rather than {{ .ConfirmationURL }}, so there is no link
+ *  to come back through: the code is typed into the tab that asked for it and
+ *  the person never leaves the page. Restoring a link here would reintroduce
+ *  the second-tab flow this replaced.
  *
- *  No emailRedirectTo, deliberately. The Supabase email template renders
- *  {{ .Token }} rather than {{ .ConfirmationURL }}, so there is no link to come
- *  back through: the code is typed into the tab that asked for it and the
- *  person never leaves the page. Restoring a link here would reintroduce the
- *  second-tab flow this replaced.
+ *  Sign-up and sign-in are the same Supabase endpoint separated by one flag.
+ *  shouldCreateUser is what makes them two different screens rather than one
+ *  progressive one: without it, a typo on the sign-in form silently registers a
+ *  new account instead of saying the address is unknown.
  */
-export async function requestOTP(email: string) {
-  return supabase.auth.signInWithOtp({ email })
+
+/** Sign in an EXISTING account. An address with no account fails with
+ *  otp_disabled rather than being created — that rejection is what lets the
+ *  sign-in screen send someone to sign-up instead of quietly registering them.
+ */
+export async function requestSignInOTP(email: string) {
+  return supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } })
+}
+
+/** Create an account and send its first code.
+ *
+ *  The invite code rides along in options.data, which Supabase writes to the
+ *  auth user's raw_user_meta_data. It has to arrive with the signup: the
+ *  handle_new_user trigger inserts the profile row inside the auth transaction,
+ *  before any session exists for the client to write with.
+ *
+ *  Storing it does not by itself credit anyone — the referrer earns only once
+ *  this account completes a real trade, so the reward belongs in the completion
+ *  path, not here. Capturing at signup and paying at first trade is what stops
+ *  accounts being farmed for invites.
+ */
+export async function requestSignUpOTP(email: string, referralCode?: string) {
+  const code = referralCode?.trim().toUpperCase()
+  return supabase.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: true,
+      ...(code ? { data: { referral_code: code } } : {}),
+    },
+  })
+}
+
+/** Is this invite code real? Answers only true/false — a function that returned
+ *  the referrer's name or id would turn invite codes into a way to enumerate
+ *  accounts.
+ *
+ *  Returns null when the check cannot run: migration 012 may not be applied
+ *  yet, and a missing RPC must read as "unknown", never as "invalid". A typed
+ *  code is stored either way, so a wrong answer here would reject a code the
+ *  database would have accepted.
+ */
+export async function checkReferralCode(code: string): Promise<boolean | null> {
+  const { data, error } = await supabase.rpc('referral_code_exists', { p_code: code.trim() })
+  if (error) return null
+  return data === true
 }
 
 /** Exchange a typed code for a session. Type 'email' covers both the sign-up

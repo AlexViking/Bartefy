@@ -9,12 +9,13 @@ import { DESTINATIONS, ADD_DESTINATION } from '@/navigation/destinations'
 import { useAuthStore } from '@/store/auth'
 import { useT } from '@/i18n/T'
 import { cn } from '@/lib/utils'
+import { DEFAULT_CITY } from '@/screens/Onboarding/useOnboarding'
 
 /** Desktop navigation. The same four destinations in the same order as the
  *  mobile tab bar, so muscle memory survives moving between devices.
  */
 export function TopNav({
-  city = 'Berlin',
+  city = DEFAULT_CITY,
   radiusKm = 10,
   unreadSwaps = 0,
 }: {

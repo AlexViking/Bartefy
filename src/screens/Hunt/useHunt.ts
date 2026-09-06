@@ -8,6 +8,7 @@ import { keys, STALE } from '@/lib/cache/queryClient'
 import { useAuthStore } from '@/store/auth'
 import { useHuntStore, type CardItem } from '@/store/hunt'
 import { useOnboardingStore } from '@/store/onboarding'
+import { DEFAULT_CITY } from '@/screens/Onboarding/useOnboarding'
 
 /** One taxonomy for the whole app — see lib/taxonomy.ts. Hunt, Browse,
  *  AddItem and onboarding all used to keep their own drifting copies. */
@@ -27,7 +28,7 @@ export interface OfferOption {
 export function useHunt() {
   const navigate = useNavigate()
   const userId = useAuthStore((s) => s.session?.user?.id)
-  const city = useAuthStore((s) => s.selectedCity) || 'Berlin'
+  const city = useAuthStore((s) => s.selectedCity) || DEFAULT_CITY
   const tastes = useOnboardingStore((s) => s.tastes)
 
   const cards = useHuntStore((s) => s.cardQueue)

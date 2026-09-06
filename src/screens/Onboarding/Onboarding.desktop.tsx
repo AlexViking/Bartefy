@@ -64,13 +64,13 @@ export default function OnboardingDesktop() {
           )}
           {o.isLast ? (
             <>
-              <Button size="lg" onClick={() => o.finish('/add')} data-i18n="onboarding.listFirst">
+              <Button size="lg" onClick={() => void o.finish('/add')} data-i18n="onboarding.listFirst">
                 {t('onboarding.listFirst')}
               </Button>
               <Button
                 variant="ghost"
                 size="lg"
-                onClick={() => o.finish('/hunt')}
+                onClick={() => void o.finish('/hunt')}
                 data-i18n="onboarding.startHunting"
               >
                 {t('onboarding.startHunting')}
@@ -83,7 +83,7 @@ export default function OnboardingDesktop() {
           )}
           <button
             type="button"
-            onClick={o.skip}
+            onClick={() => void o.skip()}
             data-i18n="common.skip"
             className="ml-auto min-h-hit px-2 font-display text-[15px] font-semibold text-muted-foreground hover:text-foreground"
           >

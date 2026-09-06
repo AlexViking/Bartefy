@@ -52,7 +52,21 @@
     "codeSentBody": "We sent a six-digit code to {{email}}. Enter it here — it expires in an hour.",
     "errorBadCode": "That code did not work — it may be mistyped or past its hour. Ask for a fresh one.",
     "errorRateLimited": "That is a few too many tries. Give it a minute and go again.",
-    "errorBadEmail": "That address did not look right to us. Check it and try again."
+    "errorBadEmail": "That address did not look right to us. Check it and try again.",
+    "signInTitle": "Welcome back",
+    "signUpTitle": "Make a Bartefy account",
+    "signUp": "Sign up",
+    "logIn": "Log in",
+    "needAccount": "New to Bartefy?",
+    "haveAccount": "Already have an account?",
+    "inviteLabel": "Invite code",
+    "inviteHint": "Optional. If a friend invited you, their code goes here — they earn points once you finish your first swap.",
+    "invitePlaceholder": "e.g. ALEX-7F3",
+    "inviteHelp": "Optional — leave it blank if you came on your own.",
+    "inviteFound": "That invite checks out.",
+    "errorNoAccount": "We have no account for that address. Sign up and it takes a moment.",
+    "errorHaveAccount": "That address already has an account. Log in instead.",
+    "createAccount": "Create account"
   },
   "onboarding": {
     "step1Title": "Welcome to the flea market",
