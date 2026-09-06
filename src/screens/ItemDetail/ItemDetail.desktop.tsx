@@ -11,6 +11,8 @@ import { ResponsiveSheet } from '@/components/ui/responsive-sheet'
 import { PhotoViewer } from '@/components/ui/photo-viewer'
 import { OfferSheet } from '@/components/offer/OfferSheet'
 import { ReportItemSheet } from '@/components/hunt/ReportItemSheet'
+import { UpgradeSheet } from '@/components/membership/UpgradeSheet'
+import type { UpgradeMoment } from '@/lib/membership'
 import { T, useT } from '@/i18n/T'
 import { Facts } from './Facts'
 import { useItemDetail } from './useItemDetail'
@@ -22,6 +24,7 @@ import { useItemDetail } from './useItemDetail'
 export default function ItemDetailDesktop() {
   const d = useItemDetail()
   const [reporting, setReporting] = useState(false)
+  const [upgrade, setUpgrade] = useState<UpgradeMoment | null>(null)
   const { t } = useT()
   const navigate = useNavigate()
 
@@ -176,9 +179,24 @@ export default function ItemDetailDesktop() {
                 </>
               )}
               {d.item.eyeing > 0 && (
+                /* The tier sheet's strongest converter: "3 people want your
+                   guitar", shown on YOUR listing at the moment the wanting is
+                   concrete. The count is always free -- only the names are
+                   behind the unlock, which keeps this a nudge and not a
+                   hostage situation. */
                 <span className="ml-auto flex items-center gap-1.5 font-body text-sm text-muted-foreground">
                   <Eye className="size-4" aria-hidden="true" />
                   {t('item.eyeing', { count: d.item.eyeing })}
+                  {d.owned && !d.canSeeEyeing && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setUpgrade('someone_likes_yours')}
+                      data-i18n="item.seeWho"
+                    >
+                      {t('item.seeWho')}
+                    </Button>
+                  )}
                   <InfoHint k="help.whyEyeing" side="left" />
                 </span>
               )}
@@ -213,6 +231,12 @@ export default function ItemDetailDesktop() {
         onIndexChange={d.setPhoto}
         onClose={() => d.setViewerOpen(false)}
         title={d.item.title}
+      />
+
+      <UpgradeSheet
+        open={!!upgrade}
+        onOpenChange={(o) => !o && setUpgrade(null)}
+        moment={upgrade ?? 'see_eyeing'}
       />
 
       <ReportItemSheet

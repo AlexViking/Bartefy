@@ -102,6 +102,11 @@ export type UpgradeMoment =
   | 'see_eyeing'
   | 'saved_search'
   | 'after_fourth_swap'
+  // From the tier sheet's trigger map. Each fires in context, at the moment
+  // the person wants the thing -- never on a settings page.
+  | 'someone_likes_yours'
+  | 'stack_empty'
+  | 'just_passed'
 
 /** One sheet, one price, one line about what changes, and a visible free
  *  alternative. Never an interstitial on launch, never mid-swipe, never during
@@ -137,5 +142,28 @@ export const UPGRADE_COPY: Record<UpgradeMoment, { title: string; body: string; 
     title: 'Four swaps in. Nicely done.',
     body: 'Collector widens the map and lifts the caps, if you want more of this.',
     free: 'Staying on Hunter changes nothing about what you already have.',
+  },
+  /** The tier sheet calls this the strongest converter: concrete value plus
+   *  curiosity, at the moment somebody wants your thing. The COUNT is always
+   *  free -- only the names are behind the unlock, which is what keeps this a
+   *  nudge rather than a hostage situation. */
+  someone_likes_yours: {
+    title: 'People are eyeing this one',
+    body: 'Unlock who they are and you can offer them something first.',
+    free: 'The count stays free, always.',
+  },
+  /** An empty stack is the natural moment to widen the pool -- there is
+   *  nothing else to do on the screen. */
+  stack_empty: {
+    title: 'That is everything nearby',
+    body: 'Collector opens the map out to 50 km, so there is more to see.',
+    free: 'Or widen the radius yourself -- new finds land every day.',
+  },
+  /** FOMO on the one that got away, offered only once undo has been used and
+   *  there is nothing left to undo with. */
+  just_passed: {
+    title: 'Changed your mind?',
+    body: 'Collector lets you rewind as far back as you like.',
+    free: 'Your last pass is always free to undo.',
   },
 }

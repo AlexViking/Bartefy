@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { barterErrorKey, makeOffer, renewItem } from '@/lib/barter'
 import { useAuthStore } from '@/store/auth'
+import { useMembershipStore } from '@/store/membership'
 import type { OfferOption } from '@/screens/Hunt/useHunt'
 import { useNavigate, useParams } from 'react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -168,6 +169,8 @@ export function useItemDetail() {
     staleTime: STALE.mine,
   })
 
+  const canSeeEyeing = useMembershipStore.getState().can('see_eyeing')
+
   const toggleSave = async () => {
     if (!userId || !itemId) return
     const next = !saved
@@ -186,6 +189,9 @@ export function useItemDetail() {
 
   return {
     ready: true as const,
+    /** Whether the names behind the eyeing count are visible. The COUNT is
+     *  always free; this gates only who. */
+    canSeeEyeing,
     saved,
     toggleSave,
     isLoading: false,

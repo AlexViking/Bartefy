@@ -13,6 +13,7 @@ import { Icon } from '@/components/ui/icon'
 import { resetLocal } from '@/lib/resetLocal'
 import { cn } from '@/lib/utils'
 import { getProfile, getMyItems, signOut } from '@/lib/api'
+import { getBalance } from '@/lib/points'
 import { keys, STALE } from '@/lib/cache/queryClient'
 import { DEFAULT_CITY } from '@/screens/Onboarding/useOnboarding'
 
@@ -27,6 +28,9 @@ import { DEFAULT_CITY } from '@/screens/Onboarding/useOnboarding'
  */
 const HUB_ROWS = [
   { path: '/items', label: 'nav.items', icon: 'Package' as const },
+  // Back, now that points exist. It was withheld while the screen would have
+  // said "coming soon", which is worse than no row at all.
+  { path: '/points', label: 'points.title', icon: 'Star' as const },
   { path: '/invite', label: 'profile.hubInvite', icon: 'Sparkles' as const },
   { path: '/settings/blocked', label: 'profile.hubBlocked', icon: 'ShieldAlert' as const },
   { path: '/settings', label: 'profile.hubSettings', icon: 'Settings' as const },
@@ -74,6 +78,20 @@ export function Profile() {
 
   const liveCount = allItems.filter((it) => it.status === 'active').length
 
+  /** The wallet, beside the trust score. The wireframe draws these as two
+   *  numbers side by side but deliberately separate: swaps are public trust,
+   *  points are a private balance. PublicProfile shows the first and never
+   *  the second. */
+  const { data: points = 0 } = useQuery({
+    queryKey: ['points', 'balance', userId ?? ''],
+    queryFn: async () => {
+      const { data, error } = await getBalance(userId!)
+      if (error) throw error
+      return Number(data ?? 0)
+    },
+    enabled: !!userId,
+  })
+
   // Falls back to translated copy rather than a bare English "You" -- the old
   // literal shipped untranslated to every non-EN user.
   const profileName = String(me?.name ?? me?.display_name ?? t('profile.you'))
@@ -113,6 +131,7 @@ export function Profile() {
           <div className="flex gap-6">
             <Stat value={swapCount} label={t('profile.statSwaps')} />
             <Stat value={liveCount} label={t('profile.statLive')} />
+            <Stat value={points} label={t('points.title')} />
           </div>
         </div>
 

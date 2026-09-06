@@ -146,7 +146,8 @@
     "removeBody": "It stops appearing in decks. Anyone already talking to you about it keeps the conversation.",
     "renew": "Renew 30 days",
     "pause": "Pause listing",
-    "unpause": "Put it back"
+    "unpause": "Put it back",
+    "seeWho": "See who"
   },
   "add": {
     "title": "List a find",
@@ -625,5 +626,41 @@
   "wants": {
     "matchCount": "{{count}} of your finds match",
     "matchCount_one": "{{count}} of your finds matches"
+  },
+  "points": {
+    "title": "Points",
+    "balanceLabel": "points to spend",
+    "earnTitle": "How you earn",
+    "earn_list_find": "Put a find on the table",
+    "earn_offer_accepted": "An offer gets accepted",
+    "earn_swap_completed": "Finish a swap",
+    "earn_referral_first_swap": "A friend you invited finishes their first swap",
+    "spendTitle": "What points buy",
+    "tier_collector": "Collector · 30 days",
+    "tier_curator": "Curator · 30 days",
+    "tierBlurb_collector": "The whole city, 50 km out, and you see who is eyeing your finds.",
+    "tierBlurb_curator": "No radius cap, instant alerts, and a weekly spotlight.",
+    "redeem": "Redeem",
+    "needMore": "{{n}} more to go",
+    "perk_eyeing": "See who is eyeing your finds",
+    "perk_radius": "Hunt further out",
+    "perkDays": "{{count}} days",
+    "perkDays_one": "{{count}} day",
+    "perkActive": "Active",
+    "historyTitle": "Your points",
+    "reason_list_find": "Listed a find",
+    "reason_offer_accepted": "Offer accepted",
+    "reason_swap_completed": "Swap finished",
+    "reason_referral_first_swap": "A friend finished their first swap",
+    "reason_backfill": "For everything before points existed",
+    "reason_buy_tier": "Bought a month",
+    "reason_buy_boost": "Boosted a find",
+    "reason_buy_eyeing": "Unlocked eyeing",
+    "reason_buy_radius": "Widened the map",
+    "footnote": "Everything on Bartefy is free. Points are for going faster, never for swapping safely.",
+    "errorNotEnough": "Not quite enough points yet.",
+    "errorNotForSale": "That is not something points buy.",
+    "errorWhichFind": "Pick which find to boost.",
+    "errorSignedOut": "Sign in to spend points."
   }
 }

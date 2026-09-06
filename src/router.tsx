@@ -19,6 +19,7 @@ import MyItems from './screens/MyItems'
 import { SwapsInbox } from './screens/SwapsInbox'
 import Offers from './screens/Offers/Offers'
 import Invite from './screens/Invite'
+import Rewards from './screens/Rewards'
 import PublicProfile from './screens/PublicProfile'
 import Notifications from './screens/Notifications'
 import MatchThread from './screens/Chat/MatchThread'
@@ -92,6 +93,7 @@ export function AppRouter() {
         <Route path="/matches" element={guard(<SwapsInbox />)} />
         <Route path="/offers" element={guard(<Offers />)} />
         <Route path="/invite" element={guard(<Invite />)} />
+        <Route path="/points" element={guard(<Rewards />)} />
         <Route path="/u/:userId" element={guard(<PublicProfile />)} />
         <Route path="/notifications" element={guard(<Notifications />)} />
         <Route path="/profile" element={guard(<Profile />)} />
