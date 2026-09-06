@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/EmptyState'
 import { NextStep } from '@/components/guidance/NextStep'
 import { T } from '@/i18n/T'
 import { InboxTabs } from './Tabs'
+import { OffersLink } from './OffersLink'
 import { SwapList } from './SwapList'
 import { useSwapsInbox } from './useSwapsInbox'
 
@@ -28,6 +29,7 @@ export default function SwapsInboxDesktop() {
       <div className="grid h-[calc(100dvh-68px)] grid-cols-[minmax(300px,360px)_1fr]">
         <section className="flex flex-col overflow-y-auto border-r border-border/[0.14] p-5">
           <T as="h1" k="swaps.title" className="mb-4 font-display text-h2 text-foreground" />
+        <OffersLink className="mb-4" />
           <InboxTabs tab={s.tab} onChange={s.setTab} className="mb-4" />
 
           <SwapList

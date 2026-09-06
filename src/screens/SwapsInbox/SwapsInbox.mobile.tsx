@@ -2,6 +2,7 @@ import { AppShell } from '@/components/shell/AppShell'
 import { NextStep } from '@/components/guidance/NextStep'
 import { T } from '@/i18n/T'
 import { InboxTabs } from './Tabs'
+import { OffersLink } from './OffersLink'
 import { SwapList } from './SwapList'
 import { useSwapsInbox } from './useSwapsInbox'
 
@@ -15,6 +16,7 @@ export default function SwapsInboxMobile() {
     <AppShell>
       <div className="mx-auto w-full max-w-[720px] px-4 py-5">
         <T as="h1" k="swaps.title" className="mb-4 font-display text-h2 text-foreground" />
+        <OffersLink className="mb-4" />
         <InboxTabs tab={s.tab} onChange={s.setTab} className="mb-4" />
 
         <SwapList

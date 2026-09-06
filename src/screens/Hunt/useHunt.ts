@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 
 import { fetchFeed, getMyItems, recordSwipe } from '@/lib/api'
+import { barterErrorKey, makeOffer } from '@/lib/barter'
 import { keys, STALE } from '@/lib/cache/queryClient'
 import { useAuthStore } from '@/store/auth'
 import { useHuntStore, type CardItem } from '@/store/hunt'
@@ -45,6 +46,8 @@ export function useHunt() {
   )
   const [radiusKm, setRadiusKm] = useState(10)
   const [matched, setMatched] = useState<CardItem | null>(null)
+  /** Title of the find an offer was just sent for, for the confirmation. */
+  const [sentTitle, setSentTitle] = useState<string | null>(null)
 
   /** The finds I could put on the table. Hunting is a trade, so which of my
    *  own items I am offering is part of the question — it was previously
@@ -111,21 +114,71 @@ export function useHunt() {
 
   const top = cards[0]
 
+  /** The card a right swipe is asking about. Non-null means the offer sheet is
+   *  open and the card is still on the stack: the swipe is not finished until
+   *  an item has been chosen, so cancelling has to leave the card there. */
+  const [pendingTarget, setPendingTarget] = useState<CardItem | null>(null)
+  const [sending, setSending] = useState(false)
+  const [offerError, setOfferError] = useState<string | null>(null)
+
+  /** A pass is recorded and the card leaves. A want no longer records anything
+   *  on its own -- under the locked rule a like IS an offer, so the swipe only
+   *  completes once the person has said what they are putting up. */
   const decide = async (item: CardItem, want: boolean) => {
-    if (want && item.ownerId) {
-      addToLikeHistory(item.id)
-      const { data } = await recordSwipe({
+    if (!want) {
+      recordSwipe({
         targetItemId: item.id,
-        targetOwnerId: item.ownerId,
-        isLike: true,
-        // Which of my finds I am putting up. Recorded on the swipe itself, so
-        // that when the other person swipes back their match lookup can pair
-        // on what I actually offered.
-        offerItemId: selectedOfferId ?? undefined,
+        targetOwnerId: item.ownerId ?? '',
+        isLike: false,
+      }).catch(() => {
+        // A lost pass is a card seen twice, not a broken app. Never block the
+        // stack on it.
       })
-      if (data?.matched) setMatched(item)
+      removeTopCard()
+      return
     }
+    if (!item.ownerId) return
+    setOfferError(null)
+    setPendingTarget(item)
+  }
+
+  /** The sheet's confirm. This is the actual offer. */
+  const sendOffer = async (offeredItemId: string, note?: string) => {
+    const target = pendingTarget
+    if (!target || sending) return
+    setSending(true)
+    setOfferError(null)
+
+    const { error: rpcError } = await makeOffer({
+      offeredItemId: Number(offeredItemId),
+      wantedItemId: Number(target.id),
+      note,
+    })
+
+    setSending(false)
+    if (rpcError) {
+      // The card stays put so the choice can be changed -- except when the
+      // item is simply gone, where there is nothing left to decide.
+      const key = barterErrorKey(rpcError)
+      setOfferError(key)
+      if (key === 'barter.errorItemGone') {
+        setPendingTarget(null)
+        removeTopCard()
+      }
+      return
+    }
+
+    addToLikeHistory(target.id)
+    setPendingTarget(null)
     removeTopCard()
+    setSentTitle(target.title)
+  }
+
+  /** Backing out of the sheet. The card stays: not choosing an item is not the
+   *  same as passing on the find. */
+  const cancelOffer = () => {
+    setPendingTarget(null)
+    setOfferError(null)
   }
 
   const toggleFilter = (c: string) =>
@@ -147,6 +200,14 @@ export function useHunt() {
     matched,
     dismissMatch: () => setMatched(null),
     decide,
+    /** Offer sheet state. */
+    pendingTarget,
+    sendOffer,
+    cancelOffer,
+    sending,
+    offerError,
+    sentTitle,
+    dismissSent: () => setSentTitle(null),
     openItem: (id: string) => navigate('/item/' + id),
     openSwap: (id: string) => navigate('/swaps/' + id),
     goBrowse: () => navigate('/browse'),

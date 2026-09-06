@@ -3,8 +3,8 @@ import { SlidersHorizontal } from 'lucide-react'
 
 import { AppShell } from '@/components/shell/AppShell'
 import { EmptyState } from '@/components/EmptyState'
+import { OfferSheet } from '@/components/offer/OfferSheet'
 import { HuntStack } from '@/components/hunt/HuntStack'
-import { OfferPicker } from '@/components/hunt/OfferPicker'
 import { NextStep } from '@/components/guidance/NextStep'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/tone-badge'
@@ -72,15 +72,6 @@ export default function HuntMobile() {
           </Sheet>
         </header>
 
-        {/* What you are putting on the table, in view while you swipe. */}
-        <div className="px-5 pb-2">
-          <OfferPicker
-            offers={h.offers}
-            selectedId={h.selectedOfferId}
-            onSelect={h.setSelectedOfferId}
-            onAdd={h.goAdd}
-          />
-        </div>
 
         <section className="flex flex-1 flex-col items-center justify-center gap-4 px-5 pb-6">
           {h.isLoading ? (
@@ -121,6 +112,17 @@ export default function HuntMobile() {
       </div>
 
       {/* The match celebration is a sheet over the hunt, never its own page. */}
+      <OfferSheet
+        open={!!h.pendingTarget}
+        targetTitle={h.pendingTarget?.title ?? ''}
+        mine={h.offers}
+        onCancel={h.cancelOffer}
+        onConfirm={h.sendOffer}
+        sending={h.sending}
+        errorKey={h.offerError}
+        onAdd={h.goAdd}
+      />
+
       <Sheet open={!!h.matched} onOpenChange={(o) => !o && h.dismissMatch()}>
         <SheetContent side="bottom" className="rounded-t-hero">
           <SheetHeader>

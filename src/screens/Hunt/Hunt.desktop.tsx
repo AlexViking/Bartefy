@@ -1,5 +1,6 @@
 import { AppShell } from '@/components/shell/AppShell'
 import { EmptyState } from '@/components/EmptyState'
+import { OfferSheet } from '@/components/offer/OfferSheet'
 import { HuntStack } from '@/components/hunt/HuntStack'
 import { NextStep } from '@/components/guidance/NextStep'
 import { InfoHint } from '@/components/guidance/InfoHint'
@@ -13,7 +14,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { OwnerRow } from '@/components/swap/OwnerRow'
-import { OfferPicker } from '@/components/hunt/OfferPicker'
 import { SwapPair } from '@/components/swap/SwapPair'
 import { WantsRow } from '@/components/swap/WantsRow'
 import { T, useT } from '@/i18n/T'
@@ -41,12 +41,6 @@ export default function HuntDesktop() {
           {/* Your side of the trade, at the top of the rail that already
               answers "what am I hunting for" — the two halves of the same
               question belong together. */}
-          <OfferPicker
-            offers={h.offers}
-            selectedId={h.selectedOfferId}
-            onSelect={h.setSelectedOfferId}
-            onAdd={h.goAdd}
-          />
 
           <div className="flex items-center gap-1.5">
             <T
@@ -124,6 +118,17 @@ export default function HuntDesktop() {
           )}
         </aside>
       </div>
+
+      <OfferSheet
+        open={!!h.pendingTarget}
+        targetTitle={h.pendingTarget?.title ?? ''}
+        mine={h.offers}
+        onCancel={h.cancelOffer}
+        onConfirm={h.sendOffer}
+        sending={h.sending}
+        errorKey={h.offerError}
+        onAdd={h.goAdd}
+      />
 
       <Dialog open={!!h.matched} onOpenChange={(o) => !o && h.dismissMatch()}>
         <DialogContent className="max-w-[420px] rounded-hero">

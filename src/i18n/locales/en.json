@@ -24,7 +24,8 @@
     "km": "{{count}} km",
     "moreInfo": "More about this",
     "youAreHere": "You are here",
-    "stepOf": "Step {{current}} of {{total}}"
+    "stepOf": "Step {{current}} of {{total}}",
+    "notYet": "Not yet"
   },
   "nav": {
     "hunt": "Hunt",
@@ -207,7 +208,8 @@
     "unread": "{{count}} new message",
     "unread_other": "{{count}} new messages",
     "pickTitle": "Pick a swap",
-    "pickBody": "Choose one from the list to see the thread and what happens next."
+    "pickBody": "Choose one from the list to see the thread and what happens next.",
+    "someone": "Someone"
   },
   "chat": {
     "placeholder": "Write a message",
@@ -514,6 +516,9 @@
     "errorNotFound": "We could not find that.",
     "errorAlreadyAnswered": "That offer has already been answered.",
     "errorClosed": "That swap is already closed.",
-    "errorNotYours": "That is not yours to answer."
+    "errorNotYours": "That is not yours to answer.",
+    "inboxLink": "Offers",
+    "inboxCount": "{{count}} waiting",
+    "cancelConfirmBody": "Both finds go back on the table. You can always offer again."
   }
 }

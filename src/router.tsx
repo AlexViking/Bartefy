@@ -18,6 +18,7 @@ import { Rate } from './screens/Rate'
 import { Hunt } from './screens/Hunt'
 import { Browse } from './screens/Browse'
 import { SwapsInbox } from './screens/SwapsInbox'
+import Offers from './screens/Offers/Offers'
 import { ItemDetail } from './screens/ItemDetail'
 import { Arrange } from './screens/Arrange'
 import SwapThread from './screens/SwapThread'
@@ -88,6 +89,7 @@ export function AppRouter() {
         <Route path="/hunt" element={guard(<Hunt />)} />
         <Route path="/browse" element={guard(<Browse />)} />
         <Route path="/swaps" element={guard(<SwapsInbox />)} />
+        <Route path="/offers" element={guard(<Offers />)} />
         <Route path="/profile" element={guard(<Profile />)} />
 
         <Route path="/item/:itemId" element={guard(<ItemDetail />)} />
