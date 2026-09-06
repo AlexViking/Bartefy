@@ -203,6 +203,16 @@ export async function sendMatchMessage(input: {
     .select()
 }
 
+/** Report a listing. Separate from fileReport, which reports a PERSON
+ *  mid-swap: the reasons do not overlap and neither do the moments. */
+export async function reportItem(itemId: string, reason: string, note?: string) {
+  return supabase.rpc('report_item', {
+    p_item_id: Number(itemId),
+    p_reason: reason,
+    p_note: note ?? null,
+  })
+}
+
 // ── Errors ──────────────────────────────────────────────────────────────────
 
 /** The SQLSTATE codes raised by migration 016, mapped to i18n keys.

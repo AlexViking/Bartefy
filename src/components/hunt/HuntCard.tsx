@@ -25,10 +25,16 @@ export function HuntCard({
   const { t } = useT()
 
   return (
+    // 3:4 overall with the photo taking 62%, per V5. The old card was 4:3 --
+    // landscape -- which on a phone left the deck short and wide and made the
+    // stack look like a list of banners rather than cards you pick up.
     <Card
-      className={cn('overflow-hidden rounded-hero border-0 bg-card shadow-float', className)}
+      className={cn(
+        'flex aspect-[3/4] w-full flex-col overflow-hidden rounded-hero border-0 bg-card shadow-float',
+        className,
+      )}
     >
-      <div className="relative aspect-[4/3] w-full" style={{ background: item.photoColor }}>
+      <div className="relative h-[62%] w-full shrink-0" style={{ background: item.photoColor }}>
         {item.photoUrl && (
           <img
             src={item.photoUrl}
@@ -53,7 +59,7 @@ export function HuntCard({
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 p-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 p-4">
         <h3 className="font-display text-h3 leading-tight text-foreground">{item.title}</h3>
         {/* Joined rather than interpolated: a find with no distance used to
             render "other ·" with a dangling separator and nothing after it. */}

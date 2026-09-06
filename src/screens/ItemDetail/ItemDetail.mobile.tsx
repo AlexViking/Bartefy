@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router'
 import { AppShell } from '@/components/shell/AppShell'
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
+import { ResponsiveSheet } from '@/components/ui/responsive-sheet'
 import { PhotoViewer } from '@/components/ui/photo-viewer'
 import { OfferSheet } from '@/components/offer/OfferSheet'
 import { T, useT } from '@/i18n/T'
@@ -108,9 +109,19 @@ export default function ItemDetailMobile() {
         {/* Ownership swaps the whole action set: you manage your own listing
             and cannot offer a swap to yourself. */}
         {d.owned ? (
-          <Button size="lg" fullWidth onClick={d.goEdit} data-i18n="item.manage">
-            {t('item.manage')}
-          </Button>
+          <>
+            <Button size="lg" fullWidth onClick={d.goEdit} data-i18n="item.manage">
+              {t('item.manage')}
+            </Button>
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={() => d.setRemoving(true)}
+              data-i18n="item.remove"
+            >
+              {t('item.remove')}
+            </Button>
+          </>
         ) : (
           <Button
             size="lg"
@@ -130,6 +141,27 @@ export default function ItemDetailMobile() {
           <Heart className="size-[18px]" aria-hidden="true" />
         </button>
       </div>
+
+      {/* Removing is soft -- the row stays, its status changes -- but it is
+          still the listing disappearing from every deck, so it asks first. */}
+      <ResponsiveSheet
+        open={d.removing}
+        onOpenChange={d.setRemoving}
+        title="item.removeTitle"
+        description="item.removeBody"
+        footer={
+          <div className="flex w-full flex-col gap-2">
+            <Button fullWidth size="lg" onClick={d.removeItem} data-i18n="item.remove">
+              {t('item.remove')}
+            </Button>
+            <Button variant="ghost" fullWidth onClick={() => d.setRemoving(false)} data-i18n="common.cancel">
+              {t('common.cancel')}
+            </Button>
+          </div>
+        }
+      >
+        <span className="sr-only">{t('item.removeBody')}</span>
+      </ResponsiveSheet>
 
       <PhotoViewer
         open={d.viewerOpen}

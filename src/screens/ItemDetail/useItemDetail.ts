@@ -5,7 +5,7 @@ import type { OfferOption } from '@/screens/Hunt/useHunt'
 import { useNavigate, useParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 
-import { getItem, getMyItems } from '@/lib/api'
+import { deleteItem, getItem, getMyItems } from '@/lib/api'
 import { DEFAULT_CONDITION, categoryLabel, conditionAt, splitWants } from '@/lib/taxonomy'
 import { keys, STALE } from '@/lib/cache/queryClient'
 import type { ItemRef, PersonRef } from '@/types/swap'
@@ -24,6 +24,7 @@ export function useItemDetail() {
   const [offerOpen, setOfferOpen] = useState(false)
   const userId = useAuthStore((s) => s.session?.user?.id)
   const [viewerOpen, setViewerOpen] = useState(false)
+  const [removing, setRemoving] = useState(false)
   const [sending, setSending] = useState(false)
   const [offerError, setOfferError] = useState<string | null>(null)
   const [photo, setPhoto] = useState(0)
@@ -171,5 +172,19 @@ export function useItemDetail() {
      *  the useful destination and Browse can filter to them. */
     goOwner: () => navigate('/items?owner=' + owner.id),
     goEdit: () => navigate('/add?edit=' + item.id),
+    removing,
+    setRemoving,
+    /** Soft delete, never a hard one: status goes to 'removed' and the row
+     *  stays. The scope contract makes hard-delete an admin-only action, and
+     *  a listing that vanished has no audit trail behind a dispute. */
+    removeItem: async () => {
+      const { error: delError } = await deleteItem(String(item.id))
+      if (delError) {
+        setOfferError('barter.errorGeneric')
+        return
+      }
+      setRemoving(false)
+      navigate('/profile')
+    },
   }
 }

@@ -1,8 +1,10 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { Check, RotateCcw, X } from 'lucide-react'
 
 import { animate, motion, useMotionValue, useTransform } from 'framer-motion'
 
+import { Icon } from '@/components/ui/icon'
+import { ReportItemSheet } from './ReportItemSheet'
 import { Stamp } from '@/components/ui/stamp'
 import { useT } from '@/i18n/T'
 import { HuntCard } from './HuntCard'
@@ -35,7 +37,17 @@ export function HuntStack({
   const x = useMotionValue(0)
   const rotate = useTransform(x, [-260, 0, 260], [-13, 0, 13])
   const passOpacity = useTransform(x, [-140, -30, 0], [1, 0, 0])
+  /** A wash across the whole card, not just the stamps. Colour arriving before
+   *  you release is what tells you which way you are committing while your
+   *  thumb is still down. */
+  const tint = useTransform(
+    x,
+    [-160, 0, 160],
+    ['hsl(var(--swipe-pass) / 0.22)', 'hsl(var(--swipe-pass) / 0)', 'hsl(var(--swipe-offer) / 0.22)'],
+  )
   const swapOpacity = useTransform(x, [0, 30, 140], [0, 0, 1])
+
+  const [reporting, setReporting] = useState(false)
 
   const top = cards[0]
   const behind = cards[1]
@@ -95,6 +107,10 @@ export function HuntStack({
             else animate(x, 0, settleSpring)
           }}
         >
+          <motion.div
+            style={{ background: tint }}
+            className="pointer-events-none absolute inset-0 z-10 rounded-hero"
+          />
           <motion.div style={{ opacity: swapOpacity }} className="pointer-events-none">
             <Stamp kind="swap" visible />
           </motion.div>
@@ -102,8 +118,32 @@ export function HuntStack({
             <Stamp kind="pass" visible />
           </motion.div>
           <HuntCard item={top} />
+          {/* On the card, per the scope contract: the moment you notice a
+              listing is wrong is the moment you are looking at it. Behind a
+              menu on the detail screen, most people just swipe past instead.
+              stopPropagation so tapping the flag never starts a drag. */}
+          <button
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation()
+              setReporting(true)
+            }}
+            aria-label={t('report.action')}
+            className="absolute bottom-3 right-3 z-20 grid size-9 place-items-center rounded-pill bg-card/85 text-muted-foreground backdrop-blur-sm transition-colors hover:text-destructive"
+          >
+            <Icon name="ShieldAlert" size={16} />
+          </button>
         </motion.div>
       </div>
+
+      <ReportItemSheet
+        open={reporting}
+        onOpenChange={setReporting}
+        itemId={top.id}
+        itemTitle={top.title}
+        onDone={() => fly(false)}
+      />
 
       <div className="mt-4 flex items-center justify-center gap-5">
         <button

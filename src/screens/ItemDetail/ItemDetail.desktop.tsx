@@ -6,6 +6,7 @@ import { AppShell } from '@/components/shell/AppShell'
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
 import { InfoHint } from '@/components/guidance/InfoHint'
+import { ResponsiveSheet } from '@/components/ui/responsive-sheet'
 import { PhotoViewer } from '@/components/ui/photo-viewer'
 import { OfferSheet } from '@/components/offer/OfferSheet'
 import { T, useT } from '@/i18n/T'
@@ -106,17 +107,32 @@ export default function ItemDetailDesktop() {
             <Facts d={d} />
 
             <div className="flex items-center gap-2.5 border-t border-border/[0.14] pt-4">
-              <Button
-                size="lg"
-                disabled={d.item.reserved}
-                onClick={() => d.setOfferOpen(true)}
-                data-i18n="item.offerSwap"
-              >
-                {t('item.offerSwap')}
-              </Button>
-              <Button variant="ghost" data-i18n="item.save">
-                {t('item.save')}
-              </Button>
+              {/* Ownership swaps the whole action set: you manage your own
+                  listing and cannot offer a swap to yourself. */}
+              {d.owned ? (
+                <>
+                  <Button size="lg" onClick={d.goEdit} data-i18n="item.manage">
+                    {t('item.manage')}
+                  </Button>
+                  <Button variant="ghost" onClick={() => d.setRemoving(true)} data-i18n="item.remove">
+                    {t('item.remove')}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    size="lg"
+                    disabled={d.item.reserved}
+                    onClick={() => d.setOfferOpen(true)}
+                    data-i18n="item.offerSwap"
+                  >
+                    {t('item.offerSwap')}
+                  </Button>
+                  <Button variant="ghost" data-i18n="item.save">
+                    {t('item.save')}
+                  </Button>
+                </>
+              )}
               {d.item.eyeing > 0 && (
                 <span className="ml-auto flex items-center gap-1.5 font-body text-sm text-muted-foreground">
                   <Eye className="size-4" aria-hidden="true" />
@@ -128,6 +144,25 @@ export default function ItemDetailDesktop() {
           </div>
         </div>
       </div>
+
+      <ResponsiveSheet
+        open={d.removing}
+        onOpenChange={d.setRemoving}
+        title="item.removeTitle"
+        description="item.removeBody"
+        footer={
+          <div className="flex w-full flex-col gap-2">
+            <Button fullWidth size="lg" onClick={d.removeItem} data-i18n="item.remove">
+              {t('item.remove')}
+            </Button>
+            <Button variant="ghost" fullWidth onClick={() => d.setRemoving(false)} data-i18n="common.cancel">
+              {t('common.cancel')}
+            </Button>
+          </div>
+        }
+      >
+        <span className="sr-only">{t('item.removeBody')}</span>
+      </ResponsiveSheet>
 
       <PhotoViewer
         open={d.viewerOpen}
