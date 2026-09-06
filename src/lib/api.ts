@@ -369,6 +369,21 @@ export async function unsaveItem(userId: string, itemId: string) {
   return supabase.from('saves').delete().eq('user_id', userId).eq('item_id', itemId)
 }
 
+/** The finds I have saved.
+ *
+ *  Selects the item columns through the saves row rather than embedding by a
+ *  named FK constraint: an embedded join depends on the exact constraint name
+ *  and a wrong one returns an empty array rather than an error, which is
+ *  exactly the failure that hides a broken list.
+ */
+export async function getMySaves(userId: string) {
+  return supabase
+    .from('saves')
+    .select('item_id, items(id, title, images, category, condition, status)')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+}
+
 export async function getEyeingPeople(itemId: string) {
   return supabase.from('saves').select('user_id, profiles:user_id(id, display_name, avatar_url)').eq('item_id', itemId)
 }

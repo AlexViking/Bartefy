@@ -617,7 +617,10 @@
     "emptyLiveTitle": "Nothing on the table yet",
     "emptyLiveBody": "List a find and it starts showing up in other people’s decks.",
     "emptyPausedTitle": "Nothing paused",
-    "emptyPausedBody": "Finds you pause are kept here. They stay yours — they just stop showing up in decks."
+    "emptyPausedBody": "Finds you pause are kept here. They stay yours — they just stop showing up in decks.",
+    "tabEyeing": "Eyeing",
+    "emptyEyeingTitle": "Nothing saved yet",
+    "emptyEyeingBody": "Tap the heart on a find to keep it here while you think about it."
   },
   "wants": {
     "matchCount": "{{count}} of your finds match",

@@ -9,7 +9,7 @@ import { Masonry, MasonryPhoto } from '@/components/ui/masonry'
 import { ToneBadge } from '@/components/ui/tone-badge'
 import { PausedFindsSheet } from '@/components/membership/PausedFindsSheet'
 import { T, useT } from '@/i18n/T'
-import { getMyItems } from '@/lib/api'
+import { getMyItems, getMySaves } from '@/lib/api'
 import { keys, STALE } from '@/lib/cache/queryClient'
 import { useIsDesktop } from '@/lib/platform'
 import { tierOf } from '@/lib/membership'
@@ -18,7 +18,7 @@ import { useMembershipStore } from '@/store/membership'
 import { cn } from '@/lib/utils'
 import type { ItemRef } from '@/types/swap'
 
-type Tab = 'live' | 'paused'
+type Tab = 'live' | 'paused' | 'eyeing'
 
 /** Your own listings, as a destination rather than a strip inside Profile.
  *
@@ -28,10 +28,10 @@ type Tab = 'live' | 'paused'
  *  halfway down Profile, below the invite code and the membership row, which
  *  is a long way to scroll to reach the thing the whole app is about.
  *
- *  "Eyeing" is not a tab here. It was one on Profile and it was always empty
- *  -- the saves query was never written -- so it rendered a permanently blank
- *  panel that read as a broken feature rather than an unbuilt one. It comes
- *  back when there is something to put in it.
+ *  "Eyeing" is back. It was a permanently blank panel on Profile because the
+ *  saves query was never written and nothing ever wrote to the table -- the
+ *  Save button on ItemDetail had no handler at all. Both ends are wired now,
+ *  so the tab has something to show.
  */
 export default function MyItems() {
   const { t } = useT()
@@ -78,13 +78,34 @@ export default function MyItems() {
     }
   }
 
+  /** Finds I have saved. Only ones still active: a saved listing that has
+   *  since been traded or removed is not something anyone can act on. */
+  const { data: savedRows = [] } = useQuery({
+    queryKey: ['saves', userId ?? ''],
+    queryFn: async () => {
+      const { data, error } = await getMySaves(userId!)
+      if (error) throw error
+      return (data ?? []) as Record<string, unknown>[]
+    },
+    enabled: !!userId,
+    staleTime: STALE.mine,
+  })
+
   const live = allItems.filter((it) => it.status === 'active').map(toRef)
   const paused = allItems.filter((it) => it.status === 'paused').map(toRef)
-  const shown = tab === 'live' ? live : paused
+  const eyeing = savedRows
+    // PostgREST returns an embedded one-to-one as an object; older client
+    // versions type it as an array.
+    .map((r) => (Array.isArray(r.items) ? r.items[0] : r.items) as Record<string, unknown> | null)
+    .filter((it): it is Record<string, unknown> => !!it && it.status === 'active')
+    .map(toRef)
+
+  const shown = tab === 'live' ? live : tab === 'paused' ? paused : eyeing
 
   const TABS: { id: Tab; label: string }[] = [
     { id: 'live', label: 'items.tabLive' },
     { id: 'paused', label: 'items.tabPaused' },
+    { id: 'eyeing', label: 'items.tabEyeing' },
   ]
 
   return (
@@ -136,10 +157,28 @@ export default function MyItems() {
           <T as="p" k="common.loading" className="py-10 text-center font-body text-sm text-muted-foreground" />
         ) : shown.length === 0 ? (
           <EmptyState
-            title={tab === 'live' ? 'items.emptyLiveTitle' : 'items.emptyPausedTitle'}
-            body={tab === 'live' ? 'items.emptyLiveBody' : 'items.emptyPausedBody'}
-            actionLabel={tab === 'live' ? 'nav.add' : undefined}
-            onAction={tab === 'live' ? () => navigate('/add') : undefined}
+            title={
+              tab === 'live'
+                ? 'items.emptyLiveTitle'
+                : tab === 'paused'
+                  ? 'items.emptyPausedTitle'
+                  : 'items.emptyEyeingTitle'
+            }
+            body={
+              tab === 'live'
+                ? 'items.emptyLiveBody'
+                : tab === 'paused'
+                  ? 'items.emptyPausedBody'
+                  : 'items.emptyEyeingBody'
+            }
+            actionLabel={tab === 'live' ? 'nav.add' : tab === 'eyeing' ? 'nav.discover' : undefined}
+            onAction={
+              tab === 'live'
+                ? () => navigate('/add')
+                : tab === 'eyeing'
+                  ? () => navigate('/discover')
+                  : undefined
+            }
           />
         ) : (
           /* Masonry: a find keeps the shape it was photographed in. A fixed

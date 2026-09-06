@@ -5,7 +5,8 @@ import type { OfferOption } from '@/screens/Hunt/useHunt'
 import { useNavigate, useParams } from 'react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { deleteItem, getItem, getMyItems, setItemStatus } from '@/lib/api'
+import { deleteItem, getItem, getMyItems, saveItem, setItemStatus, unsaveItem } from '@/lib/api'
+import { supabase } from '@/lib/supabase'
 import { DEFAULT_CONDITION, categoryLabel, conditionAt, splitWants } from '@/lib/taxonomy'
 import { keys, STALE } from '@/lib/cache/queryClient'
 import type { ItemRef, PersonRef } from '@/types/swap'
@@ -145,8 +146,48 @@ export function useItemDetail() {
     navigate('/offers?tab=sent')
   }
 
+  /** Whether this find is on my "eyeing" list.
+   *
+   *  The Save button existed on both platforms with no handler at all -- the
+   *  `saves` table and its API have been there since migration 005 and nothing
+   *  ever called them, which is also why Profile's Eyeing tab could only ever
+   *  render empty. */
+  const { data: saved = false } = useQuery({
+    queryKey: ['saved', userId ?? '', itemId ?? ''],
+    queryFn: async () => {
+      const { data: rows, error } = await supabase
+        .from('saves')
+        .select('item_id')
+        .eq('user_id', userId!)
+        .eq('item_id', itemId!)
+        .maybeSingle()
+      if (error) return false
+      return !!rows
+    },
+    enabled: !!userId && !!itemId,
+    staleTime: STALE.mine,
+  })
+
+  const toggleSave = async () => {
+    if (!userId || !itemId) return
+    const next = !saved
+    // Optimistic: a heart that waits for a round trip feels broken.
+    queryClient.setQueryData(['saved', userId, itemId], next)
+    const { error } = next
+      ? await saveItem(userId, itemId)
+      : await unsaveItem(userId, itemId)
+    if (error) {
+      queryClient.setQueryData(['saved', userId, itemId], !next)
+      return
+    }
+    // The Eyeing tab reads this list.
+    void queryClient.invalidateQueries({ queryKey: ['saves', userId] })
+  }
+
   return {
     ready: true as const,
+    saved,
+    toggleSave,
     isLoading: false,
     item,
     owner,

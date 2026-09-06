@@ -11,6 +11,7 @@ import { PhotoViewer } from '@/components/ui/photo-viewer'
 import { OfferSheet } from '@/components/offer/OfferSheet'
 import { ReportItemSheet } from '@/components/hunt/ReportItemSheet'
 import { T, useT } from '@/i18n/T'
+import { cn } from '@/lib/utils'
 import { Facts } from './Facts'
 import { useItemDetail } from './useItemDetail'
 
@@ -159,12 +160,23 @@ export default function ItemDetailMobile() {
             {t('item.offerSwap')}
           </Button>
         )}
+        {/* Was a heart with no handler: the saves table and its API have
+            existed since migration 005 and nothing called them, which is also
+            why Profile's Eyeing tab could only render empty. */}
         <button
           type="button"
-          aria-label={t('item.save')}
-          className="flex size-12 shrink-0 items-center justify-center rounded-pill border-[1.5px] border-border/[0.14] text-muted-foreground"
+          onClick={() => void d.toggleSave()}
+          aria-label={t(d.saved ? 'item.unsave' : 'item.save')}
+          aria-pressed={d.saved}
+          className={cn(
+            'flex size-12 shrink-0 items-center justify-center rounded-pill border-[1.5px]',
+            'transition-colors duration-fast ease-brand',
+            d.saved
+              ? 'border-accent bg-accent/[0.16] text-accent-foreground'
+              : 'border-border/[0.14] text-muted-foreground',
+          )}
         >
-          <Heart className="size-[18px]" aria-hidden="true" />
+          <Heart className={cn('size-[18px]', d.saved && 'fill-current')} aria-hidden="true" />
         </button>
       </div>
 

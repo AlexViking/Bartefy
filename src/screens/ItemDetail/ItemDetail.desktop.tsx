@@ -1,4 +1,4 @@
-import { ArrowLeft, Eye, Flag } from 'lucide-react'
+import { ArrowLeft, Eye, Flag, Heart } from 'lucide-react'
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
@@ -160,8 +160,18 @@ export default function ItemDetailDesktop() {
                   >
                     {t('item.offerSwap')}
                   </Button>
-                  <Button variant="ghost" data-i18n="item.save">
-                    {t('item.save')}
+                  <Button
+                    variant="ghost"
+                    size="lg"
+                    onClick={() => void d.toggleSave()}
+                    aria-pressed={d.saved}
+                    data-i18n={d.saved ? 'item.unsave' : 'item.save'}
+                  >
+                    <Heart
+                      className={d.saved ? 'fill-current text-accent-foreground' : undefined}
+                      aria-hidden="true"
+                    />
+                    {t(d.saved ? 'item.unsave' : 'item.save')}
                   </Button>
                 </>
               )}
