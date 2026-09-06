@@ -31,7 +31,10 @@ export function TabBar({
         aria-label={t(labelKey)}
         aria-current={active ? 'page' : undefined}
         className={cn(
-          'relative flex h-11 min-w-11 flex-col items-center justify-center gap-px rounded-pill px-2.5',
+          // w-full inside its grid column rather than min-w + padding: the
+          // padding was squeezing the longest label ("Discover") until it
+          // clipped, and the fix is to let the column decide the width.
+          'relative flex h-11 w-full flex-col items-center justify-center gap-px rounded-pill px-1',
           'transition-colors duration-fast ease-brand',
           active ? 'bg-primary-foreground/[0.16]' : 'bg-transparent',
         )}
@@ -44,7 +47,9 @@ export function TabBar({
         <span
           data-i18n={labelKey}
           className={cn(
-            'font-display text-[10px] font-semibold leading-none',
+            // Truncate rather than clip: a label that runs out of room should
+            // end in an ellipsis, not be cut mid-letter.
+            'max-w-full truncate font-display text-[10px] font-semibold leading-none',
             active ? 'text-primary-foreground' : 'text-primary-foreground/60',
           )}
         >
@@ -62,16 +67,25 @@ export function TabBar({
 
   return (
     <div className="px-4 pb-[max(8px,env(safe-area-inset-bottom))] pt-1.5">
-      <nav className="flex items-center justify-around rounded-pill bg-primary px-2 py-1.5 shadow-float">
+      {/* A five-column grid, not justify-around.
+       *
+       *  justify-around distributes the free space around each child, so a
+       *  fixed 44px Add button between four flexible tabs is never actually
+       *  centred -- it sits wherever the surrounding widths leave it, and the
+       *  two halves of the bar look mismatched. Equal columns put it exactly
+       *  in the middle whatever the labels say, in any language. */}
+      <nav className="grid grid-cols-5 items-center rounded-pill bg-primary px-1.5 py-1.5 shadow-float">
         {first.map(tab)}
-        <button
-          type="button"
-          onClick={() => navigate(ADD_DESTINATION.path)}
-          aria-label={t('nav.add')}
-          className="flex size-11 items-center justify-center rounded-pill bg-accent text-accent-foreground shadow-card"
-        >
-          <Icon name="Plus" size={22} />
-        </button>
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={() => navigate(ADD_DESTINATION.path)}
+            aria-label={t('nav.add')}
+            className="flex size-11 items-center justify-center rounded-pill bg-accent text-accent-foreground shadow-card"
+          >
+            <Icon name="Plus" size={22} />
+          </button>
+        </div>
         {second.map(tab)}
       </nav>
     </div>

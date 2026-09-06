@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
 
+import { MobileMenu } from './MobileMenu'
 import { Sidebar } from './Sidebar'
 import { TabBar } from './TabBar'
 import { Topbar } from './Topbar'
@@ -30,6 +31,11 @@ export function AppShell({
   const userId = useAuthStore((s) => s.session?.user?.id)
   const email = useAuthStore((s) => s.session?.user?.email) ?? ''
   const unread = useUnread()
+
+  /** The phone's drawer. Separate from `collapsed`, which is the desktop
+   *  rail's width -- the burger used to call toggleCollapse, which on a phone
+   *  changes nothing at all, so the button was simply dead. */
+  const [menuOpen, setMenuOpen] = React.useState(false)
 
   const [collapsed, setCollapsed] = React.useState(() => {
     try {
@@ -104,11 +110,17 @@ export function AppShell({
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      <Topbar onMenu={toggleCollapse} name={email} waiting={offers + unread} />
+      <Topbar onMenu={() => setMenuOpen(true)} name={email} waiting={offers + unread} />
       <main className="flex-1">{children}</main>
       <div className="sticky bottom-0 z-40">
         <TabBar unreadSwaps={unread} offers={offers} />
       </div>
+      <MobileMenu
+        open={menuOpen}
+        onOpenChange={setMenuOpen}
+        isStaff={isStaff}
+        badges={badges}
+      />
     </div>
   )
 }
