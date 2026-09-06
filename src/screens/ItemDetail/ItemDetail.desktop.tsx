@@ -6,7 +6,7 @@ import { AppShell } from '@/components/shell/AppShell'
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
 import { InfoHint } from '@/components/guidance/InfoHint'
-import { OfferComposerSheet } from '@/components/offer/OfferComposerSheet'
+import { OfferSheet } from '@/components/offer/OfferSheet'
 import { T, useT } from '@/i18n/T'
 import { Facts } from './Facts'
 import { useItemDetail } from './useItemDetail'
@@ -120,11 +120,15 @@ export default function ItemDetailDesktop() {
         </div>
       </div>
 
-      <OfferComposerSheet
+      <OfferSheet
         open={d.offerOpen}
-        onOpenChange={d.setOfferOpen}
-        theirItem={d.theirItem}
-        theirName={d.owner.name}
+        targetTitle={d.item.title}
+        mine={d.myOfferables}
+        onCancel={() => d.setOfferOpen(false)}
+        onConfirm={d.sendOffer}
+        sending={d.sending}
+        errorKey={d.offerError}
+        onAdd={d.goAdd}
       />
     </AppShell>
   )

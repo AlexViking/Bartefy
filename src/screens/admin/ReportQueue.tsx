@@ -1,169 +1,231 @@
-import { useState } from 'react'
 import { AppShell } from '@/components/shell/AppShell'
+import { EmptyState } from '@/components/EmptyState'
+import { Chip, ToneBadge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Icon } from '@/components/ui/icon'
 import { T, useT } from '@/i18n/T'
 import { useIsDesktop } from '@/lib/platform'
-import { ToneBadge, Chip } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { TextField } from '@/components/ui/field'
-import { OwnerRow } from '@/components/swap/OwnerRow'
-import { SwapPair } from '@/components/swap/SwapPair'
-import { EmptyState } from '@/components/EmptyState'
 import { cn } from '@/lib/utils'
+import { useReportQueue, type QueueStatus } from './useReportQueue'
 
-type Status = 'open' | 'reviewing' | 'resolved'
+const STATUSES: QueueStatus[] = ['open', 'reviewing', 'resolved']
 
-/** Back-office for F5. Internal only - route it behind a staff check, not a
- *  feature flag. Same components as the product so the two never drift.
- *  A person decides every outcome; nothing here is automated.
+/** Back-office. Two queues: reports a person filed, and items the AI check
+ *  held before publishing.
+ *
+ *  Three things were wrong with this screen before and are fixed here:
+ *  it rendered a hardcoded array, it had no staff gate at all, and it used
+ *  AppShell hideNav with no back control -- so anyone who reached it was
+ *  trapped with no way out but the browser's back button.
+ *
+ *  Nothing is decided automatically. Every outcome is a person pressing a
+ *  button, which is the rule, not an implementation shortcut.
  */
 export function ReportQueue() {
+  const q = useReportQueue()
   const { t } = useT()
   const isDesktop = useIsDesktop()
-  const [status, setStatus] = useState<Status>('open')
-  const [selected, setSelected] = useState<string | null>('r1')
-  const [note, setNote] = useState('')
 
-  // TODO(api): getReports({ status }) - joins swap, both people, evidence paths
-  const reports = [
-    {
-      id: 'r1',
-      reason: 'not_as_described',
-      status: 'open' as Status,
-      filedBy: { id: 'u1', name: 'Jonas D.', rating: 4.6, swapCount: 12 },
-      about: { id: 'u2', name: 'Ana P.', rating: 4.1, swapCount: 7 },
-      note: 'The lens mount was cracked underneath the grip tape.',
-      evidence: ['hsl(var(--illo-terracotta))', 'hsl(var(--illo-denim))'],
-      when: '2 hours ago',
-      priorReports: 1,
-    },
-    {
-      id: 'r2',
-      reason: 'no_show',
-      status: 'open' as Status,
-      filedBy: { id: 'u3', name: 'Tom R.', rating: 4.9, swapCount: 22 },
-      about: { id: 'u4', name: 'Lee M.', rating: 3.8, swapCount: 3 },
-      note: 'Waited 40 minutes at Rose Market.',
-      evidence: [],
-      when: 'Yesterday',
-      priorReports: 3,
-    },
-  ]
+  // Distinguished from "not staff" on purpose: showing the refusal while the
+  // answer is still in flight tells a moderator they have no access every
+  // single time they open the page.
+  if (q.checkingStaff) {
+    return (
+      <AppShell>
+        <div className="flex flex-1 items-center justify-center p-8">
+          <T as="p" k="common.loading" className="font-body text-sm text-muted-foreground" />
+        </div>
+      </AppShell>
+    )
+  }
 
-  const shown = reports.filter((r) => r.status === status)
-  const current = shown.find((r) => r.id === selected) ?? shown[0]
+  if (!q.isStaff) {
+    return (
+      <AppShell>
+        <div className="mx-auto flex w-full max-w-[520px] flex-col items-center gap-4 px-4 py-16 text-center">
+          <span className="flex size-14 items-center justify-center rounded-pill bg-secondary">
+            <Icon name="ShieldAlert" size={24} className="text-muted-foreground" />
+          </span>
+          <T as="h1" k="admin.noAccessTitle" className="font-display text-h3 text-foreground" />
+          <T
+            as="p"
+            k="admin.noAccessBody"
+            className="font-body text-body text-muted-foreground"
+          />
+          <Button variant="ghost" onClick={q.goBack} data-i18n="common.back">
+            {t('common.back')}
+          </Button>
+        </div>
+      </AppShell>
+    )
+  }
 
   return (
-    <AppShell hideNav>
+    <AppShell>
       <div className="mx-auto w-full max-w-[1160px] px-4 py-5">
-        <div className="mb-4 flex items-baseline gap-3">
+        {/* A back control, which this screen did not have. hideNav plus no
+            back is a room with no door. */}
+        <div className="mb-4 flex items-center gap-2">
+          <Button variant="ghost" size="icon" pill onClick={q.goBack} aria-label={t('common.back')}>
+            <Icon name="ArrowLeft" size={20} />
+          </Button>
           <T as="h1" k="admin.title" className="font-display text-h2 text-foreground" />
-          <span className="font-body text-sm text-muted-foreground">
-            Internal. Freeze first, decide slowly, tell both sides plainly.
-          </span>
         </div>
+        <T as="p" k="admin.subtitle" className="mb-4 font-body text-sm text-muted-foreground" />
+
+        {/* Held items first: an item sitting here is invisible to its owner
+            and to everyone else, so it is the more urgent of the two lists. */}
+        {q.held.length > 0 && (
+          <section className="mb-6">
+            <T
+              as="h2"
+              k="admin.heldTitle"
+              className="mb-2 font-display text-h3 text-foreground"
+            />
+            <ul className="flex flex-col gap-2">
+              {q.held.map((item) => (
+                <li
+                  key={item.id}
+                  className="flex items-center gap-3 rounded-card border-[1.5px] border-border/[0.14] bg-card p-3"
+                >
+                  {item.image ? (
+                    <img src={item.image} alt="" className="size-14 rounded-card-sm object-cover" />
+                  ) : (
+                    <span className="flex size-14 items-center justify-center rounded-card-sm bg-secondary">
+                      <Icon name="Package" size={18} className="text-muted-foreground" />
+                    </span>
+                  )}
+                  {/* A listing title is user data: no data-i18n. */}
+                  <span className="min-w-0 flex-1 truncate font-body text-body text-foreground">
+                    {item.title}
+                  </span>
+                  <Button
+                    size="sm"
+                    disabled={q.busy}
+                    onClick={() => q.publishItem(item.id)}
+                    data-i18n="admin.publish"
+                  >
+                    {t('admin.publish')}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={q.busy}
+                    onClick={() => q.removeItem(item.id)}
+                    data-i18n="admin.remove"
+                  >
+                    {t('admin.remove')}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <div className="mb-4 flex gap-2">
-          {(['open', 'reviewing', 'resolved'] as Status[]).map((s) => (
-            <Chip key={s} active={status === s} onClick={() => setStatus(s)}>
-              {s}
+          {STATUSES.map((s) => (
+            <Chip key={s} active={q.status === s} onClick={() => q.setStatus(s)}>
+              {t('admin.status_' + s)}
             </Chip>
           ))}
         </div>
 
-        {shown.length === 0 ? (
+        {q.isLoading ? (
+          <T as="p" k="common.loading" className="font-body text-sm text-muted-foreground" />
+        ) : q.rows.length === 0 ? (
           <EmptyState title="admin.emptyTitle" body="admin.emptyBody" />
         ) : (
           <div className={cn('grid gap-4', isDesktop && 'grid-cols-[320px_1fr]')}>
-            {/* List */}
             <ul className="flex flex-col gap-2">
-              {shown.map((r) => (
+              {q.rows.map((r) => (
                 <li key={r.id}>
                   <button
                     type="button"
-                    onClick={() => setSelected(r.id)}
+                    onClick={() => q.select(r.id)}
                     className={cn(
-                      'w-full rounded-sm p-3 text-left transition-colors duration-fast ease-brand',
-                      current?.id === r.id
+                      'w-full rounded-card p-3 text-left transition-colors duration-fast ease-brand',
+                      q.current?.id === r.id
                         ? 'border-2 border-primary bg-popover'
-                        : 'border border-border/[0.14] bg-card hover:bg-popover',
+                        : 'border-[1.5px] border-border/[0.14] bg-card hover:bg-popover',
                     )}
                   >
-                    <span className="flex items-center gap-2">
-                      <span className="flex-1 truncate font-display text-[15px] font-semibold">
-                        {r.reason.replace(/_/g, ' ')}
-                      </span>
-                      {r.priorReports > 1 && <ToneBadge tone="evidence">{r.priorReports} prior</ToneBadge>}
+                    <span
+                      data-i18n={'admin.reason_' + r.reason}
+                      className="block truncate font-display text-[15px] font-semibold text-foreground"
+                    >
+                      {t('admin.reason_' + r.reason)}
                     </span>
-                    <span className="mt-1 block truncate font-body text-sm text-muted-foreground">
-                      {r.filedBy.name} about {r.about.name} {'\u00b7'} {r.when}
+                    <span className="mt-1 block font-body text-sm text-muted-foreground">
+                      {new Date(r.createdAt).toLocaleDateString()}
                     </span>
                   </button>
                 </li>
               ))}
             </ul>
 
-            {/* Detail */}
-            {current && (
-              <section className="flex flex-col gap-4 rounded border border-border/[0.14] bg-card p-5 shadow-card">
+            {q.current && (
+              <section className="flex flex-col gap-4 rounded-card border-[1.5px] border-border/[0.14] bg-card p-5">
                 <div className="flex flex-wrap items-center gap-2.5">
-                  <h2 className="font-display text-h3 capitalize">{current.reason.replace(/_/g, ' ')}</h2>
-                  <ToneBadge tone={current.status === 'open' ? 'brass' : 'quiet'}>{current.status}</ToneBadge>
-                  <span className="ml-auto font-body text-sm text-muted-foreground">{current.when}</span>
+                  <h2
+                    data-i18n={'admin.reason_' + q.current.reason}
+                    className="font-display text-h3 text-foreground"
+                  >
+                    {t('admin.reason_' + q.current.reason)}
+                  </h2>
+                  <ToneBadge tone={q.current.status === 'open' ? 'brass' : 'quiet'}>
+                    {t('admin.status_' + q.current.status)}
+                  </ToneBadge>
                 </div>
 
-                <div className={cn('grid gap-3', isDesktop && 'grid-cols-2')}>
-                  <div className="rounded-sm bg-popover p-3">
-                    <span className="mb-2 block font-display text-caption uppercase tracking-[0.18em] text-muted-foreground">
-                      Filed by
-                    </span>
-                    <OwnerRow person={current.filedBy} />
-                  </div>
-                  <div className="rounded-sm bg-popover p-3">
-                    <span className="mb-2 block font-display text-caption uppercase tracking-[0.18em] text-muted-foreground">
-                      About
-                    </span>
-                    <OwnerRow person={current.about} />
-                  </div>
-                </div>
+                {q.current.note && (
+                  // The reporter's own words. Never stamped with a key, and
+                  // never summarised: a moderator needs what was actually said.
+                  <p className="rounded-card-sm bg-popover p-3 font-body text-body text-foreground">
+                    {q.current.note}
+                  </p>
+                )}
 
-                <div className="rounded-sm border border-border/[0.14] p-3">
-                  <SwapPair
-                    mine={{ id: 'a', title: 'Wool scarf', photoColor: 'hsl(var(--illo-denim))' }}
-                    theirs={{ id: 'b', title: 'Pentax ME Super', photoColor: 'hsl(var(--illo-terracotta))' }}
-                  />
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <span className="font-display text-caption uppercase tracking-[0.18em] text-muted-foreground">
-                    What they told us
-                  </span>
-                  <p className="font-body text-[15px] leading-relaxed">{current.note}</p>
-                  {current.evidence.length > 0 && (
-                    <div className="mt-1 flex gap-2">
-                      {current.evidence.map((c, i) => (
-                        <span key={i} className="h-20 w-20 rounded-sm" style={{ background: c }} />
+                {q.current.evidence.length > 0 && (
+                  <div>
+                    <T
+                      as="span"
+                      k="admin.evidence"
+                      className="mb-2 block font-display text-caption uppercase tracking-[0.18em] text-muted-foreground"
+                    />
+                    <ul className="flex flex-wrap gap-2">
+                      {q.current.evidence.map((path) => (
+                        <li
+                          key={path}
+                          className="rounded-card-sm bg-popover px-2 py-1 font-body text-xs text-muted-foreground"
+                        >
+                          {path}
+                        </li>
                       ))}
-                    </div>
+                    </ul>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-2">
+                  {q.current.status === 'open' && (
+                    <Button
+                      disabled={q.busy}
+                      onClick={() => q.current && q.review(q.current.id)}
+                      data-i18n="admin.markReviewing"
+                    >
+                      {t('admin.markReviewing')}
+                    </Button>
+                  )}
+                  {q.current.status !== 'resolved' && (
+                    <Button
+                      variant="ghost"
+                      disabled={q.busy}
+                      onClick={() => q.current && q.resolve(q.current.id)}
+                      data-i18n="admin.markResolved"
+                    >
+                      {t('admin.markResolved')}
+                    </Button>
                   )}
                 </div>
-
-                <TextField
-                  label="admin.internalNote"
-                  placeholder="admin.notePlaceholder"
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                />
-
-                <div className="flex flex-wrap gap-2 border-t border-border/[0.14] pt-4">
-                  <Button>{t('admin.unfreeze')}</Button>
-                  <Button variant="accent">{t('admin.cancelRelist')}</Button>
-                  <Button variant="ghost">Warn {current.about.name}</Button>
-                  <Button variant="ghost">Suspend {current.about.name}</Button>
-                </div>
-                <p className="font-body text-sm text-muted-foreground">
-                  Both people get one plain message with the outcome. Ratings for this swap stay hidden until it
-                  closes.
-                </p>
               </section>
             )}
           </div>

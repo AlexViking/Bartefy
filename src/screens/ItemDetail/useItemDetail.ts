@@ -1,8 +1,11 @@
 import { useState } from 'react'
+import { barterErrorKey, makeOffer } from '@/lib/barter'
+import { useAuthStore } from '@/store/auth'
+import type { OfferOption } from '@/screens/Hunt/useHunt'
 import { useNavigate, useParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 
-import { getItem } from '@/lib/api'
+import { getItem, getMyItems } from '@/lib/api'
 import { DEFAULT_CONDITION, categoryLabel, conditionAt, splitWants } from '@/lib/taxonomy'
 import { keys, STALE } from '@/lib/cache/queryClient'
 import type { ItemRef, PersonRef } from '@/types/swap'
@@ -19,6 +22,9 @@ export function useItemDetail() {
   const { itemId } = useParams()
   const navigate = useNavigate()
   const [offerOpen, setOfferOpen] = useState(false)
+  const userId = useAuthStore((s) => s.session?.user?.id)
+  const [sending, setSending] = useState(false)
+  const [offerError, setOfferError] = useState<string | null>(null)
   const [photo, setPhoto] = useState(0)
 
   const { data, isLoading, isError } = useQuery({
@@ -89,18 +95,75 @@ export function useItemDetail() {
     index: i,
   }))
 
+  /** Ownership comes from the server's row, never from which screen navigated
+   *  here. It swaps the entire action set: you manage your own listing, and
+   *  you cannot offer a swap to yourself. */
+  const owned = !!userId && owner.id === userId
+
+  /** My own listings, for the offer sheet. Fetched here rather than passed in,
+   *  because the sheet is opened from this screen and nothing above it knows
+   *  what I have to trade. */
+  const { data: mineRaw = [] } = useQuery({
+    queryKey: keys.myItems(userId ?? ''),
+    queryFn: async () => {
+      const { data: rows, error: err } = await getMyItems(userId!)
+      if (err) throw err
+      return (rows ?? []) as Record<string, unknown>[]
+    },
+    enabled: !!userId && !owned,
+  })
+
+  const myOfferables: OfferOption[] = mineRaw
+    // Only an available find can be put on the table. A reserved one is
+    // already promised, and offering it twice is the double-spend the
+    // database refuses anyway -- better not to show it at all.
+    .filter((r) => String(r.status ?? '') === 'active')
+    .map((r) => ({
+      id: String(r.id),
+      title: String(r.title ?? ''),
+      photoUrl: Array.isArray(r.images) && r.images.length > 0 ? String(r.images[0]) : undefined,
+    }))
+
+  const sendOffer = async (offeredItemId: string, note?: string) => {
+    if (sending) return
+    setSending(true)
+    setOfferError(null)
+    const { error: rpcError } = await makeOffer({
+      offeredItemId: Number(offeredItemId),
+      wantedItemId: Number(item.id),
+      note,
+    })
+    setSending(false)
+    if (rpcError) {
+      setOfferError(barterErrorKey(rpcError))
+      return
+    }
+    setOfferOpen(false)
+    navigate('/offers?tab=sent')
+  }
+
   return {
     ready: true as const,
     isLoading: false,
     item,
     owner,
+    owned,
     theirItem,
     gallery,
     photo,
     setPhoto,
     offerOpen,
     setOfferOpen,
+    myOfferables,
+    sendOffer,
+    sending,
+    offerError,
+    goAdd: () => navigate('/add'),
     goBack: () => navigate(-1),
-    goOwner: () => navigate('/u/' + owner.id),
+    /** No public profile screen exists yet, so this used to navigate to a
+     *  route that renders nothing. Until it does, the owner's other finds are
+     *  the useful destination and Browse can filter to them. */
+    goOwner: () => navigate('/browse?owner=' + owner.id),
+    goEdit: () => navigate('/add?edit=' + item.id),
   }
 }

@@ -152,7 +152,8 @@
     "photoN": "Photo {{n}}",
     "viewProfile": "Profile",
     "notFoundTitle": "This find is not here",
-    "notFoundBody": "It may have been swapped, paused or taken down. Have a look at what else is around."
+    "notFoundBody": "It may have been swapped, paused or taken down. Have a look at what else is around.",
+    "manage": "Manage this find"
   },
   "add": {
     "title": "List a find",
@@ -332,7 +333,9 @@
     "emptyPausedTitle": "Nothing paused",
     "emptyPausedBody": "Finds you park land here. They keep their photos and story.",
     "emptyEyeingTitle": "Nothing saved yet",
-    "emptyEyeingBody": "Save a find while you think about it — it will be here."
+    "emptyEyeingBody": "Save a find while you think about it — it will be here.",
+    "inviteTitle": "Your invite code",
+    "inviteBody": "Share it. You both get credit when they finish their first swap."
   },
   "membership": {
     "title": "Membership",
@@ -429,7 +432,24 @@
     "unfreeze": "Unfreeze and let it finish",
     "cancelRelist": "Cancel the swap, relist both",
     "tabOpen": "Open",
-    "tabClosed": "Closed"
+    "tabClosed": "Closed",
+    "subtitle": "Internal. Freeze first, decide slowly, tell both sides plainly.",
+    "noAccessTitle": "Staff only",
+    "noAccessBody": "This queue is for moderators. If you should have access, ask an admin to grant it.",
+    "heldTitle": "Waiting on a photo check",
+    "publish": "Publish",
+    "remove": "Remove",
+    "evidence": "Evidence",
+    "markReviewing": "Start reviewing",
+    "markResolved": "Mark resolved",
+    "status_open": "Open",
+    "status_reviewing": "Reviewing",
+    "status_resolved": "Resolved",
+    "reason_changed_mind": "Changed their mind",
+    "reason_no_show": "Did not show up",
+    "reason_not_as_described": "Not as described",
+    "reason_unsafe": "Felt unsafe",
+    "reason_asked_for_money": "Asked for money"
   },
   "category": {
     "electronics": "Electronics",

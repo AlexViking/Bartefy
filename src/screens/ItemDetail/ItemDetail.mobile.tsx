@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router'
 import { AppShell } from '@/components/shell/AppShell'
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
-import { OfferComposerSheet } from '@/components/offer/OfferComposerSheet'
+import { OfferSheet } from '@/components/offer/OfferSheet'
 import { T, useT } from '@/i18n/T'
 import { Facts } from './Facts'
 import { useItemDetail } from './useItemDetail'
@@ -94,15 +94,23 @@ export default function ItemDetailMobile() {
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-2.5 border-t border-border/[0.14] bg-card px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-3">
-        <Button
-          size="lg"
-          fullWidth
-          disabled={d.item.reserved}
-          onClick={() => d.setOfferOpen(true)}
-          data-i18n="item.offerSwap"
-        >
-          {t('item.offerSwap')}
-        </Button>
+        {/* Ownership swaps the whole action set: you manage your own listing
+            and cannot offer a swap to yourself. */}
+        {d.owned ? (
+          <Button size="lg" fullWidth onClick={d.goEdit} data-i18n="item.manage">
+            {t('item.manage')}
+          </Button>
+        ) : (
+          <Button
+            size="lg"
+            fullWidth
+            disabled={d.item.reserved}
+            onClick={() => d.setOfferOpen(true)}
+            data-i18n="item.offerSwap"
+          >
+            {t('item.offerSwap')}
+          </Button>
+        )}
         <button
           type="button"
           aria-label={t('item.save')}
@@ -112,11 +120,15 @@ export default function ItemDetailMobile() {
         </button>
       </div>
 
-      <OfferComposerSheet
+      <OfferSheet
         open={d.offerOpen}
-        onOpenChange={d.setOfferOpen}
-        theirItem={d.theirItem}
-        theirName={d.owner.name}
+        targetTitle={d.item.title}
+        mine={d.myOfferables}
+        onCancel={() => d.setOfferOpen(false)}
+        onConfirm={d.sendOffer}
+        sending={d.sending}
+        errorKey={d.offerError}
+        onAdd={d.goAdd}
       />
     </AppShell>
   )

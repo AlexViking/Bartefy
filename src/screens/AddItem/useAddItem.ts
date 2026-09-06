@@ -279,6 +279,9 @@ export function useAddItem() {
   }
 
   return {
+    /** Step back through the flow, and out of it from the first step. Losing a
+     *  half-filled listing to a stray tap is worse than one extra tap. */
+    goBack: () => (step > 0 ? setStep((v) => v - 1) : navigate(-1)),
     steps: ADD_STEPS,
     step,
     stepId: ADD_STEPS[step].id,
