@@ -167,10 +167,7 @@ export function useItemDetail() {
     offerError,
     goAdd: () => navigate('/add'),
     goBack: () => navigate(-1),
-    /** No public profile screen exists yet, so this used to navigate to a
-     *  route that renders nothing. Until it does, the owner's other finds are
-     *  the useful destination and Browse can filter to them. */
-    goOwner: () => navigate('/items?owner=' + owner.id),
+    goOwner: () => navigate('/u/' + owner.id),
     goEdit: () => navigate('/add?edit=' + item.id),
     removing,
     setRemoving,

@@ -49,6 +49,9 @@ export type MatchContext = {
   theirItemImage?: string
   otherName: string
   otherId: string
+  /** Their completed swaps. Shown in the thread header, where "who am I
+   *  about to meet?" matters most. */
+  otherTrades: number
 }
 
 type Row = Record<string, unknown>
@@ -110,7 +113,7 @@ export function useMatchChat() {
     // readable by its owner alone (migration 008).
     const { data: profile } = await supabase
       .from('profiles_public')
-      .select('name')
+      .select('name, completed_trades')
       .eq('id', otherId)
       .maybeSingle()
 
@@ -137,6 +140,7 @@ export function useMatchChat() {
       theirItemImage: img(theirs),
       otherName: String(profile?.name ?? ''),
       otherId,
+      otherTrades: Number(profile?.completed_trades ?? 0),
     })
     setLoading(false)
   }, [matchId, userId])

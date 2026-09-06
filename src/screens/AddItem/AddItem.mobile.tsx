@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { FlowSteps } from '@/components/guidance/FlowSteps'
 import { UpgradeSheet } from '@/components/membership/UpgradeSheet'
 import { T, useT } from '@/i18n/T'
-import { DetailsSection, PhotosSection, WantsSection } from './sections'
+import { DetailsSection, PhotosSection, WantsSection , PublishedSection } from './sections'
 import { useAddItem } from './useAddItem'
 
 /** Listing a find, phone shape: one step at a time. Camera first, typing last
@@ -13,6 +13,18 @@ import { useAddItem } from './useAddItem'
 export default function AddItemMobile() {
   const a = useAddItem()
   const { t } = useT()
+
+  // The listing exists: show what happened to it instead of navigating away
+  // silently, which left people wondering whether it had worked at all.
+  if (a.published) {
+    return (
+      <AppShell hideNav>
+        <div className="mx-auto w-full max-w-[560px] px-5 py-6">
+          <PublishedSection state={a.published} onDone={a.goToItems} onAnother={a.listAnother} />
+        </div>
+      </AppShell>
+    )
+  }
 
   return (
     <AppShell hideNav>

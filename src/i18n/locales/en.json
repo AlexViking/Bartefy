@@ -203,7 +203,13 @@
     "wantsAnythingHelp": "Leave the categories empty and any offer is welcome.",
     "wantsNoteLabel": "Anything specific?",
     "wantsNotePlaceholder": "Ideally a soldering station, but surprise me.",
-    "wantsNoteHelp": "A wish, not a promise — people will offer what they actually have."
+    "wantsNoteHelp": "A wish, not a promise — people will offer what they actually have.",
+    "publishedTitle": "It’s on the table",
+    "publishedBody": "Your find is in the deck. You’ll hear when someone offers a swap.",
+    "heldTitle": "Held for a quick look",
+    "heldBody": "A person checks the photo before this one goes live. It usually takes a few hours.",
+    "listAnother": "List another find",
+    "seeMyItems": "See my finds"
   },
   "swaps": {
     "title": "Swaps",
@@ -596,5 +602,9 @@
     "joined": "joined",
     "traded": "have swapped",
     "whenPaid": "Points arrive when an invited friend finishes their first swap — not when they sign up."
+  },
+  "publicProfile": {
+    "theirFinds": "Their finds",
+    "noFinds": "Nothing on the table right now."
   }
 }

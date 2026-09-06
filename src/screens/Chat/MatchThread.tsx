@@ -72,9 +72,20 @@ export default function MatchThread() {
             <Icon name="ArrowLeft" size={20} />
           </Button>
           {/* Someone's name: user data, never stamped with a key. */}
-          <span className="truncate font-display text-h3 text-foreground">
+          <span className="min-w-0 flex-1 truncate font-display text-h3 text-foreground">
             {c.ctx?.otherName || t('swaps.someone')}
           </span>
+          {/* Their trust score sits in the title bar, per the wireframe. The
+              question "who am I about to meet?" is at its sharpest here, in
+              the conversation where a meeting is being arranged. */}
+          {c.ctx && c.ctx.otherTrades > 0 && (
+            <span
+              data-i18n="barter.trustScore"
+              className="shrink-0 rounded-pill bg-secondary px-2.5 py-1 font-body text-xs text-muted-foreground"
+            >
+              {t('barter.trustScore', { count: c.ctx.otherTrades })}
+            </span>
+          )}
         </div>
 
         <SwapHeader c={c} />

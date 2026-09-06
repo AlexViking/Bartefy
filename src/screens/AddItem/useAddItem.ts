@@ -75,6 +75,9 @@ export function useAddItem() {
   const [wantsNote, setWantsNote] = useState('')
   const [capped, setCapped] = useState(false)
   const [publishing, setPublishing] = useState(false)
+  /** null while composing; 'ok' or 'held' once the listing exists. Drives the
+   *  outcome screen rather than navigating away silently. */
+  const [published, setPublished] = useState<'ok' | 'held' | null>(null)
   const [publishError, setPublishError] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -251,7 +254,7 @@ export function useAddItem() {
     const wantsColumn = [...wants]
     if (wantsNote.trim()) wantsColumn.push(WANT_NOTE_PREFIX + wantsNote.trim())
 
-    const { error } = await insertItem({
+    const { data: inserted, error } = await insertItem({
       user_id: userId,
       title: title.trim(),
       description: description.trim(),
@@ -278,7 +281,18 @@ export function useAddItem() {
     // Profile reads the listing straight back, and the feed excludes your own
     // items — refetch both rather than showing a stale "nothing here yet".
     await queryClient.invalidateQueries({ queryKey: keys.myItems(userId) })
-    navigate('/profile')
+
+    // The wireframe shows the moderation outcome rather than dropping the
+    // person back on Profile to guess. Read the status the row actually
+    // landed with: today everything defaults to 'ok', and when the photo
+    // check ships some listings will come back 'held' instead. Showing it
+    // now means that day changes nothing in this file.
+    const row = Array.isArray(inserted) ? inserted[0] : inserted
+    setPublished(
+      String((row as Record<string, unknown> | null)?.moderation_status ?? 'ok') === 'held'
+        ? 'held'
+        : 'ok',
+    )
   }
 
   return {
@@ -325,6 +339,9 @@ export function useAddItem() {
     publishing,
     publishError,
     publish,
+    published,
+    goToItems: () => navigate('/profile'),
+    listAnother: () => window.location.reload(),
     cancel: () => navigate(-1),
   }
 }

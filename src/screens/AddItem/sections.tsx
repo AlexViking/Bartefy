@@ -1,3 +1,5 @@
+import { Button } from '@/components/ui/button'
+import { Icon } from '@/components/ui/icon'
 import { Chip } from '@/components/ui/tone-badge'
 import { Field, TextField } from '@/components/ui/field'
 import { PhotoWell, PhotoWellGrid } from '@/components/ui/photo-well'
@@ -5,6 +7,7 @@ import { LabelWithHint } from '@/components/guidance/InfoHint'
 import { T, useT } from '@/i18n/T'
 import { Slider } from '@/components/ui/slider'
 import { CATEGORIES, CONDITIONS, conditionAt } from '@/lib/taxonomy'
+import { cn } from '@/lib/utils'
 import { type useAddItem } from './useAddItem'
 
 /** The three sections of the form, shared by both layouts. Mobile shows one
@@ -176,6 +179,65 @@ export function WantsSection({ a }: { a: ReturnType<typeof useAddItem> }) {
         value={a.wantsNote}
         onChange={(e) => a.setWantsNote(e.target.value)}
       />
+    </div>
+  )
+}
+
+
+/** What happened to the listing, shown instead of dropping the person back on
+ *  Profile to guess.
+ *
+ *  Two outcomes today and a third coming: everything publishes straight away
+ *  because no photo check runs yet, but the held branch is written now so the
+ *  day it ships nothing here changes. "Checking..." is deliberately absent --
+ *  showing a spinner for a check that does not happen would be theatre.
+ */
+export function PublishedSection({
+  state,
+  onDone,
+  onAnother,
+}: {
+  state: 'ok' | 'held'
+  onDone: () => void
+  onAnother: () => void
+}) {
+  const { t } = useT()
+  const held = state === 'held'
+
+  return (
+    <div className="flex flex-col items-center gap-4 py-8 text-center">
+      <span
+        className={cn(
+          'flex size-16 items-center justify-center rounded-pill',
+          held ? 'bg-accent/25' : 'bg-primary/[0.10]',
+        )}
+      >
+        <Icon
+          name={held ? 'Clock' : 'Check'}
+          size={28}
+          className={held ? 'text-accent-foreground' : 'text-primary'}
+        />
+      </span>
+
+      <T
+        as="h2"
+        k={held ? 'add.heldTitle' : 'add.publishedTitle'}
+        className="font-display text-h3 text-foreground"
+      />
+      <T
+        as="p"
+        k={held ? 'add.heldBody' : 'add.publishedBody'}
+        className="max-w-[36ch] font-body text-body text-muted-foreground"
+      />
+
+      <div className="mt-2 flex w-full max-w-[280px] flex-col gap-2">
+        <Button fullWidth size="lg" onClick={onAnother} data-i18n="add.listAnother">
+          {t('add.listAnother')}
+        </Button>
+        <Button variant="ghost" fullWidth onClick={onDone} data-i18n="add.seeMyItems">
+          {t('add.seeMyItems')}
+        </Button>
+      </div>
     </div>
   )
 }
