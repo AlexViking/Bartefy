@@ -109,10 +109,13 @@ export function AppShell({
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-background">
+    // h-dvh, not min-h-dvh: the shell is exactly the viewport, so a screen
+    // that wants to fill it (the deck) can, and one that is longer scrolls
+    // inside <main> rather than moving the bar and the topbar with it.
+    <div className="flex h-dvh flex-col overflow-hidden bg-background">
       <Topbar onMenu={() => setMenuOpen(true)} name={email} waiting={offers + unread} />
-      <main className="flex-1">{children}</main>
-      <div className="sticky bottom-0 z-40">
+      <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
+      <div className="z-40 shrink-0">
         <TabBar unreadSwaps={unread} offers={offers} />
       </div>
       <MobileMenu

@@ -98,15 +98,14 @@ export function TabBar({
     )
   }
 
-  // Add is the third of four slots. Splicing it into the middle of the list
-  // is what centres it -- not a margin, and not an empty grid column.
-  const [first, second, third] = TAB_DESTINATIONS
-
   return (
     <div className="px-4 pb-[max(8px,env(safe-area-inset-bottom))] pt-1.5">
       <nav className="flex items-center gap-1 rounded-pill bg-primary px-2 py-1.5 shadow-float">
-        {first && tab(first)}
-        {second && tab(second)}
+        {/* The three destinations, then Add at the end. Add is not a
+            destination -- it opens a flow and comes back -- and its size and
+            colour already say so, so it reads as the row's action rather than
+            a fourth place to be. */}
+        {TAB_DESTINATIONS.map(tab)}
         <button
           type="button"
           onClick={() => navigate(ADD_DESTINATION.path)}
@@ -115,7 +114,6 @@ export function TabBar({
         >
           <Icon name="Plus" size={24} />
         </button>
-        {third && tab(third)}
       </nav>
     </div>
   )

@@ -27,8 +27,18 @@ export default function HuntMobile() {
 
   return (
     <AppShell>
-      <div className="flex min-h-[calc(100dvh-72px)] flex-col">
-        <section className="flex flex-1 flex-col items-center justify-center gap-4 px-5 pb-6 pt-2">
+      {/* The deck does not scroll.
+       *
+       *  It was `min-h-[calc(100dvh-72px)]`, which subtracted the tab bar but
+       *  not the topbar above it, so the column was always taller than the
+       *  space it had and the whole page drifted under a thumb. A swipe deck
+       *  that moves vertically while you are swiping horizontally fights the
+       *  gesture it exists for.
+       *
+       *  h-full inside a min-h-0 flex parent, with overflow hidden: the card
+       *  is sized by what is left rather than by a guess at the chrome. */}
+      <div className="flex h-full min-h-0 flex-col overflow-hidden">
+        <section className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 px-5 pb-4 pt-2">
           {h.isLoading ? (
             <T as="p" k="hunt.loading" className="font-body text-sm text-muted-foreground" />
           ) : h.top ? (

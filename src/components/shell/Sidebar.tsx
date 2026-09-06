@@ -93,16 +93,39 @@ export function Sidebar({
               'focus-visible:ring-2 focus-visible:ring-ring',
             )}
           >
+            {/* The pill is plain: it appears and disappears with the row it
+                belongs to. It used to be one shared element sliding between
+                rows on a layoutId, which animated the *background* -- the
+                whole green block travelled up and down the rail on every
+                click. The motion belongs on the icon, which is the thing
+                being selected. */}
             {active && (
-              <motion.span
-                layoutId="sidebar-active"
-                transition={spring.pop}
-                className="absolute inset-0 rounded-card-lg bg-primary"
-              />
+              <span aria-hidden="true" className="absolute inset-0 rounded-card-lg bg-primary" />
             )}
-            <span className="relative z-10 flex">
+            <motion.span
+              className="relative z-10 flex"
+              animate={{ scale: active ? 1.12 : 1 }}
+              whileTap={{ scale: 0.92 }}
+              transition={spring.pop}
+            >
               <Icon name={item.icon} size={20} strokeWidth={active ? 2.4 : 2} />
-            </span>
+              {/* Collapsed, the count rides the icon itself. Anchored to the
+                  row it sat against a 44px box the 20px glyph is centred in,
+                  so it floated clear of the thing it counts. */}
+              {collapsed && count > 0 && (
+                <span
+                  className={cn(
+                    'absolute -right-1.5 -top-1.5 grid size-4 place-items-center rounded-pill',
+                    'font-body text-[9px] font-bold ring-2 ring-card',
+                    active
+                      ? 'bg-primary-foreground text-primary'
+                      : 'bg-accent text-accent-foreground',
+                  )}
+                >
+                  {count}
+                </span>
+              )}
+            </motion.span>
             <motion.span
               animate={{ opacity: collapsed ? 0 : 1, x: collapsed ? -6 : 0 }}
               transition={tween.fast}
@@ -111,7 +134,9 @@ export function Sidebar({
             >
               {t(item.label)}
             </motion.span>
-            {count > 0 && (
+            {/* Expanded, the count sits at the end of the row. The collapsed
+                one lives on the icon above. */}
+            {!collapsed && count > 0 && (
               <motion.span
                 layout
                 transition={spring.pop}
@@ -120,7 +145,6 @@ export function Sidebar({
                   active
                     ? 'bg-primary-foreground/20 text-primary-foreground'
                     : 'bg-accent text-accent-foreground',
-                  collapsed && 'absolute right-1 top-1 ml-0',
                 )}
               >
                 {count}
@@ -152,22 +176,31 @@ export function Sidebar({
             onClick={() => navigate(ADD_DESTINATION.path)}
             aria-label={t('nav.add')}
             className={cn(
-              'mt-auto flex h-11 shrink-0 items-center gap-3 rounded-pill bg-accent px-3',
+              'mt-auto flex h-11 shrink-0 items-center rounded-pill bg-accent',
               'font-display text-[15px] font-semibold text-accent-foreground shadow-card outline-none',
               'transition-colors duration-fast ease-brand hover:bg-accent/90',
               'focus-visible:ring-2 focus-visible:ring-ring',
-              collapsed && 'justify-center px-0',
+              // Collapsed the rail is 68px with 12px of padding each side, so
+              // a full-width button was wider than the space and the glyph got
+              // clipped at the edge. Square and self-centred instead.
+              collapsed ? 'size-11 justify-center self-center' : 'gap-3 px-3',
             )}
           >
             <Icon name="Plus" size={20} strokeWidth={2.4} />
-            <motion.span
-              animate={{ opacity: collapsed ? 0 : 1, x: collapsed ? -6 : 0 }}
-              transition={tween.fast}
-              data-i18n="nav.add"
-              className="truncate"
-            >
-              {t('nav.add')}
-            </motion.span>
+            {/* Unmounted rather than faded to zero: an invisible label still
+                claims width, which is what pushed the glyph out of a 44px
+                button. */}
+            {!collapsed && (
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={tween.fast}
+                data-i18n="nav.add"
+                className="truncate"
+              >
+                {t('nav.add')}
+              </motion.span>
+            )}
           </button>
         )
         return collapsed ? (

@@ -37,10 +37,17 @@ export function Topbar({
   const navigate = useNavigate()
   const [scrolled, setScrolled] = useState(false)
 
+  /** The shell is the viewport now and <main> is what scrolls, so listening on
+   *  window would never fire and the bar would sit at full height forever.
+   *  Falls back to window for any layout that still scrolls the document. */
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    const scroller = document.querySelector('main')
+    const target: HTMLElement | Window = scroller ?? window
+    const read = () =>
+      setScrolled((scroller ? scroller.scrollTop : window.scrollY) > 8)
+    read()
+    target.addEventListener('scroll', read, { passive: true })
+    return () => target.removeEventListener('scroll', read)
   }, [])
 
   return (

@@ -47,6 +47,19 @@ export default {
         lg: 'var(--radius-card-lg)',
         hero: 'var(--radius-hero)',
         pill: 'var(--radius-pill)',
+        /* `rounded-card`, `rounded-card-sm` and `rounded-card-lg` are written
+           in 42 places across the app and generated NOTHING -- the scale above
+           is keyed sm/DEFAULT/lg, so every one of those elements has been
+           rendering with square corners since the tokens landed. Nothing warns
+           about a Tailwind class that matches no key: it is simply dropped.
+
+           Aliased rather than rewritten at the call sites, because
+           `rounded-card` reads better next to `bg-card` than `rounded` does,
+           and a 42-file find-and-replace to fix a config gap is the wrong
+           trade. */
+        card: 'var(--radius-card)',
+        'card-sm': 'var(--radius-card-sm)',
+        'card-lg': 'var(--radius-card-lg)',
       },
       boxShadow: {
         card: 'var(--shadow-card)',

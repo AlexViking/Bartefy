@@ -1,4 +1,4 @@
-import { Check, Languages } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Button } from '@/components/ui/button'
+import { Icon } from '@/components/ui/icon'
 import { SUPPORTED_LANGUAGES, loadLanguage } from '@/i18n'
 import { useT } from '@/i18n/T'
 import { cn } from '@/lib/utils'
@@ -23,11 +23,22 @@ export function LanguageSwitcher({ className }: { className?: string }) {
 
   return (
     <DropdownMenu>
+      {/* A globe, sized and shaped exactly like the bell and the theme toggle
+          beside it. It used to be a wide bordered pill carrying "EN", which
+          made one control in a row of round icons look like a form field. The
+          current language is in the menu, ticked. */}
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className={cn('gap-1.5', className)} aria-label={t('nav.language')}>
-          <Languages aria-hidden="true" />
-          <span className="uppercase">{current}</span>
-        </Button>
+        <button
+          type="button"
+          aria-label={t('nav.language')}
+          className={cn(
+            'flex size-11 items-center justify-center rounded-pill text-muted-foreground',
+            'transition-colors duration-fast ease-brand hover:bg-foreground/[0.06] hover:text-primary',
+            className,
+          )}
+        >
+          <Icon name="Globe" size={20} />
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[180px]">
         {SUPPORTED_LANGUAGES.map((lang) => (
