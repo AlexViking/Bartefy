@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
 import { checkReferralCode, requestSignInOTP, requestSignUpOTP, verifyOTP } from '@/lib/api'
@@ -50,6 +50,9 @@ export function useAuthScreen(mode: AuthMode) {
   /** null = not checked or not checkable. The field stays optional either way;
    *  this only ever softens into a hint, never a block. */
   const [referralValid, setReferralValid] = useState<boolean | null>(null)
+  /** In-flight guard for verify. A ref, not `busy`, because `busy` is state the
+   *  auto-submit effect watches -- see the note on verify below. */
+  const verifying = useRef(false)
 
   const emailValid = EMAIL_RE.test(email.trim())
   /** Required on sign-up: this is the one thing the other side of a swap sees
@@ -157,10 +160,16 @@ export function useAuthScreen(mode: AuthMode) {
    */
   const verify = useCallback(
     async (value: string) => {
-      if (value.length !== CODE_LENGTH || busy) return
+      // Reading the guard from a ref rather than from `busy` keeps two attempts
+      // from overlapping without putting `busy` in this callback's deps: a
+      // changing identity here re-runs the caller's auto-submit effect, which is
+      // what sent a consumed token a second time and got it answered 403.
+      if (value.length !== CODE_LENGTH || verifying.current) return
+      verifying.current = true
       setBusy(true)
       setError(null)
       const { error: verifyError } = await verifyOTP(email.trim(), value)
+      verifying.current = false
       setBusy(false)
       if (verifyError) {
         setError(messageFor(verifyError.message, 'verify'))
@@ -171,7 +180,7 @@ export function useAuthScreen(mode: AuthMode) {
     },
     // messageFor closes over t, which is stable per language.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [busy, email, t],
+    [email, t],
   )
 
   /** Typing again after a rejected code should clear the error, otherwise it

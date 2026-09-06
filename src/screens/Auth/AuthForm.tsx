@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Check, Mail } from 'lucide-react'
 
@@ -199,8 +199,26 @@ function CodeStep({ a }: { a: ReturnType<typeof useAuthScreen> }) {
   const { t } = useT()
   const { code, verify, busy } = a
 
+  /** Fire once per distinct code, never once per render that happens to see a
+   *  full one. Both `busy` and `verify`'s identity flip false->true->false across
+   *  a single attempt, so an effect keyed on either re-runs while the six digits
+   *  are still in the boxes and sends the same token twice. Supabase consumes a
+   *  code on first use, so that second call is answered 403 and the person is
+   *  told their correct code was wrong. The ref records what has already been
+   *  submitted, which state cannot do without triggering the render it guards.
+   */
+  const submitted = useRef<string | null>(null)
+
   useEffect(() => {
-    if (code.length === CODE_LENGTH && !busy) void verify(code)
+    if (code.length !== CODE_LENGTH) {
+      // Backspacing out of a full code arms the next attempt, so a genuinely
+      // rejected code can be retyped -- including the same digits again.
+      if (code.length === 0) submitted.current = null
+      return
+    }
+    if (busy || submitted.current === code) return
+    submitted.current = code
+    void verify(code)
   }, [code, busy, verify])
 
   const clock = `${Math.floor(a.countdown / 60)}:${String(a.countdown % 60).padStart(2, '0')}`
