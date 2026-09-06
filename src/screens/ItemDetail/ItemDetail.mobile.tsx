@@ -108,20 +108,28 @@ export default function ItemDetailMobile() {
       <div className="fixed inset-x-0 bottom-0 z-40 flex items-center gap-2.5 border-t border-border/[0.14] bg-card px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-3">
         {/* Ownership swaps the whole action set: you manage your own listing
             and cannot offer a swap to yourself. */}
+        {/* Four actions in a grid, per the pilot. Edit and renew are the
+            everyday pair; pause and remove take the find out of circulation,
+            so they sit together underneath. */}
         {d.owned ? (
-          <>
-            <Button size="lg" fullWidth onClick={d.goEdit} data-i18n="item.manage">
+          <div className="grid w-full grid-cols-2 gap-2">
+            <Button onClick={d.goEdit} data-i18n="item.manage">
               {t('item.manage')}
+            </Button>
+            <Button variant="ghost" onClick={d.renew} data-i18n="item.renew">
+              {t('item.renew')}
             </Button>
             <Button
               variant="ghost"
-              size="lg"
-              onClick={() => d.setRemoving(true)}
-              data-i18n="item.remove"
+              onClick={d.togglePause}
+              data-i18n={d.paused ? 'item.unpause' : 'item.pause'}
             >
+              {t(d.paused ? 'item.unpause' : 'item.pause')}
+            </Button>
+            <Button variant="ghost" onClick={() => d.setRemoving(true)} data-i18n="item.remove">
               {t('item.remove')}
             </Button>
-          </>
+          </div>
         ) : (
           <Button
             size="lg"

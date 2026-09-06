@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { useLocation, useNavigate } from 'react-router'
 
+import { Wordmark } from '@/components/Wordmark'
 import { Icon } from '@/components/ui/icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useT } from '@/i18n/T'
@@ -43,11 +44,10 @@ export function Sidebar({
       className="sticky top-0 hidden h-dvh shrink-0 flex-col gap-1 border-r border-border/[0.14] bg-card/40 p-3 md:flex"
     >
       <div className="mb-2 flex h-11 items-center gap-2 px-1">
-        {!collapsed && (
-          <span className="font-display text-[19px] font-bold tracking-tight text-primary">
-            bartefy
-          </span>
-        )}
+        {/* The lockup, not type. It disappears when collapsed rather than
+            shrinking to an illegible smudge -- the rail is 68px there and the
+            mark is nearly 2:1. */}
+        {!collapsed && <Wordmark className="w-[112px]" />}
         <button
           type="button"
           onClick={onToggleCollapse}

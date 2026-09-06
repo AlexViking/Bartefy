@@ -213,6 +213,11 @@ export async function reportItem(itemId: string, reason: string, note?: string) 
   })
 }
 
+/** Another 30 days on a listing. From now, not from the old expiry. */
+export async function renewItem(itemId: string) {
+  return supabase.rpc('renew_item', { p_item_id: Number(itemId) })
+}
+
 // ── Errors ──────────────────────────────────────────────────────────────────
 
 /** The SQLSTATE codes raised by migration 016, mapped to i18n keys.

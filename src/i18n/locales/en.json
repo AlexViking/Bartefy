@@ -161,11 +161,14 @@
     "viewProfile": "Profile",
     "notFoundTitle": "This find is not here",
     "notFoundBody": "It may have been swapped, paused or taken down. Have a look at what else is around.",
-    "manage": "Manage this find",
+    "manage": "Edit listing",
     "viewPhotos": "Photos",
-    "remove": "Take it off the table",
+    "remove": "Delete",
     "removeTitle": "Take this find off the table?",
-    "removeBody": "It stops appearing in decks. Anyone already talking to you about it keeps the conversation."
+    "removeBody": "It stops appearing in decks. Anyone already talking to you about it keeps the conversation.",
+    "renew": "Renew 30 days",
+    "pause": "Pause listing",
+    "unpause": "Put it back"
   },
   "add": {
     "title": "List a find",
@@ -577,7 +580,14 @@
     "thanksTitle": "Thank you",
     "thanksBody": "A person reads every report. The listing stays up until they do.",
     "alreadyReported": "You have already reported this find.",
-    "action": "Report this find"
+    "action": "Report this find",
+    "userTitle": "What happened?",
+    "thisItem": "This find",
+    "thisUser": "This person",
+    "reason_unsafe": "I felt unsafe",
+    "reason_asked_for_money": "They asked for money",
+    "reason_no_show": "They did not turn up",
+    "reason_not_as_described": "The find was not as described"
   },
   "block": {
     "title": "Block {{name}}?",
@@ -606,5 +616,15 @@
   "publicProfile": {
     "theirFinds": "Their finds",
     "noFinds": "Nothing on the table right now."
+  },
+  "notif": {
+    "title": "Notifications",
+    "emptyTitle": "Nothing waiting",
+    "emptyBody": "Offers, matches and finished swaps show up here.",
+    "offerTitle": "Someone wants one of your finds",
+    "matchTitle": "It's a swap — say hello",
+    "completedTitle": "Swap finished",
+    "cancelledTitle": "A swap was called off",
+    "goneTitle": "That find went elsewhere"
   }
 }

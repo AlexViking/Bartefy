@@ -4,13 +4,20 @@ import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { ResponsiveSheet } from '@/components/ui/responsive-sheet'
 import { T, useT } from '@/i18n/T'
+import { fileReport } from '@/lib/api'
 import { reportItem } from '@/lib/barter'
+import { useAuthStore } from '@/store/auth'
 import { cn } from '@/lib/utils'
 
-/** Reasons a LISTING is wrong, as opposed to a person behaving badly.
- *  Named for what the reporter saw, never for what a moderator will conclude:
- *  someone flags a photo that does not match, they do not adjudicate fraud. */
-const REASONS = ['prohibited', 'photo_mismatch', 'wrong_category', 'spam'] as const
+/** Reasons a LISTING is wrong. Named for what the reporter saw, never for
+ *  what a moderator will conclude: someone flags a photo that does not match,
+ *  they do not adjudicate fraud. */
+const ITEM_REASONS = ['prohibited', 'photo_mismatch', 'wrong_category', 'spam'] as const
+
+/** Reasons a PERSON is the problem. A separate list because they describe
+ *  behaviour rather than a listing, and offering "wrong category" about a
+ *  human being makes the whole form feel unserious. */
+const USER_REASONS = ['unsafe', 'asked_for_money', 'no_show', 'not_as_described'] as const
 
 /** Report a find from the deck.
  *
@@ -27,6 +34,8 @@ export function ReportItemSheet({
   onOpenChange,
   itemId,
   itemTitle,
+  ownerId,
+  ownerName,
   onDone,
 }: {
   open: boolean
@@ -34,9 +43,15 @@ export function ReportItemSheet({
   itemId: string
   /** User data, so it is rendered without a translation key. */
   itemTitle: string
+  /** The lister. Omit to hide the "this person" tab -- there is no one to
+   *  report from a screen that does not know whose listing it is. */
+  ownerId?: string
+  ownerName?: string
   onDone: () => void
 }) {
   const { t } = useT()
+  const me = useAuthStore((st) => st.session?.user?.id)
+  const [subject, setSubject] = useState<'item' | 'user'>('item')
   const [reason, setReason] = useState<string | null>(null)
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
@@ -45,6 +60,7 @@ export function ReportItemSheet({
 
   useEffect(() => {
     if (open) {
+      setSubject('item')
       setReason(null)
       setNote('')
       setError(null)
@@ -56,7 +72,18 @@ export function ReportItemSheet({
     if (!reason || busy) return
     setBusy(true)
     setError(null)
-    const { error: rpcError } = await reportItem(itemId, reason, note.trim() || undefined)
+    // Two different endpoints: a listing report is about a row anyone can
+    // see, a person report is about conduct and goes through the audited
+    // report function.
+    const { error: rpcError } =
+      subject === 'item'
+        ? await reportItem(itemId, reason, note.trim() || undefined)
+        : await fileReport({
+            fromUser: me ?? '',
+            aboutUser: ownerId,
+            reason: reason as 'unsafe',
+            note: note.trim() || undefined,
+          })
     setBusy(false)
     if (rpcError) {
       setError(
@@ -97,7 +124,7 @@ export function ReportItemSheet({
     <ResponsiveSheet
       open={open}
       onOpenChange={onOpenChange}
-      title="report.itemTitle"
+      title={subject === 'item' ? 'report.itemTitle' : 'report.userTitle'}
       footer={
         <div className="flex w-full flex-col gap-2">
           {error && (
@@ -114,12 +141,42 @@ export function ReportItemSheet({
         </div>
       }
     >
-      {/* The listing's own title, so there is no doubt which find this is
-          about after swiping past three more. */}
-      <p className="mb-3 font-body text-sm text-muted-foreground">{itemTitle}</p>
+      {/* Which of the two is being reported. Only shown when there is an
+          owner to report -- a tab that cannot be picked is furniture. */}
+      {ownerId && (
+        <div className="mb-3 flex gap-2">
+          {(['item', 'user'] as const).map((s2) => (
+            <button
+              key={s2}
+              type="button"
+              onClick={() => {
+                setSubject(s2)
+                // The reason lists do not overlap, so a reason picked for one
+                // subject is meaningless for the other.
+                setReason(null)
+              }}
+              aria-pressed={subject === s2}
+              data-i18n={s2 === 'item' ? 'report.thisItem' : 'report.thisUser'}
+              className={cn(
+                'min-h-hit flex-1 rounded-pill px-3 font-body text-sm transition-colors duration-fast',
+                subject === s2
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-secondary text-muted-foreground hover:text-foreground',
+              )}
+            >
+              {t(s2 === 'item' ? 'report.thisItem' : 'report.thisUser')}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Whose or which. User data either way, so no key on this line. */}
+      <p className="mb-3 font-body text-sm text-muted-foreground">
+        {subject === 'item' ? itemTitle : ownerName}
+      </p>
 
       <ul className="flex flex-col gap-2">
-        {REASONS.map((r) => (
+        {(subject === 'item' ? ITEM_REASONS : USER_REASONS).map((r) => (
           <li key={r}>
             <button
               type="button"

@@ -142,6 +142,8 @@ export function HuntStack({
         onOpenChange={setReporting}
         itemId={top.id}
         itemTitle={top.title}
+        ownerId={top.ownerId}
+        ownerName={top.owner}
         onDone={() => fly(false)}
       />
 

@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { barterErrorKey, makeOffer } from '@/lib/barter'
+import { barterErrorKey, makeOffer, renewItem } from '@/lib/barter'
 import { useAuthStore } from '@/store/auth'
 import type { OfferOption } from '@/screens/Hunt/useHunt'
 import { useNavigate, useParams } from 'react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { deleteItem, getItem, getMyItems } from '@/lib/api'
+import { deleteItem, getItem, getMyItems, setItemStatus } from '@/lib/api'
 import { DEFAULT_CONDITION, categoryLabel, conditionAt, splitWants } from '@/lib/taxonomy'
 import { keys, STALE } from '@/lib/cache/queryClient'
 import type { ItemRef, PersonRef } from '@/types/swap'
@@ -21,6 +21,7 @@ const PLACEHOLDERS = [
 export function useItemDetail() {
   const { itemId } = useParams()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [offerOpen, setOfferOpen] = useState(false)
   const userId = useAuthStore((s) => s.session?.user?.id)
   const [viewerOpen, setViewerOpen] = useState(false)
@@ -171,6 +172,20 @@ export function useItemDetail() {
     goEdit: () => navigate('/add?edit=' + item.id),
     removing,
     setRemoving,
+    /** Pausing takes a find out of the deck without losing it -- for someone
+     *  going away, not someone giving up on the listing. */
+    togglePause: async () => {
+      const next = data.status === 'paused' ? 'active' : 'paused'
+      const { error: e } = await setItemStatus(String(item.id), next)
+      if (e) return setOfferError('barter.errorGeneric')
+      await queryClient.invalidateQueries({ queryKey: keys.item(String(item.id)) })
+    },
+    paused: data.status === 'paused',
+    renew: async () => {
+      const { error: e } = await renewItem(String(item.id))
+      if (e) return setOfferError(barterErrorKey(e))
+      await queryClient.invalidateQueries({ queryKey: keys.item(String(item.id)) })
+    },
     /** Soft delete, never a hard one: status goes to 'removed' and the row
      *  stays. The scope contract makes hard-delete an admin-only action, and
      *  a listing that vanished has no audit trail behind a dispute. */

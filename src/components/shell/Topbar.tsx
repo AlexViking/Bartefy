@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
+import { Wordmark } from '@/components/Wordmark'
 import { ThemeToggle } from './ThemeToggle'
 import { useT } from '@/i18n/T'
 import { spring } from '@/lib/motion'
@@ -39,9 +40,11 @@ export function Topbar({
   }, [])
 
   return (
-    <motion.header
-      animate={{ height: scrolled ? 56 : 68 }}
-      transition={spring.gentle}
+    // Height is a CSS transition, not a spring on a layout property: a spring
+    // here re-lays out everything below the header on every frame of the
+    // scroll, which is the other half of the jitter.
+    <header
+      style={{ height: scrolled ? 56 : 68, transition: 'height 240ms var(--ease-out)' }}
       className={cn(
         'sticky top-0 z-40 flex w-full items-center gap-3 px-4',
         'bg-background/85 backdrop-blur-md transition-shadow duration-200',
@@ -60,16 +63,22 @@ export function Topbar({
         <Icon name="Menu" size={20} />
       </Button>
 
-      {/* Type, not the lockup: the illustrated mark is too detailed to read at
-          this size, and it already sits in the sidebar. */}
+      {/* The real lockup, not type.
+       *
+       *  It is also scaled with transform rather than animated fontSize. A
+       *  spring on fontSize re-lays out the text on every frame, which is what
+       *  made the wordmark visibly jitter while scrolling -- transform is
+       *  composited and never touches layout. */}
       <motion.button
         type="button"
         onClick={() => navigate('/discover')}
-        animate={{ fontSize: scrolled ? '1.05rem' : '1.25rem' }}
+        animate={{ scale: scrolled ? 0.86 : 1 }}
         transition={spring.gentle}
-        className="font-display font-bold tracking-tight text-primary md:hidden"
+        style={{ transformOrigin: 'left center' }}
+        aria-label={t('brand.name')}
+        className="shrink-0 md:hidden"
       >
-        bartefy
+        <Wordmark className="w-[124px]" />
       </motion.button>
 
       <button
@@ -97,6 +106,6 @@ export function Topbar({
           onClick={() => navigate('/profile')}
         />
       </div>
-    </motion.header>
+    </header>
   )
 }
