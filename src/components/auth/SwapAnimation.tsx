@@ -1,8 +1,8 @@
 import { motion, useReducedMotion } from 'framer-motion'
 
-import card1 from '@/assets/swap-card-1.png'
-import card2 from '@/assets/swap-card-2.png'
-import card3 from '@/assets/swap-card-3.png'
+import card1 from '@/assets/swap-card-1.webp'
+import card2 from '@/assets/swap-card-2.webp'
+import card3 from '@/assets/swap-card-3.webp'
 
 /** Two finds trading places on a slow loop, ported from v5's BrandPanel.
  *

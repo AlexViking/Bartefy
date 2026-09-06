@@ -1,4 +1,4 @@
-import logoUrl from '@/assets/bartefy-logo-lockup.png'
+import logoUrl from '@/assets/bartefy-logo-lockup.webp'
 import { useT } from '@/i18n/T'
 import { cn } from '@/lib/utils'
 

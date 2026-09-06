@@ -1,4 +1,4 @@
-import mapUrl from '@/assets/bartefy-bg-treasure-map.png'
+import mapUrl from '@/assets/bartefy-bg-treasure-map.webp'
 import { Wordmark } from '@/components/Wordmark'
 import { Button } from '@/components/ui/button'
 import { FlowSteps } from '@/components/guidance/FlowSteps'

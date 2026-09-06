@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from 'react-router'
 
-import logoUrl from '@/assets/bartefy-logo-lockup.png'
+import logoUrl from '@/assets/bartefy-logo-lockup.webp'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { UserAvatar } from '@/components/ui/user-avatar'
