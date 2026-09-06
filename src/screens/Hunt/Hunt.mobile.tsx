@@ -4,6 +4,7 @@ import { OfferSheet } from '@/components/offer/OfferSheet'
 import { HuntStack } from '@/components/hunt/HuntStack'
 import { NextStep } from '@/components/guidance/NextStep'
 import { Button } from '@/components/ui/button'
+import { Icon } from '@/components/ui/icon'
 import {
   Sheet,
   SheetContent,
@@ -49,6 +50,15 @@ export default function HuntMobile() {
                 k="hunt.hintSwipe"
                 className="font-body text-[13px] text-muted-foreground"
               />
+              {/* Only after a pass, and only for a pass: a like is an offer,
+                  and withdrawing one somebody may already have seen is a
+                  different action with its own rules. */}
+              {h.canRewind && (
+                <Button variant="ghost" size="sm" onClick={h.rewind} data-i18n="hunt.rewind">
+                  <Icon name="RotateCcw" size={16} />
+                  {t('hunt.rewind')}
+                </Button>
+              )}
             </>
           ) : (
             <EmptyState

@@ -32,8 +32,15 @@ interface HuntState {
    *  still to be their bike tomorrow. */
   selectedOfferId: string | null
   likeHistory: string[]
+  /** The last card passed on, kept so it can be put back. Only one: undo is
+   *  for the swipe you did not mean, not a browsable history. */
+  lastPassed: CardItem | null
   setCardQueue: (queue: CardItem[]) => void
   removeTopCard: () => void
+  /** Pass, remembering the card so `unpass` can restore it. */
+  passTopCard: (card: CardItem) => void
+  /** Put the last passed card back on top. No-op if there is nothing to undo. */
+  unpass: () => void
   setSelectedOfferId: (id: string | null) => void
   addToLikeHistory: (id: string) => void
 }
@@ -44,9 +51,18 @@ export const useHuntStore = create<HuntState>()(
       cardQueue: [],
       selectedOfferId: null,
       likeHistory: [],
-      setCardQueue: (cardQueue) => set({ cardQueue }),
+      lastPassed: null,
+      setCardQueue: (cardQueue) => set({ cardQueue, lastPassed: null }),
       removeTopCard: () =>
         set((state) => ({ cardQueue: state.cardQueue.slice(1) })),
+      passTopCard: (card) =>
+        set((state) => ({ cardQueue: state.cardQueue.slice(1), lastPassed: card })),
+      unpass: () =>
+        set((state) =>
+          state.lastPassed
+            ? { cardQueue: [state.lastPassed, ...state.cardQueue], lastPassed: null }
+            : state,
+        ),
       setSelectedOfferId: (selectedOfferId) => set({ selectedOfferId }),
       addToLikeHistory: (id) =>
         set((state) => ({ likeHistory: [...state.likeHistory, id] })),

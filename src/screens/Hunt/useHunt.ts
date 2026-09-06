@@ -36,6 +36,9 @@ export function useHunt() {
   const setSelectedOfferId = useHuntStore((s) => s.setSelectedOfferId)
   const setCardQueue = useHuntStore((s) => s.setCardQueue)
   const removeTopCard = useHuntStore((s) => s.removeTopCard)
+  const passTopCard = useHuntStore((s) => s.passTopCard)
+  const unpass = useHuntStore((s) => s.unpass)
+  const lastPassed = useHuntStore((s) => s.lastPassed)
   const addToLikeHistory = useHuntStore((s) => s.addToLikeHistory)
 
   /** Onboarding's taste picker still seeds what the deck prefers, but there is
@@ -143,7 +146,7 @@ export function useHunt() {
         // A lost pass is a card seen twice, not a broken app. Never block the
         // stack on it.
       })
-      removeTopCard()
+      passTopCard(item)
       return
     }
     if (!item.ownerId) return
@@ -183,6 +186,17 @@ export function useHunt() {
     setSentTitle(target.title)
   }
 
+  /** Put the last passed card back on top.
+   *
+   *  Client-side only, and deliberately so: the pass is already recorded by the
+   *  swipe function, which has no undo endpoint, so the row stays. The effect
+   *  is that the card returns to this deck now -- which is what someone who
+   *  mis-swiped actually wants -- while the server keeps its record. Liking is
+   *  not undoable here because a like is an offer, and withdrawing an offer
+   *  someone may already have seen is a different action with its own rules.
+   */
+  const rewind = () => unpass()
+
   /** Backing out of the sheet. The card stays: not choosing an item is not the
    *  same as passing on the find. */
   const cancelOffer = () => {
@@ -203,6 +217,8 @@ export function useHunt() {
     widen: () => setRadiusKm((r) => Math.round(r * 2.5)),
     matched,
     dismissMatch: () => setMatched(null),
+    rewind,
+    canRewind: !!lastPassed,
     decide,
     /** Offer sheet state. */
     pendingTarget,

@@ -115,7 +115,8 @@
     "matchTitle": "It's a bartefy!",
     "matchBody": "You both want what the other has.",
     "sayHello": "Say hello",
-    "keepHunting": "Keep hunting"
+    "keepHunting": "Keep hunting",
+    "rewind": "Bring that one back"
   },
   "item": {
     "condition": "Condition",
