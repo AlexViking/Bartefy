@@ -30,7 +30,7 @@
   },
   "nav": {
     "hunt": "Hunt",
-    "browse": "Browse",
+    "browse": "Browse finds",
     "swaps": "Swaps",
     "profile": "Profile",
     "add": "List a find",
@@ -39,7 +39,7 @@
     "language": "Language",
     "discover": "Discover",
     "matches": "Matches",
-    "items": "Items",
+    "items": "My items",
     "moderation": "Moderation",
     "search": "Search finds…",
     "collapse": "Collapse menu",
@@ -360,7 +360,9 @@
     "inviteBody": "Share it. You both get credit when they finish their first swap.",
     "hubInvite": "Invite friends",
     "hubBlocked": "Blocked users",
-    "hubSettings": "Settings"
+    "hubSettings": "Settings",
+    "daysLeft": "{{count}} days left",
+    "daysLeft_one": "Last day"
   },
   "membership": {
     "title": "Membership",

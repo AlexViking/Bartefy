@@ -18,6 +18,10 @@ export function TabBar({
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const { t } = useT()
+  // Two tabs, the Add button, then the rest -- so Add sits in the middle
+  // column of five rather than off to one side. With three destinations that
+  // is Discover | Matches | + | Profile | (spacer), and the spacer keeps the
+  // button on the true centre line instead of leaning right.
   const [first, second] = [TAB_DESTINATIONS.slice(0, 2), TAB_DESTINATIONS.slice(2)]
 
   const tab = (d: (typeof TAB_DESTINATIONS)[number]) => {
@@ -87,6 +91,11 @@ export function TabBar({
           </button>
         </div>
         {second.map(tab)}
+        {/* Balances the row: three destinations plus Add is four cells in a
+            five-column grid, and without this the button drifts right of
+            centre. Empty rather than a fifth destination, because the
+            wireframe's bar is Deck / Matches / + / Profile and nothing else. */}
+        {second.length < 2 && <span aria-hidden="true" />}
       </nav>
     </div>
   )

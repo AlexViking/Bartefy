@@ -11,6 +11,9 @@ export interface ItemRef {
   photoUrl?: string
   condition?: string
   category?: string
+  /** Days until the listing expires. Undefined where it does not apply --
+   *  someone else's find in a swap pair has no expiry worth showing you. */
+  daysLeft?: number
 }
 
 export interface PersonRef {

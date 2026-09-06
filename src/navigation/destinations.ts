@@ -10,7 +10,7 @@ import type { IconName } from '@/components/ui/icon'
  *  which is what the row actually is before anything has been swapped.
  */
 export interface Destination {
-  id: 'discover' | 'matches' | 'items' | 'profile' | 'settings' | 'moderation'
+  id: 'discover' | 'matches' | 'browse' | 'profile' | 'settings' | 'moderation'
   /** i18n key. */
   label: string
   path: string
@@ -27,13 +27,19 @@ export interface Destination {
 export const DESTINATIONS: Destination[] = [
   { id: 'discover', label: 'nav.discover', path: '/discover', icon: 'Layers', onTabBar: true },
   { id: 'matches', label: 'nav.matches', path: '/matches', icon: 'Heart', badge: 'unread', onTabBar: true },
-  { id: 'items', label: 'nav.items', path: '/items', icon: 'Package', onTabBar: true },
   { id: 'profile', label: 'nav.profile', path: '/profile', icon: 'User', onTabBar: true },
+  // Browsing other people's finds. Reached from the topbar search rather than
+  // a tab: the wireframe's bar is Deck / Matches / + / Profile, and searching
+  // is something you do when you already know what you want.
+  { id: 'browse', label: 'nav.browse', path: '/items', icon: 'Search' },
   { id: 'settings', label: 'nav.settings', path: '/settings', icon: 'Settings' },
   { id: 'moderation', label: 'nav.moderation', path: '/admin/reports', icon: 'ShieldAlert', staffOnly: true },
 ]
 
-/** The tab bar's four, plus the brass Add in the middle. */
+/** Three, plus the brass Add in the middle -- Deck, Matches, +, Profile, as
+ *  the wireframe draws it. There is no "Items" tab: your own listings live
+ *  inside Profile, and browsing other people's is a search, not a
+ *  destination. */
 export const TAB_DESTINATIONS = DESTINATIONS.filter((d) => d.onTabBar)
 
 /** Add is the brass centre action on mobile and a button in the nav on desktop. */
