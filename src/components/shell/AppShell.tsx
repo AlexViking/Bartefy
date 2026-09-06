@@ -95,7 +95,7 @@ export function AppShell({
           badges={badges}
         />
         <div className="flex min-w-0 flex-1 flex-col">
-          <Topbar onMenu={toggleCollapse} name={email} />
+          <Topbar onMenu={toggleCollapse} name={email} waiting={offers + unread} />
           <main className="flex-1">{children}</main>
         </div>
       </div>
@@ -104,7 +104,7 @@ export function AppShell({
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      <Topbar onMenu={toggleCollapse} name={email} />
+      <Topbar onMenu={toggleCollapse} name={email} waiting={offers + unread} />
       <main className="flex-1">{children}</main>
       <div className="sticky bottom-0 z-40">
         <TabBar unreadSwaps={unread} offers={offers} />

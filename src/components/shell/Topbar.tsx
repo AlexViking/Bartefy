@@ -25,9 +25,12 @@ import { cn } from '@/lib/utils'
 export function Topbar({
   onMenu,
   name,
+  waiting = 0,
 }: {
   onMenu: () => void
   name: string
+  /** Offers plus unread threads. Drives the dot on the bell. */
+  waiting?: number
 }) {
   const { t } = useT()
   const navigate = useNavigate()
@@ -97,6 +100,23 @@ export function Topbar({
       </button>
 
       <div className="ml-auto flex items-center gap-1">
+        {/* The bell, which had no way in until now: the screen existed and
+            nothing linked to it. The dot appears only when something is
+            waiting -- a permanent badge trains people to ignore it. */}
+        <button
+          type="button"
+          onClick={() => navigate('/notifications')}
+          aria-label={t('notif.title')}
+          className="relative flex size-11 items-center justify-center rounded-pill text-muted-foreground transition-colors duration-fast ease-brand hover:bg-foreground/[0.06] hover:text-primary"
+        >
+          <Icon name="Bell" size={20} />
+          {waiting > 0 && (
+            <span
+              aria-hidden="true"
+              className="absolute right-2 top-2 size-2 rounded-pill bg-accent ring-2 ring-background"
+            />
+          )}
+        </button>
         <LanguageSwitcher />
         <ThemeToggle />
         <UserAvatar
