@@ -1,13 +1,15 @@
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 import { Check, RotateCcw, X } from 'lucide-react'
+
+import { animate, motion, useMotionValue, useTransform } from 'framer-motion'
 
 import { Stamp } from '@/components/ui/stamp'
 import { useT } from '@/i18n/T'
 import { HuntCard } from './HuntCard'
 import type { CardItem } from '@/store/hunt'
+import { SWIPE_COMMIT_PX, SWIPE_COMMIT_VELOCITY, settle as settleSpring } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
-const THRESHOLD = 0.4
 
 /** Stack, stamps and the pass/want actions are one organism.
  *
@@ -29,23 +31,26 @@ export function HuntStack({
   className?: string
 }) {
   const { t } = useT()
-  const [dx, setDx] = useState(0)
-  const [dragging, setDragging] = useState(false)
-  const startX = useRef(0)
-  const width = useRef(1)
   const ref = useRef<HTMLDivElement>(null)
+  const x = useMotionValue(0)
+  const rotate = useTransform(x, [-260, 0, 260], [-13, 0, 13])
+  const passOpacity = useTransform(x, [-140, -30, 0], [1, 0, 0])
+  const swapOpacity = useTransform(x, [0, 30, 140], [0, 0, 1])
 
   const top = cards[0]
   const behind = cards[1]
-  if (!top) return null
 
-  const ratio = dx / (width.current * THRESHOLD)
-
-  const settle = () => {
-    setDragging(false)
-    if (Math.abs(ratio) >= 1) onDecide(top, dx > 0)
-    setDx(0)
+  /** Send the card off screen, then report the decision. Declared before the
+   *  early return so the hook order above it never changes. */
+  const fly = (want: boolean) => {
+    if (!top) return
+    animate(x, want ? 600 : -600, { duration: 0.28, ease: [0.3, 0, 0.6, 1] })
+    onDecide(top, want)
+    // Reset for the next card, which mounts into this same element.
+    x.set(0)
   }
+
+  if (!top) return null
 
   return (
     <div className={cn('flex w-full max-w-[340px] flex-col', className)}>
@@ -56,41 +61,55 @@ export function HuntStack({
         aria-label={`${t('hunt.hintSwipe')}. ${t('hunt.hintKeys')}`}
         className="relative select-none outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45 rounded-hero"
         onKeyDown={(e) => {
-          if (e.key === 'ArrowLeft') onDecide(top, false)
-          if (e.key === 'ArrowRight') onDecide(top, true)
+          if (e.key === 'ArrowLeft') fly(false)
+          if (e.key === 'ArrowRight') fly(true)
         }}
-        onPointerDown={(e) => {
-          width.current = ref.current?.offsetWidth ?? 1
-          startX.current = e.clientX
-          setDragging(true)
-          e.currentTarget.setPointerCapture(e.pointerId)
-        }}
-        onPointerMove={(e) => dragging && setDx(e.clientX - startX.current)}
-        onPointerUp={settle}
-        onPointerCancel={settle}
       >
         {behind && (
           <div className="absolute -bottom-2 left-3 right-3 top-2 rounded-hero bg-card opacity-60 shadow-card" />
         )}
-        <div
+        {/* Physics ported from V5, in the order they matter:
+             1. rotation derives from x, so the card pivots around a point
+                below the finger -- that is what makes it feel like a card
+                rather than a sliding div;
+             2. the stamps fade in proportion to distance, so you know what
+                releasing will do BEFORE you release;
+             3. released under the threshold it springs back, over it flies.
+
+            Commit is distance OR velocity. Distance alone means a confident
+            flick that only travels 90px is ignored, which feels like the card
+            stuck to your finger. */}
+        <motion.div
+          key={top.id}
           className="relative"
-          style={{
-            transform: `translateX(${dx}px) rotate(${dx * 0.03}deg)`,
-            transition: dragging ? 'none' : 'transform 240ms var(--ease-out)',
-            cursor: dragging ? 'grabbing' : 'grab',
+          style={{ x, rotate, cursor: 'grab' }}
+          drag="x"
+          dragDirectionLock
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.7}
+          whileDrag={{ cursor: 'grabbing' }}
+          onDragEnd={(_, info) => {
+            const past = Math.abs(info.offset.x) > SWIPE_COMMIT_PX
+            const flicked = Math.abs(info.velocity.x) > SWIPE_COMMIT_VELOCITY
+            if (past || flicked) fly(info.offset.x > 0)
+            else animate(x, 0, settleSpring)
           }}
         >
-          <Stamp kind="swap" visible={ratio >= 1} />
-          <Stamp kind="pass" visible={ratio <= -1} />
+          <motion.div style={{ opacity: swapOpacity }} className="pointer-events-none">
+            <Stamp kind="swap" visible />
+          </motion.div>
+          <motion.div style={{ opacity: passOpacity }} className="pointer-events-none">
+            <Stamp kind="pass" visible />
+          </motion.div>
           <HuntCard item={top} />
-        </div>
+        </motion.div>
       </div>
 
       <div className="mt-4 flex items-center justify-center gap-5">
         <button
           type="button"
           aria-label={t('hunt.pass')}
-          onClick={() => onDecide(top, false)}
+          onClick={() => fly(false)}
           className="flex size-[60px] items-center justify-center rounded-pill border-2 border-destructive bg-card text-destructive shadow-float transition-colors duration-fast ease-brand hover:bg-destructive/[0.06] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45"
         >
           <X className="size-6" aria-hidden="true" />
@@ -111,7 +130,7 @@ export function HuntStack({
         <button
           type="button"
           aria-label={t('hunt.want')}
-          onClick={() => onDecide(top, true)}
+          onClick={() => fly(true)}
           className="flex size-[60px] items-center justify-center rounded-pill bg-primary text-primary-foreground shadow-float transition-colors duration-fast ease-brand hover:bg-[var(--green-hover)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45"
         >
           <Check className="size-6" aria-hidden="true" />

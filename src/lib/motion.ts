@@ -37,3 +37,17 @@ export const itemUp: Variants = {
   hidden: { opacity: 0, y: 12 },
   show: { opacity: 1, y: 0, transition: spring.snap },
 }
+
+
+/** Swipe commit thresholds, ported from V5.
+ *
+ *  Two ways to commit, not one: past the distance OR fast enough. Distance
+ *  alone means a confident flick that travels 90px is ignored, which feels
+ *  like the card stuck to your finger.
+ */
+export const SWIPE_COMMIT_PX = 110
+export const SWIPE_COMMIT_VELOCITY = 520
+
+/** Settle spring for a card released under the threshold. Softer than snap:
+ *  a card springing back should look like it was let go, not rejected. */
+export const settle = { type: 'spring', stiffness: 380, damping: 30, mass: 0.8 } as const
