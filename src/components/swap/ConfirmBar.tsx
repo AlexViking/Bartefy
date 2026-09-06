@@ -54,7 +54,10 @@ export function ConfirmBar({
           className,
         )}
       >
-        <Icon name="Check" size={18} className="shrink-0 text-primary" />
+        {/* The swap is done. This is the one moment in the app that earns an
+            overshoot: a tick that stops exactly at scale 1 reads as a state
+            change, one that passes 1.4 reads as something happening. */}
+        <Icon name="Check" size={18} className="shrink-0 animate-tick-pop text-primary" />
         <T as="span" k="barter.confirmDone" className="font-body text-sm text-foreground" />
       </motion.div>
     )

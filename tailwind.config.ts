@@ -61,13 +61,71 @@ export default {
       transitionTimingFunction: { brand: 'var(--ease-out)' },
       transitionDuration: { fast: '140ms', med: '240ms' },
       keyframes: {
-        // gentle only: fades and short slides, no bounce, no scale
+        // Ported from the V5 pilot. The overshoot curves are the point: a
+        // scale that stops exactly at 1 reads as a state change, one that
+        // passes 1.06 and settles reads as a thing arriving.
         'fade-in': { from: { opacity: '0' }, to: { opacity: '1' } },
-        'sheet-up': { from: { transform: 'translateY(8px)', opacity: '0' }, to: { transform: 'translateY(0)', opacity: '1' } },
+        'sheet-up': { from: { transform: 'translateY(100%)' }, to: { transform: 'translateY(0)' } },
+        // The workhorse: everything that enters a page uses this.
+        'rise-in': {
+          from: { opacity: '0', transform: 'translateY(12px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        'pop-in': {
+          '0%': { opacity: '0', transform: 'scale(.7)' },
+          '60%': { transform: 'scale(1.06)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        // A message landing, not a panel opening -- shorter and smaller.
+        'bubble-in': {
+          from: { opacity: '0', transform: 'translateY(10px) scale(.97)' },
+          to: { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
+        // Confirmation. Overshoots hard, because this is the moment a swap
+        // is done and it should feel like something happened.
+        'tick-pop': {
+          '0%': { transform: 'scale(1)' },
+          '45%': { transform: 'scale(1.4)' },
+          '100%': { transform: 'scale(1)' },
+        },
+        'point-pop': {
+          '0%': { transform: 'scale(1)' },
+          '40%': { transform: 'scale(1.18)' },
+          '100%': { transform: 'scale(1)' },
+        },
+        'icon-wiggle': {
+          '0%': { transform: 'rotate(0)' },
+          '30%': { transform: 'rotate(-9deg)' },
+          '60%': { transform: 'rotate(7deg)' },
+          '100%': { transform: 'rotate(0)' },
+        },
+        'toast-in': {
+          from: { opacity: '0', transform: 'translateY(14px) scale(.96)' },
+          to: { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
+        // Idle motion. Slow and small on purpose: it should read as alive,
+        // never as something asking to be looked at.
+        'float-y': {
+          '0%,100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-6px)' },
+        },
+        'card-float': {
+          '0%,100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
       },
       animation: {
         'fade-in': 'fade-in 140ms var(--ease-out)',
-        'sheet-up': 'sheet-up 240ms var(--ease-out)',
+        'sheet-up': 'sheet-up 320ms cubic-bezier(0.2,1,0.3,1)',
+        'rise-in': 'rise-in 320ms cubic-bezier(0.16,1,0.3,1) both',
+        'pop-in': 'pop-in 420ms cubic-bezier(0.2,1.3,0.4,1) both',
+        'bubble-in': 'bubble-in 260ms cubic-bezier(0.16,1,0.3,1) both',
+        'tick-pop': 'tick-pop 380ms cubic-bezier(0.2,1.4,0.4,1)',
+        'point-pop': 'point-pop 420ms cubic-bezier(0.16,1,0.3,1)',
+        'icon-wiggle': 'icon-wiggle 420ms ease-out',
+        'toast-in': 'toast-in 260ms cubic-bezier(0.2,1.3,0.4,1)',
+        'float-y': 'float-y 2.4s ease-in-out infinite',
+        'card-float': 'card-float 4.2s ease-in-out infinite',
       },
     },
   },

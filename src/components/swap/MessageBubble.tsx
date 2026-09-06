@@ -22,7 +22,7 @@ export function MessageBubble({
 
   const mine = from === 'me'
   return (
-    <div className={cn('flex max-w-[78%] flex-col gap-0.5', mine ? 'self-end items-end' : 'self-start')}>
+    <div className={cn('animate-bubble-in flex max-w-[78%] flex-col gap-0.5', mine ? 'self-end items-end' : 'self-start')}>
       <div
         className={cn(
           'px-3.5 py-2.5 font-body text-[15px]',

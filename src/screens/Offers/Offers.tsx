@@ -1,10 +1,7 @@
-import { motion } from 'framer-motion'
-
 import { AppShell } from '@/components/shell/AppShell'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { T, useT } from '@/i18n/T'
-import { spring } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { useOffers, type OfferRow } from './useOffers'
 
@@ -43,12 +40,9 @@ function OfferCard({
   const trades = offer.sender?.completedTrades ?? 0
 
   return (
-    <motion.li
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={spring.gentle}
-      className="rounded-card border-[1.5px] border-border/[0.14] bg-card p-4"
-    >
+    // rise-in rather than a per-item framer transition: same motion, no
+    // JS, and it matches the pilot's timing exactly.
+    <li className="animate-rise-in rounded-card border-[1.5px] border-border/[0.14] bg-card p-4">
       {offer.sender && (
         <div className="mb-3 flex items-center gap-2">
           {/* The name is user data, so no data-i18n on this row. */}
@@ -124,7 +118,7 @@ function OfferCard({
           {t('barter.sentPending')}
         </p>
       )}
-    </motion.li>
+    </li>
   )
 }
 

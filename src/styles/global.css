@@ -90,3 +90,22 @@
     display: block;
   }
 }
+
+/* Someone who has asked their device for less motion means it.
+ *
+ * The infinite loops are the ones that matter here -- a card breathing
+ * forever is exactly what triggers vestibular discomfort, and it is
+ * decoration, so it simply stops. One-shot entrances are collapsed to
+ * almost-instant rather than removed: an element that appears with no
+ * transition at all can be harder to follow than one that arrives quickly.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
