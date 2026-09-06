@@ -3,11 +3,26 @@ import { STATUS_TO_DB } from '@/types/swap'
 
 // ── Auth ────────────────────────────────────────────────────────────────────
 
+/** Email a six-digit code. The same call also underpins first-time sign-up:
+ *  shouldCreateUser defaults to true, so an address we have never seen gets an
+ *  account and a code in one step — there is no separate register screen.
+ *
+ *  No emailRedirectTo, deliberately. The Supabase email template renders
+ *  {{ .Token }} rather than {{ .ConfirmationURL }}, so there is no link to come
+ *  back through: the code is typed into the tab that asked for it and the
+ *  person never leaves the page. Restoring a link here would reintroduce the
+ *  second-tab flow this replaced.
+ */
 export async function requestOTP(email: string) {
-  return supabase.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: window.location.origin },
-  })
+  return supabase.auth.signInWithOtp({ email })
+}
+
+/** Exchange a typed code for a session. Type 'email' covers both the sign-up
+ *  and the sign-in code — Supabase issues one shape for both, which is why an
+ *  unknown address can be verified the same way as a returning one.
+ */
+export async function verifyOTP(email: string, token: string) {
+  return supabase.auth.verifyOtp({ email, token, type: 'email' })
 }
 
 export async function signOut() {
