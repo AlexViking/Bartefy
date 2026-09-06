@@ -466,8 +466,11 @@ export async function fileReport(input: {
   })
 }
 
-export async function blockUser(blocker: string, blocked: string) {
-  return supabase.from('blocks').upsert({ blocker, blocked }).select()
+export async function blockUser(blocker: string, blocked: string, reason?: string) {
+  // The reason is optional: someone who wants out of a conversation should
+  // never be held there by a required field. It feeds moderation only -- the
+  // blocked person is never told they were blocked, let alone why.
+  return supabase.from('blocks').upsert({ blocker, blocked, reason: reason ?? null }).select()
 }
 
 export async function unblockUser(blocker: string, blocked: string) {
@@ -481,7 +484,7 @@ export async function unblockUser(blocker: string, blocked: string) {
 export async function listBlocked(blocker: string) {
   return supabase
     .from('blocks')
-    .select('blocked, created_at, profile:profiles!blocked(id, name)')
+    .select('blocked, created_at, reason, profile:profiles!blocked(id, name)')
     .eq('blocker', blocker)
     .order('created_at', { ascending: false })
 }

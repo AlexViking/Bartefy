@@ -26,6 +26,9 @@ interface BlockedPerson {
   id: string
   /** Null when the profile has no name set — rendered as a fallback string. */
   name: string | null
+  /** Why they were blocked. Shown to the blocker as a reminder of their own
+   *  decision -- never to the blocked person, who is not told at all. */
+  reason: string | null
   since: string
 }
 
@@ -71,6 +74,7 @@ export function BlockedList() {
             // useT() returns a fresh `t` every render, and depending on it
             // would refetch forever.
             name: p?.name ?? null,
+            reason: (row.reason as string) ?? null,
             since: row.created_at as string,
           }
         }),
@@ -151,6 +155,17 @@ export function BlockedList() {
                   <div className="min-w-0 flex-1">
                     {/* User data, not a key — no data-i18n on this line. */}
                     <p className="truncate font-body text-base text-foreground">{shown}</p>
+                    {/* The reason first, when there is one: it is the thing
+                        that reminds you why this person is on the list. The
+                        date alone rarely does. */}
+                    {p.reason && (
+                      <p
+                        data-i18n={'block.reason_' + p.reason}
+                        className="mt-0.5 truncate font-body text-sm text-muted-foreground"
+                      >
+                        {t('block.reason_' + p.reason)}
+                      </p>
+                    )}
                     <p
                       data-i18n="settings.blockedSince"
                       className="mt-0.5 truncate font-body text-sm text-muted-foreground"

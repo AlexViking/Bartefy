@@ -1,8 +1,8 @@
 import { useNavigate, useSearchParams } from 'react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { getUnreadBySwap } from '@/lib/api'
-import { getMyMatches } from '@/lib/barter'
+import { archiveMatch, getMyMatches } from '@/lib/barter'
 import { keys, STALE } from '@/lib/cache/queryClient'
 import { useAuthStore } from '@/store/auth'
 import type { SwapStatus } from '@/types/swap'
@@ -21,6 +21,8 @@ export const INBOX_TABS: { id: InboxTab; label: string }[] = [
 
 export interface SwapRow {
   id: string
+  isSideA: boolean
+  cancelReason: string | null
   title: string
   status: SwapStatus
   photoUrl?: string
@@ -45,6 +47,7 @@ const CLOSED: SwapStatus[] = ['done', 'cancelled']
 /** The inbox's data and tab state, with no layout in it. */
 export function useSwapsInbox() {
   const navigate = useNavigate()
+  const qc = useQueryClient()
   const userId = useAuthStore((s) => s.session?.user?.id)
   const [params, setParams] = useSearchParams()
   // Validated rather than cast: a bookmarked ?tab=activity, or any other
@@ -88,7 +91,15 @@ export function useSwapsInbox() {
 
           const photos = theirItem?.images as string[] | undefined
           const dbStatus = String(m.status ?? 'active')
+          const isA = String(m.user_a) === userId
           return {
+            /** Which side I am, so Archive writes the right column. */
+            isSideA: isA,
+            /** 'item_traded_elsewhere' is the wireframe's "no longer
+             *  available": the other person traded that find with somebody
+             *  else, which is a different thing from a swap being called off
+             *  and reads very differently to the person it happened to. */
+            cancelReason: (m.cancel_reason as string) ?? null,
             id: String(m.id),
             // A match whose other side was removed still has to render, so
             // fall back to your own find rather than an empty row.
@@ -131,7 +142,13 @@ export function useSwapsInbox() {
   const closed = withUnread.filter((s) => CLOSED.includes(s.status))
   const rows = tab === 'closed' ? closed : active
 
+  const archive = async (id: string, isSideA: boolean) => {
+    await archiveMatch(id, isSideA)
+    qc.invalidateQueries({ queryKey: ['barter'] })
+  }
+
   return {
+    archive,
     tab,
     setTab: (t: InboxTab) => setParams(t === 'active' ? {} : { tab: t }),
     rows,

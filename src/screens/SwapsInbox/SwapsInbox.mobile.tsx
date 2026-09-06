@@ -25,6 +25,7 @@ export default function SwapsInboxMobile() {
           tab={s.tab}
           onOpen={s.openSwap}
           onGoHunt={s.goHunt}
+          onArchive={s.archive}
         />
 
         {!s.isLoading && s.active.length === 0 && s.tab === 'active' && (

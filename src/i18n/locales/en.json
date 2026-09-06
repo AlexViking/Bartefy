@@ -222,7 +222,8 @@
     "unread_other": "{{count}} new messages",
     "pickTitle": "Pick a swap",
     "pickBody": "Choose one from the list to see the thread and what happens next.",
-    "someone": "Someone"
+    "someone": "Someone",
+    "archive": "Archive"
   },
   "chat": {
     "placeholder": "Write a message",
@@ -568,5 +569,16 @@
     "thanksBody": "A person reads every report. The listing stays up until they do.",
     "alreadyReported": "You have already reported this find.",
     "action": "Report this find"
+  },
+  "block": {
+    "title": "Block {{name}}?",
+    "body": "They won't see your finds and you won't see theirs. Pick a reason if you like.",
+    "reason_spam": "Spamming me",
+    "reason_rude": "Rude or bad attitude",
+    "reason_suspicious": "Suspicious — possible scam",
+    "reason_other": "Something else",
+    "silent": "They are not told they were blocked.",
+    "confirm": "Block",
+    "action": "Block"
   }
 }

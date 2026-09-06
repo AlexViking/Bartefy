@@ -6,6 +6,9 @@ export interface CardItem {
   title: string
   category: string
   condition: string
+  /** Where the find is. The wireframe leads the card with it: where a
+   *  thing is decides whether the swap can happen at all. */
+  city?: string
   distance: string
   owner: string
   wants: string[]

@@ -101,6 +101,7 @@ export function useHunt() {
           Array.isArray(it.photo_urls) && (it.photo_urls as string[]).length > 0
             ? String((it.photo_urls as string[])[0])
             : undefined,
+        city: it.location_city ? String(it.location_city) : undefined,
         ownerId: String(it.user_id ?? ''),
         rating: it.rating != null ? Number(it.rating) : undefined,
         swapCount: it.swaps != null ? Number(it.swaps) : 0,

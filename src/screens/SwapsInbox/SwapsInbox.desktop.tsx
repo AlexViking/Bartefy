@@ -38,6 +38,7 @@ export default function SwapsInboxDesktop() {
             tab={s.tab}
             onOpen={s.openSwap}
             onGoHunt={s.goHunt}
+          onArchive={s.archive}
             selectedId={swapId}
           />
 

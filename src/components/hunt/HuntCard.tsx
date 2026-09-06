@@ -5,7 +5,7 @@ import { Icon } from '@/components/ui/icon'
 import { ToneBadge } from '@/components/ui/tone-badge'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { useT } from '@/i18n/T'
-import { categoryIcon, categoryLabel } from '@/lib/taxonomy'
+import { categoryLabel } from '@/lib/taxonomy'
 import type { CardItem } from '@/store/hunt'
 import { cn } from '@/lib/utils'
 
@@ -60,12 +60,29 @@ export function HuntCard({
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-2 p-4">
-        <h3 className="font-display text-h3 leading-tight text-foreground">{item.title}</h3>
-        {/* Joined rather than interpolated: a find with no distance used to
-            render "other ·" with a dangling separator and nothing after it. */}
+        {/* Title and condition on one line, per the wireframe: "Guitar · Good
+            condition" is a single thought, and splitting it across two rows
+            makes the condition read as a separate fact you have to hunt for. */}
+        <h3 className="font-display text-h3 leading-tight text-foreground">
+          {item.title}
+          {item.condition && (
+            <span className="font-body text-sm font-normal text-muted-foreground">
+              {' · '}
+              {item.condition}
+            </span>
+          )}
+        </h3>
+
+        {/* Location before category. Everything on this card is a reason to
+            swipe; where the thing is decides whether the swap can happen at
+            all, so it goes first. Joined rather than interpolated -- a find
+            with no distance used to render a dangling separator. */}
         <p className="flex items-center gap-1.5 font-body text-sm text-muted-foreground">
-          <Icon name={categoryIcon(item.category)} size={14} aria-hidden="true" className="shrink-0" />
-          {[t(categoryLabel(item.category)), item.distance].filter(Boolean).join(' · ')}
+          <Icon name="MapPin" size={14} aria-hidden="true" className="shrink-0" />
+          <span className="truncate">
+            {[item.city, item.distance].filter(Boolean).join(' · ') ||
+              t(categoryLabel(item.category))}
+          </span>
         </p>
         <div className="flex items-center gap-2">
           <UserAvatar name={item.owner} size="sm" />
