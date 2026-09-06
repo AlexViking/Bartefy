@@ -1,22 +1,28 @@
 import { useLocation, useNavigate } from 'react-router'
 
 import { Icon } from '@/components/ui/icon'
-import { DESTINATIONS, ADD_DESTINATION } from '@/navigation/destinations'
+import { TAB_DESTINATIONS, ADD_DESTINATION } from '@/navigation/destinations'
 import { useT } from '@/i18n/T'
 import { cn } from '@/lib/utils'
 
 /** Mobile navigation. Four destinations with the brass Add in the middle,
  *  every target at least 44px, thumb-reachable at the bottom of the screen.
  */
-export function TabBar({ unreadSwaps = 0 }: { unreadSwaps?: number }) {
+export function TabBar({
+  unreadSwaps = 0,
+  offers = 0,
+}: {
+  unreadSwaps?: number
+  offers?: number
+}) {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const { t } = useT()
-  const [first, second] = [DESTINATIONS.slice(0, 2), DESTINATIONS.slice(2)]
+  const [first, second] = [TAB_DESTINATIONS.slice(0, 2), TAB_DESTINATIONS.slice(2)]
 
-  const tab = (d: (typeof DESTINATIONS)[number]) => {
+  const tab = (d: (typeof TAB_DESTINATIONS)[number]) => {
     const active = pathname.startsWith(d.path)
-    const labelKey = `nav.${d.id}`
+    const labelKey = d.label
     return (
       <button
         key={d.id}
@@ -44,10 +50,10 @@ export function TabBar({ unreadSwaps = 0 }: { unreadSwaps?: number }) {
         >
           {t(labelKey)}
         </span>
-        {d.id === 'swaps' && unreadSwaps > 0 && (
+        {d.id === 'matches' && unreadSwaps + offers > 0 && (
           <span
             className="absolute right-1 top-0.5 size-2 rounded-pill bg-accent"
-            aria-label={t('swaps.unread', { count: unreadSwaps })}
+            aria-label={t('swaps.unread', { count: unreadSwaps + offers })}
           />
         )}
       </button>

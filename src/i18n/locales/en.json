@@ -35,7 +35,14 @@
     "add": "List a find",
     "settings": "Settings",
     "menu": "Menu",
-    "language": "Language"
+    "language": "Language",
+    "discover": "Discover",
+    "matches": "Matches",
+    "items": "Items",
+    "moderation": "Moderation",
+    "search": "Search finds…",
+    "collapse": "Collapse menu",
+    "expand": "Expand menu"
   },
   "auth": {
     "welcomeTitle": "Your old things are someone's treasure",
