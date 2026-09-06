@@ -23,6 +23,7 @@ export function useItemDetail() {
   const navigate = useNavigate()
   const [offerOpen, setOfferOpen] = useState(false)
   const userId = useAuthStore((s) => s.session?.user?.id)
+  const [viewerOpen, setViewerOpen] = useState(false)
   const [sending, setSending] = useState(false)
   const [offerError, setOfferError] = useState<string | null>(null)
   const [photo, setPhoto] = useState(0)
@@ -152,6 +153,11 @@ export function useItemDetail() {
     gallery,
     photo,
     setPhoto,
+    viewerOpen,
+    setViewerOpen,
+    /** Only real photos open in the viewer: enlarging a placeholder colour
+     *  well shows a full screen of flat colour. */
+    realPhotos: hasRealPhotos ? photos : [],
     offerOpen,
     setOfferOpen,
     myOfferables,

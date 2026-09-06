@@ -25,7 +25,8 @@
     "moreInfo": "More about this",
     "youAreHere": "You are here",
     "stepOf": "Step {{current}} of {{total}}",
-    "notYet": "Not yet"
+    "notYet": "Not yet",
+    "previous": "Previous"
   },
   "nav": {
     "hunt": "Hunt",
@@ -160,7 +161,8 @@
     "viewProfile": "Profile",
     "notFoundTitle": "This find is not here",
     "notFoundBody": "It may have been swapped, paused or taken down. Have a look at what else is around.",
-    "manage": "Manage this find"
+    "manage": "Manage this find",
+    "viewPhotos": "Photos"
   },
   "add": {
     "title": "List a find",

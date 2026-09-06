@@ -6,6 +6,7 @@ import { AppShell } from '@/components/shell/AppShell'
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
 import { InfoHint } from '@/components/guidance/InfoHint'
+import { PhotoViewer } from '@/components/ui/photo-viewer'
 import { OfferSheet } from '@/components/offer/OfferSheet'
 import { T, useT } from '@/i18n/T'
 import { Facts } from './Facts'
@@ -62,11 +63,19 @@ export default function ItemDetailDesktop() {
               style={{ background: current?.color }}
             >
               {current?.url && (
-                <img
-                  src={current.url}
-                  alt={t('a11y.photoOf', { title: d.item.title })}
-                  className="size-full object-contain"
-                />
+                // Click to open full screen -- see the note in the mobile file.
+                <button
+                  type="button"
+                  onClick={() => d.setViewerOpen(true)}
+                  aria-label={t('item.viewPhotos')}
+                  className="size-full cursor-zoom-in"
+                >
+                  <img
+                    src={current.url}
+                    alt={t('a11y.photoOf', { title: d.item.title })}
+                    className="size-full object-contain"
+                  />
+                </button>
               )}
             </div>
 
@@ -119,6 +128,15 @@ export default function ItemDetailDesktop() {
           </div>
         </div>
       </div>
+
+      <PhotoViewer
+        open={d.viewerOpen}
+        photos={d.realPhotos}
+        index={d.photo}
+        onIndexChange={d.setPhoto}
+        onClose={() => d.setViewerOpen(false)}
+        title={d.item.title}
+      />
 
       <OfferSheet
         open={d.offerOpen}

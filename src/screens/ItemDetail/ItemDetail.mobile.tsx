@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router'
 import { AppShell } from '@/components/shell/AppShell'
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
+import { PhotoViewer } from '@/components/ui/photo-viewer'
 import { OfferSheet } from '@/components/offer/OfferSheet'
 import { T, useT } from '@/i18n/T'
 import { Facts } from './Facts'
@@ -54,11 +55,21 @@ export default function ItemDetailMobile() {
           style={{ background: current?.color }}
         >
           {current?.url && (
-            <img
-              src={current.url}
-              alt={t('a11y.photoOf', { title: d.item.title })}
-              className="size-full object-contain"
-            />
+            // Tapping the photo opens it full screen. A listing photo is the
+            // only thing anyone has to judge a find by, and a card-sized one
+            // cannot answer "is that a chip or a reflection?".
+            <button
+              type="button"
+              onClick={() => d.setViewerOpen(true)}
+              aria-label={t('item.viewPhotos')}
+              className="size-full"
+            >
+              <img
+                src={current.url}
+                alt={t('a11y.photoOf', { title: d.item.title })}
+                className="size-full object-contain"
+              />
+            </button>
           )}
           <button
             type="button"
@@ -119,6 +130,15 @@ export default function ItemDetailMobile() {
           <Heart className="size-[18px]" aria-hidden="true" />
         </button>
       </div>
+
+      <PhotoViewer
+        open={d.viewerOpen}
+        photos={d.realPhotos}
+        index={d.photo}
+        onIndexChange={d.setPhoto}
+        onClose={() => d.setViewerOpen(false)}
+        title={d.item.title}
+      />
 
       <OfferSheet
         open={d.offerOpen}
