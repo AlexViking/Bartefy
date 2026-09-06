@@ -99,7 +99,11 @@ export function Topbar({
         </span>
       </button>
 
-      <div className="ml-auto flex items-center gap-1">
+      {/* Only what belongs on a 390px bar: the bell, and the avatar on
+          desktop where there is room. Language, theme and signing out moved
+          into the menu -- six controls beside a search box overflowed the
+          screen, and the avatar was cut in half at the right edge. */}
+      <div className="ml-auto flex items-center gap-0.5">
         {/* The bell, which had no way in until now: the screen existed and
             nothing linked to it. The dot appears only when something is
             waiting -- a permanent badge trains people to ignore it. */}
@@ -117,12 +121,16 @@ export function Topbar({
             />
           )}
         </button>
-        <LanguageSwitcher />
-        <ThemeToggle />
+        {/* The rail carries these on desktop; on a phone they are in the
+            menu behind the burger, which is what the burger is for. */}
+        <span className="hidden md:flex md:items-center md:gap-1">
+          <LanguageSwitcher />
+          <ThemeToggle />
+        </span>
         <UserAvatar
           name={name || 'Swapper'}
           size="md"
-          className="cursor-pointer"
+          className="hidden cursor-pointer md:block"
           onClick={() => navigate('/profile')}
         />
       </div>

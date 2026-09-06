@@ -524,7 +524,8 @@
     "label": "Appearance",
     "light": "Light",
     "dark": "Dark",
-    "system": "Match my device"
+    "system": "Match my device",
+    "language": "Language"
   },
   "barter": {
     "offerTitle": "What are you offering?",

@@ -120,6 +120,7 @@ export function AppShell({
         onOpenChange={setMenuOpen}
         isStaff={isStaff}
         badges={badges}
+        name={email}
       />
     </div>
   )
