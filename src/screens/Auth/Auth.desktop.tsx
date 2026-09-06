@@ -1,4 +1,8 @@
+import { motion } from 'framer-motion'
+
 import { Wordmark } from '@/components/Wordmark'
+import { DriftingBlobs, SwapAnimation } from '@/components/auth/SwapAnimation'
+import { spring } from '@/lib/motion'
 import mapUrl from '@/assets/bartefy-bg-treasure-map.png'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { T } from '@/i18n/T'
@@ -16,15 +20,18 @@ export default function AuthDesktop() {
   return (
     <div className="grid min-h-dvh grid-cols-2 bg-background">
       <aside
-        className="flex flex-col justify-between p-10"
+        className="relative flex flex-col justify-between overflow-hidden p-10"
         style={{
           backgroundImage: `linear-gradient(rgba(47,106,82,0.92), rgba(47,106,82,0.92)), url(${mapUrl})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       >
-        <Wordmark on="dark" />
-        <div className="max-w-[420px] space-y-4">
+        <DriftingBlobs />
+
+        {/* relative on each child so the blobs stay behind the copy. */}
+        <Wordmark on="dark" className="relative" />
+        <div className="relative max-w-[420px] space-y-4">
           <T as="h1" k="auth.welcomeTitle" className="font-display text-h2 text-primary-foreground" />
           <T
             as="p"
@@ -32,10 +39,13 @@ export default function AuthDesktop() {
             className="font-body text-body leading-relaxed text-primary-foreground/80"
           />
         </div>
+
+        <SwapAnimation className="relative" />
+
         <T
           as="p"
           k="membership.alwaysFreeBody"
-          className="max-w-[420px] font-body text-sm leading-relaxed text-primary-foreground/70"
+          className="relative max-w-[420px] font-body text-sm leading-relaxed text-primary-foreground/70"
         />
       </aside>
 
@@ -43,9 +53,14 @@ export default function AuthDesktop() {
         <div className="absolute right-6 top-6">
           <LanguageSwitcher />
         </div>
-        <div className="w-full max-w-[400px]">
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={spring.gentle}
+          className="w-full max-w-[400px]"
+        >
           <AuthForm a={a} />
-        </div>
+        </motion.div>
       </main>
     </div>
   )

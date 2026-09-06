@@ -35,13 +35,23 @@ export async function requestSignInOTP(email: string) {
  *  path, not here. Capturing at signup and paying at first trade is what stops
  *  accounts being farmed for invites.
  */
-export async function requestSignUpOTP(email: string, referralCode?: string) {
+export async function requestSignUpOTP(
+  email: string,
+  { name, referralCode }: { name?: string; referralCode?: string } = {},
+) {
   const code = referralCode?.trim().toUpperCase()
+  const displayName = name?.trim()
   return supabase.auth.signInWithOtp({
     email,
     options: {
       shouldCreateUser: true,
-      ...(code ? { data: { referral_code: code } } : {}),
+      // Both ride the same path for the same reason: handle_new_user inserts
+      // the profile inside the auth transaction, so anything the row needs at
+      // birth has to arrive with the signup rather than be written after.
+      data: {
+        ...(displayName ? { name: displayName } : {}),
+        ...(code ? { referral_code: code } : {}),
+      },
     },
   })
 }
