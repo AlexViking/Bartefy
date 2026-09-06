@@ -15,7 +15,7 @@ import { Settings } from './screens/Settings'
 import { BlockedList } from './screens/BlockedList'
 import { Match } from './screens/Match'
 import { Hunt } from './screens/Hunt'
-import { Browse } from './screens/Browse'
+import MyItems from './screens/MyItems'
 import { SwapsInbox } from './screens/SwapsInbox'
 import Offers from './screens/Offers/Offers'
 import Invite from './screens/Invite'
@@ -88,7 +88,7 @@ export function AppRouter() {
 
         {/* Four destinations, matching TabBar and TopNav exactly */}
         <Route path="/discover" element={guard(<Hunt />)} />
-        <Route path="/items" element={guard(<Browse />)} />
+        <Route path="/items" element={guard(<MyItems />)} />
         <Route path="/matches" element={guard(<SwapsInbox />)} />
         <Route path="/offers" element={guard(<Offers />)} />
         <Route path="/invite" element={guard(<Invite />)} />
@@ -120,7 +120,10 @@ export function AppRouter() {
             bookmarks and anything already shared. A renamed nav must not
             break a link somebody was sent last week. */}
         <Route path="/hunt" element={<Navigate to="/discover" replace />} />
-        <Route path="/browse" element={<Navigate to="/items" replace />} />
+        {/* Browse is gone: it was a grid behind a search box and a filter
+            rail, and the app has neither any more. Old links land on the deck,
+            which is where looking at other people's finds happens now. */}
+        <Route path="/browse" element={<Navigate to="/discover" replace />} />
         <Route path="/swaps" element={<Navigate to="/matches" replace />} />
         <Route path="/swaps/:swapId" element={<RedirectSwap />} />
         <Route path="/activity" element={<Navigate to="/matches" replace />} />

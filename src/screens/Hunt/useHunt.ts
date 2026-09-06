@@ -11,9 +11,8 @@ import { useHuntStore, type CardItem } from '@/store/hunt'
 import { useOnboardingStore } from '@/store/onboarding'
 import { DEFAULT_CITY } from '@/screens/Onboarding/useOnboarding'
 
-/** One taxonomy for the whole app — see lib/taxonomy.ts. Hunt, Browse,
- *  AddItem and onboarding all used to keep their own drifting copies. */
-export const HUNT_CATEGORIES = CATEGORIES
+/** One taxonomy for the whole app — see lib/taxonomy.ts. Hunt, AddItem and
+ *  onboarding all used to keep their own drifting copies. */
 
 /** One of my finds, as offered in the hunt picker. */
 export interface OfferOption {
@@ -39,11 +38,11 @@ export function useHunt() {
   const removeTopCard = useHuntStore((s) => s.removeTopCard)
   const addToLikeHistory = useHuntStore((s) => s.addToLikeHistory)
 
-  /** Onboarding's taste picker seeds the first filter set — the point of asking
-   *  is that the first few cards are not random. */
-  const [filters, setFilters] = useState<string[]>(() =>
-    HUNT_CATEGORIES.filter((c) => tastes.includes(c.id)).map((c) => c.id),
-  )
+  /** Onboarding's taste picker still seeds what the deck prefers, but there is
+   *  no filter UI any more: the app does not filter, and the chips only ever
+   *  changed the query key. fetchFeed was never given them, so toggling one
+   *  refetched an identical feed and appeared to do nothing. */
+  const tasteIds = CATEGORIES.filter((c) => tastes.includes(c.id)).map((c) => c.id)
   const [radiusKm, setRadiusKm] = useState(10)
   const [matched, setMatched] = useState<CardItem | null>(null)
   /** Title of the find an offer was just sent for, for the confirmation. */
@@ -83,7 +82,7 @@ export function useHunt() {
   }, [offerIds, selectedOfferId, setSelectedOfferId])
 
   const { isLoading, error } = useQuery({
-    queryKey: keys.feed(filters, radiusKm),
+    queryKey: keys.feed(tasteIds, radiusKm),
     queryFn: async () => {
       const { data, error: feedError } = await fetchFeed({ city, radiusKm, userId: userId! })
       if (feedError) throw feedError
@@ -191,9 +190,6 @@ export function useHunt() {
     setOfferError(null)
   }
 
-  const toggleFilter = (c: string) =>
-    setFilters((f) => (f.includes(c) ? f.filter((x) => x !== c) : [...f, c]))
-
   return {
     cards,
     top,
@@ -203,8 +199,6 @@ export function useHunt() {
     selectedOffer: offers.find((o) => o.id === selectedOfferId),
     isLoading,
     error,
-    filters,
-    toggleFilter,
     radiusKm,
     widen: () => setRadiusKm((r) => Math.round(r * 2.5)),
     matched,
@@ -220,7 +214,6 @@ export function useHunt() {
     dismissSent: () => setSentTitle(null),
     openItem: (id: string) => navigate('/item/' + id),
     openSwap: (id: string) => navigate('/matches/' + id),
-    goBrowse: () => navigate('/items'),
     goAdd: () => navigate('/add'),
   }
 }

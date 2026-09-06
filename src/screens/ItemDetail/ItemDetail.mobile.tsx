@@ -28,8 +28,8 @@ export default function ItemDetailMobile() {
           <EmptyState
             title="item.notFoundTitle"
             body="item.notFoundBody"
-            actionLabel="nav.browse"
-            onAction={() => navigate('/items')}
+            actionLabel="nav.discover"
+            onAction={() => navigate('/discover')}
           />
         </div>
       </AppShell>

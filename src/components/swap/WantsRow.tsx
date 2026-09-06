@@ -63,7 +63,7 @@ export function WantsRow({
       {note && <p className="font-body text-sm text-muted-foreground">{note}</p>}
       {matchCount > 0 && (
         <span className="font-body text-sm font-semibold text-primary">
-          {t('browse.resultCount', { count: matchCount })}
+          {t('wants.matchCount', { count: matchCount })}
         </span>
       )}
     </div>

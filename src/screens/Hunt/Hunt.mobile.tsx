@@ -1,79 +1,34 @@
-import { useState } from 'react'
-import { SlidersHorizontal } from 'lucide-react'
-
 import { AppShell } from '@/components/shell/AppShell'
 import { EmptyState } from '@/components/EmptyState'
 import { OfferSheet } from '@/components/offer/OfferSheet'
 import { HuntStack } from '@/components/hunt/HuntStack'
 import { NextStep } from '@/components/guidance/NextStep'
 import { Button } from '@/components/ui/button'
-import { Chip } from '@/components/ui/tone-badge'
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from '@/components/ui/sheet'
 import { SwapPair } from '@/components/swap/SwapPair'
 import { T, useT } from '@/i18n/T'
-import { HUNT_CATEGORIES, useHunt } from './useHunt'
+import { useHunt } from './useHunt'
 
 /** Hunt, phone shape: the stack is the whole screen.
  *
- *  Filters and the find's details are both sheets rather than rails — a phone
- *  has room for one thing at a time, and that thing is the card.
+ *  No heading and no filter button. The card already says what it is, and a
+ *  title reading "Today's finds" above it spent a fifth of a 390px screen
+ *  restating that -- the deck is the screen. Filters are gone from the app
+ *  entirely: they only ever changed the feed's query key, never its request.
  */
 export default function HuntMobile() {
   const h = useHunt()
   const { t } = useT()
-  const [filtersOpen, setFiltersOpen] = useState(false)
 
   return (
     <AppShell>
       <div className="flex min-h-[calc(100dvh-72px)] flex-col">
-        <header className="flex items-center justify-between gap-3 px-5 pb-2 pt-4">
-          <T as="h1" k="hunt.title" className="font-display text-h2 text-foreground" />
-          <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="sm" aria-label={t('browse.filters')}>
-                <SlidersHorizontal aria-hidden="true" />
-                {t('browse.filters')}
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="rounded-t-hero">
-              <SheetHeader>
-                <SheetTitle data-i18n="hunt.filtersTitle" className="font-display text-h3">
-                  {t('hunt.filtersTitle')}
-                </SheetTitle>
-              </SheetHeader>
-              <div className="flex flex-wrap gap-2 pt-4">
-                {HUNT_CATEGORIES.map((c) => (
-            <Chip
-              key={c.id}
-              icon={c.icon}
-              active={h.filters.includes(c.id)}
-              onClick={() => h.toggleFilter(c.id)}
-            >
-              {t(c.label)}
-            </Chip>
-          ))}
-              </div>
-              <Button
-                fullWidth
-                size="lg"
-                className="mt-6"
-                onClick={() => setFiltersOpen(false)}
-                data-i18n="common.done"
-              >
-                {t('common.done')}
-              </Button>
-            </SheetContent>
-          </Sheet>
-        </header>
-
-
-        <section className="flex flex-1 flex-col items-center justify-center gap-4 px-5 pb-6">
+        <section className="flex flex-1 flex-col items-center justify-center gap-4 px-5 pb-6 pt-2">
           {h.isLoading ? (
             <T as="p" k="hunt.loading" className="font-body text-sm text-muted-foreground" />
           ) : h.top ? (
@@ -93,8 +48,6 @@ export default function HuntMobile() {
               actionLabel="hunt.widen"
               actionValues={{ radius: Math.round(h.radiusKm * 2.5) }}
               onAction={h.widen}
-              secondaryLabel="hunt.browseInstead"
-              onSecondary={h.goBrowse}
             />
           )}
         </section>

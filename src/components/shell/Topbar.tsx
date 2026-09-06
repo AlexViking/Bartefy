@@ -12,11 +12,12 @@ import { useT } from '@/i18n/T'
 import { spring } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
-/** The bar across the top: brand, search, and the personal controls.
+/** The bar across the top: brand, and the personal controls.
  *
- *  Search lives here rather than inside a screen. It was previously reachable
- *  only from Browse, which meant "Browse" was really two features -- a grid and
- *  a search box -- sharing one nav slot and one confusing name.
+ *  There is no search. Bartefy does not have a find-by-keyword feature and is
+ *  not getting one -- what you can do is look at what is nearby, one card at a
+ *  time, which is Discover. A search box that filtered nothing was promising a
+ *  capability the product does not have.
  *
  *  It condenses on scroll: the height and the wordmark shrink and a hairline
  *  appears. Small, but it gives the page a sense of depth rather than a header
@@ -84,20 +85,6 @@ export function Topbar({
         <Wordmark className="w-[124px]" />
       </motion.button>
 
-      <button
-        type="button"
-        onClick={() => navigate('/items?focus=1')}
-        className={cn(
-          'group ml-2 hidden max-w-[420px] flex-1 items-center gap-2 rounded-pill border-[1.5px] border-border/[0.14] bg-card px-4 py-2 md:flex',
-          'text-left font-body text-sm text-muted-foreground',
-          'transition-colors duration-fast hover:border-primary/40',
-        )}
-      >
-        <Icon name="Search" size={16} />
-        <span data-i18n="nav.search" className="flex-1 truncate">
-          {t('nav.search')}
-        </span>
-      </button>
 
       {/* Only what belongs on a 390px bar: the bell, and the avatar on
           desktop where there is room. Language, theme and signing out moved
@@ -121,15 +108,21 @@ export function Topbar({
             />
           )}
         </button>
-        {/* The rail carries these on desktop; on a phone they are in the
-            menu behind the burger, which is what the burger is for. */}
+        {/* Language then theme, in that order, then the avatar last -- the
+            account control belongs at the end of the row, nearest the edge.
+            On a phone these are in the menu behind the burger. */}
         <span className="hidden md:flex md:items-center md:gap-1">
           <LanguageSwitcher />
           <ThemeToggle />
         </span>
+        {/* Brass, matching the notification dot: the two account-coloured
+            things on the bar read as a set. Profile is no longer a nav row,
+            so this is now the way to it. */}
         <UserAvatar
           name={name}
           size="md"
+          tone="accent"
+          aria-label={t('nav.profile')}
           className="hidden cursor-pointer md:block"
           onClick={() => navigate('/profile')}
         />

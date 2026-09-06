@@ -21,7 +21,18 @@ const SIZES = {
 export type AvatarSize = keyof typeof SIZES
 
 function initialsFrom(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
+  // An email is a common fallback when the profile has no name yet, and
+  // initialling the raw string gives the first character of the local part --
+  // "3" for 3ds.alex@… . Take the local part and split it on the separators
+  // people actually use in an address, so that reads "DA" rather than "3".
+  const source = name.includes('@') ? name.split('@')[0].replace(/[._\-+]+/g, ' ') : name
+  const parts = source
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    // Digits alone are not initials -- an address like 3ds.alex should give
+    // "A", not "3".
+    .filter((p) => /\p{L}/u.test(p))
   if (parts.length === 0) return '?'
   if (parts.length === 1) return parts[0].slice(0, 1).toUpperCase()
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
@@ -31,6 +42,7 @@ export function UserAvatar({
   name,
   src,
   size = 'md',
+  tone = 'quiet',
   verified = false,
   className,
   ...props
@@ -38,6 +50,10 @@ export function UserAvatar({
   name: string
   src?: string | null
   size?: AvatarSize
+  /** `accent` fills the initials circle in brass. Used for the signed-in
+   *  person's own avatar in the topbar, so it matches the notification dot
+   *  and reads as "you" rather than as one more grey circle. */
+  tone?: 'quiet' | 'accent'
   verified?: boolean
   className?: string
 } & React.HTMLAttributes<HTMLDivElement>) {
@@ -46,7 +62,14 @@ export function UserAvatar({
     <div className={cn('relative inline-flex shrink-0', className)} {...props}>
       <Avatar className={cn(SIZES[size], 'border border-border/[0.14]')}>
         {src && <AvatarImage src={src} alt={t('a11y.avatarOf', { name })} />}
-        <AvatarFallback className="bg-secondary font-display font-semibold text-foreground">
+        <AvatarFallback
+          className={cn(
+            'font-display font-semibold',
+            tone === 'accent'
+              ? 'bg-accent text-accent-foreground'
+              : 'bg-secondary text-foreground',
+          )}
+        >
           {initialsFrom(name)}
         </AvatarFallback>
       </Avatar>

@@ -44,10 +44,8 @@ export default function HuntDesktop() {
           <T as="h1" k="hunt.title" className="sr-only" />
 
           {/* No category rail on the deck. The pilot's Discover screen is the
-              card and nothing else: filtering is something you do in Browse
-              when you already know what you want, and sixteen chips above a
-              swipe deck is a decision asked before anyone has seen anything.
-              The filters live in Browse, reached from the topbar search. */}
+              card and nothing else -- and there is nowhere else for filters to
+              live now: the app does not filter at all. */}
 
           {/* The deck, centred in what is left. max-w keeps the card a card:
               a 900px-wide swipe card is a poster. */}
@@ -67,8 +65,6 @@ export default function HuntDesktop() {
                 actionLabel="hunt.widen"
                 actionValues={{ radius: Math.round(h.radiusKm * 2.5) }}
                 onAction={h.widen}
-                secondaryLabel="hunt.browseInstead"
-                onSecondary={h.goBrowse}
               />
             )}
           </div>

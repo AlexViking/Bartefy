@@ -180,8 +180,8 @@ export default function Offers() {
               k="barter.inboxEmpty"
               className="max-w-[38ch] font-body text-body text-muted-foreground"
             />
-            <Button variant="ghost" onClick={o.goHunt} data-i18n="nav.hunt">
-              {t('nav.hunt')}
+            <Button variant="ghost" onClick={o.goHunt} data-i18n="nav.discover">
+              {t('nav.discover')}
             </Button>
           </div>
         ) : (

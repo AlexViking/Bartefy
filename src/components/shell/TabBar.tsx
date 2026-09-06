@@ -5,12 +5,17 @@ import { TAB_DESTINATIONS, ADD_DESTINATION } from '@/navigation/destinations'
 import { useT } from '@/i18n/T'
 import { cn } from '@/lib/utils'
 
-/** The phone's navigation: Deck, Matches, the brass Add, Profile.
+/** The phone's navigation: Discover, Matches, the brass Add, My Items.
  *
- *  Four things, as the wireframe draws it. Everything else -- settings,
- *  moderation, language, theme, signing out -- lives in the burger, because a
- *  thumb reaches about four targets across the bottom of a phone and a fifth
- *  makes all five worse.
+ *  Four slots with Add third, which is how the wireframe draws it. The
+ *  previous bar had three destinations with Add appended fourth and sitting
+ *  off to one side -- not a styling problem but a counting one: an odd number
+ *  of destinations has no middle to put a centre action in. Profile moved
+ *  behind the avatar to make the count even, and Add now centres with no
+ *  spacer column and no special case.
+ *
+ *  Everything that is not one of these four -- Profile, Settings, Moderation,
+ *  language, theme, signing out -- is in the menu behind the burger.
  */
 export function TabBar({
   unreadSwaps = 0,
@@ -23,17 +28,19 @@ export function TabBar({
   const { pathname } = useLocation()
   const { t } = useT()
 
-  /** All three destinations, then Add.
-   *
-   *  Add cannot be centred with three tabs: two on one side and one on the
-   *  other never balances, and the last attempt left it 48px off. Rather than
-   *  fake a centre with an empty column -- which shoved every tab left --
-   *  the button sits at the end, where its size and colour already mark it as
-   *  a different kind of thing from a destination. */
-  const tabs = TAB_DESTINATIONS
-
   const tab = (d: (typeof TAB_DESTINATIONS)[number]) => {
-    const active = pathname.startsWith(d.path)
+    // Exact match, or a child path. startsWith alone lit Discover up on
+    // every route beginning with "/d", and marked two tabs active at once
+    // wherever one destination's path prefixed another's.
+    const active = pathname === d.path || pathname.startsWith(d.path + '/')
+
+    /** Offers are a decision waiting on you; unread messages are not. The bar
+     *  has room for one mark per tab, so an offer wins: it is the one that
+     *  goes stale. */
+    const waitingOffers = d.badge === 'unread' ? offers : 0
+    const waitingUnread = d.badge === 'unread' ? unreadSwaps : 0
+    const marked = waitingOffers + waitingUnread > 0
+
     return (
       <button
         key={d.id}
@@ -66,25 +73,40 @@ export function TabBar({
         >
           {t(d.label)}
         </span>
-        {d.id === 'matches' && unreadSwaps + offers > 0 && (
+        {marked && (
           <span
-            className="absolute right-1 top-0.5 size-2 rounded-pill bg-accent"
-            aria-label={t('swaps.unread', { count: unreadSwaps + offers })}
+            className={cn(
+              // Anchored to the icon, not the tab box. Pinned to the tab's
+              // right edge it drifted into the gap beside the Add button and
+              // read as belonging to neither -- a flex-1 tab is much wider
+              // than the glyph it centres.
+              'absolute left-1/2 top-0.5 ml-2 rounded-pill',
+              // An offer is a ring around the dot -- readable at 8px without
+              // needing a second colour the palette does not have.
+              waitingOffers > 0
+                ? 'size-2.5 bg-accent ring-2 ring-primary'
+                : 'size-2 bg-primary-foreground/70',
+            )}
+            aria-label={
+              waitingOffers > 0
+                ? t('swaps.offersWaiting', { count: waitingOffers })
+                : t('swaps.unread', { count: waitingUnread })
+            }
           />
         )}
       </button>
     )
   }
 
+  // Add is the third of four slots. Splicing it into the middle of the list
+  // is what centres it -- not a margin, and not an empty grid column.
+  const [first, second, third] = TAB_DESTINATIONS
+
   return (
     <div className="px-4 pb-[max(8px,env(safe-area-inset-bottom))] pt-1.5">
-      {/* Flex with equal-basis tabs, not a grid with a spacer column.
-          The grid needed an empty trailing column to centre Add, and that
-          column shoved every tab left -- Discover and Matches bunched at one
-          end with Profile stranded at the other. Three equal tabs followed by
-          the button sit evenly with no spacer at all. */}
       <nav className="flex items-center gap-1 rounded-pill bg-primary px-2 py-1.5 shadow-float">
-        {tabs.map(tab)}
+        {first && tab(first)}
+        {second && tab(second)}
         <button
           type="button"
           onClick={() => navigate(ADD_DESTINATION.path)}
@@ -93,6 +115,7 @@ export function TabBar({
         >
           <Icon name="Plus" size={24} />
         </button>
+        {third && tab(third)}
       </nav>
     </div>
   )

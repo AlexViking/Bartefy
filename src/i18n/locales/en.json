@@ -29,9 +29,6 @@
     "previous": "Previous"
   },
   "nav": {
-    "hunt": "Hunt",
-    "browse": "Browse finds",
-    "swaps": "Swaps",
     "profile": "Profile",
     "add": "List a find",
     "settings": "Settings",
@@ -41,7 +38,6 @@
     "matches": "Matches",
     "items": "My items",
     "moderation": "Moderation",
-    "search": "Search finds…",
     "collapse": "Collapse menu",
     "expand": "Expand menu"
   },
@@ -101,7 +97,6 @@
   },
   "hunt": {
     "title": "Today's finds",
-    "filtersTitle": "What you are hunting",
     "offerLabel": "Offering",
     "offerNone": "List a find to trade with",
     "offerMine": "Your find",
@@ -115,29 +110,12 @@
     "emptyTitle": "That's everything nearby",
     "emptyBody": "You have seen every find within {{radius}} km. Widen the range, or list something of your own — new finds arrive daily.",
     "widen": "Widen to {{radius}} km",
-    "browseInstead": "Browse instead",
     "hintSwipe": "Swipe left to pass. Swipe right to put one of yours on the table.",
     "hintKeys": "Or use ← and → on your keyboard",
     "matchTitle": "It's a bartefy!",
     "matchBody": "You both want what the other has.",
     "sayHello": "Say hello",
     "keepHunting": "Keep hunting"
-  },
-  "browse": {
-    "title": "Browse",
-    "searchPlaceholder": "Search finds near you",
-    "filters": "Filters",
-    "radius": "Within {{radius}} km",
-    "category": "Category",
-    "sortBy": "Sort by",
-    "sortNewest": "Newest first",
-    "sortNearest": "Nearest first",
-    "resultCount": "{{count}} find",
-    "resultCount_other": "{{count}} finds",
-    "emptyTitle": "No finds match that",
-    "emptyBody": "Try fewer filters or a wider range.",
-    "clearFilters": "Clear filters",
-    "saveSearch": "Save this search"
   },
   "item": {
     "condition": "Condition",
@@ -215,7 +193,7 @@
     "seeMyItems": "See my finds"
   },
   "swaps": {
-    "title": "Swaps",
+    "title": "Matches",
     "tabActive": "Active",
     "tabDone": "Done",
     "emptyTitle": "No swaps yet",
@@ -232,7 +210,10 @@
     "pickTitle": "Pick a swap",
     "pickBody": "Choose one from the list to see the thread and what happens next.",
     "someone": "Someone",
-    "archive": "Archive"
+    "archive": "Archive",
+    "offersWaiting": "{{count}} offers waiting",
+    "offersWaiting_one": "{{count}} offer waiting",
+    "yourSide": "Yours"
   },
   "chat": {
     "placeholder": "Write a message",
@@ -336,33 +317,31 @@
   "profile": {
     "title": "Profile",
     "someone": "Someone",
-    "myFinds": "On the table",
     "swapsDone": "{{count}} swap done",
     "swapsDone_other": "{{count}} swaps done",
     "rating": "{{rating}} out of 5",
     "noRatingYet": "No ratings yet",
     "memberSince": "Member since {{date}}",
     "editProfile": "Edit profile",
-    "emptyFindsTitle": "Nothing on the table yet",
-    "emptyFindsBody": "List one thing and offers start arriving.",
     "verified": "Verified",
     "statSwaps": "Swaps",
     "statLive": "Finds live",
-    "statEyeing": "Eyeing",
-    "tabLive": "On the table",
-    "tabPaused": "Paused",
-    "listAnother": "List another find",
-    "emptyPausedTitle": "Nothing paused",
-    "emptyPausedBody": "Finds you park land here. They keep their photos and story.",
-    "emptyEyeingTitle": "Nothing saved yet",
-    "emptyEyeingBody": "Save a find while you think about it — it will be here.",
     "inviteTitle": "Your invite code",
     "inviteBody": "Share it. You both get credit when they finish their first swap.",
     "hubInvite": "Invite friends",
     "hubBlocked": "Blocked users",
     "hubSettings": "Settings",
     "daysLeft": "{{count}} days left",
-    "daysLeft_one": "Last day"
+    "daysLeft_one": "Last day",
+    "you": "You",
+    "membershipRow": "{{tier}} membership",
+    "membershipRadius": "Hunting within {{radius}} km",
+    "membershipNoRadius": "No radius cap",
+    "membershipFinds": "{{count}} finds live",
+    "membershipFinds_one": "{{count}} find live",
+    "membershipUnlimited": "Unlimited finds",
+    "seePlans": "See plans",
+    "managePlan": "Manage"
   },
   "membership": {
     "title": "Membership",
@@ -629,5 +608,19 @@
     "completedTitle": "Swap finished",
     "cancelledTitle": "A swap was called off",
     "goneTitle": "That find went elsewhere"
+  },
+  "items": {
+    "title": "My items",
+    "tabLive": "Live",
+    "tabPaused": "Paused",
+    "chooseLive": "Choose what stays live",
+    "emptyLiveTitle": "Nothing on the table yet",
+    "emptyLiveBody": "List a find and it starts showing up in other people’s decks.",
+    "emptyPausedTitle": "Nothing paused",
+    "emptyPausedBody": "Finds you pause are kept here. They stay yours — they just stop showing up in decks."
+  },
+  "wants": {
+    "matchCount": "{{count}} of your finds match",
+    "matchCount_one": "{{count}} of your finds matches"
   }
 }

@@ -23,7 +23,7 @@ export function SwapPair({
 
   return (
     <div className={cn('flex items-center gap-3', className)}>
-      <Side items={left} label={t('profile.myFinds')} size={size} />
+      <Side items={left} label={t('swaps.yourSide')} size={size} />
       <span aria-hidden className="font-display text-xl font-bold text-primary">
         {'\u2194'}
       </span>
