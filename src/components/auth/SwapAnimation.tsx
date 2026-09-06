@@ -1,5 +1,9 @@
 import { motion, useReducedMotion } from 'framer-motion'
 
+import card1 from '@/assets/swap-card-1.png'
+import card2 from '@/assets/swap-card-2.png'
+import card3 from '@/assets/swap-card-3.png'
+
 /** Two finds trading places on a slow loop, ported from v5's BrandPanel.
  *
  *  It says what the product does without a word of copy, which is why it earns
@@ -48,10 +52,16 @@ export function SwapAnimation({ className }: { className?: string }) {
         </svg>
 
         {/* The outer two swap; the middle one stays put, so the exchange reads
-            as two things passing rather than everything drifting. */}
-        <SwapCard offset={-130} tone=".28" travel={196} float={4.2} arc={-34} still={still} />
-        <SwapCard offset={-32} tone=".12" travel={0} float={5.6} delay={0.7} still={still} />
-        <SwapCard offset={66} tone=".22" travel={-196} float={4.8} arc={34} delay={0.35} still={still} />
+            as two things passing rather than everything drifting.
+
+            Each card carries a real find rather than a blank tile — a guitar
+            going one way, a ring the other, which is the swap the copy beside
+            it describes. The three artworks have quite different aspect ratios
+            (0.53, 1.15, 1.37), so they are fitted rather than filled: cropping
+            a guitar to a card shape would cut the neck off. */}
+        <SwapCard offset={-130} tone=".28" travel={196} float={4.2} arc={-34} art={card1} still={still} />
+        <SwapCard offset={-32} tone=".12" travel={0} float={5.6} delay={0.7} art={card2} still={still} />
+        <SwapCard offset={66} tone=".22" travel={-196} float={4.8} arc={34} delay={0.35} art={card3} still={still} />
       </div>
     </div>
   )
@@ -64,6 +74,7 @@ function SwapCard({
   float,
   arc = 0,
   delay = 0,
+  art,
   still,
 }: {
   offset: number
@@ -73,6 +84,8 @@ function SwapCard({
   /** Vertical detour at the midpoint, so two travellers pass instead of collide. */
   arc?: number
   delay?: number
+  /** Artwork for this card. Fitted, never cropped. */
+  art: string
   still: boolean | null
 }) {
   const swapping = travel !== 0 && !still
@@ -98,9 +111,18 @@ function SwapCard({
       <motion.span
         animate={still ? undefined : { y: [0, -10, 0] }}
         transition={{ duration: float, repeat: Infinity, ease: 'easeInOut', delay }}
-        className="block h-[82px] w-16 rounded-[9px]"
+        className="flex h-[82px] w-16 items-center justify-center overflow-hidden rounded-[9px] p-1.5"
         style={{ background: `rgba(255,255,255,${tone})` }}
-      />
+      >
+        <img
+          src={art}
+          alt=""
+          draggable={false}
+          // contain, so each artwork keeps its own proportions inside a card
+          // shape none of them share.
+          className="size-full select-none object-contain"
+        />
+      </motion.span>
     </motion.div>
   )
 }

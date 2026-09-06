@@ -17,17 +17,22 @@ export default function AuthMobile() {
   const a = useAuthScreen(useAuthMode())
 
   return (
-    <div className="flex min-h-dvh flex-col bg-background">
+    // Map behind the whole screen, not just the header, so it carries past the
+    // green edge instead of stopping at it.
+    <div
+      className="flex min-h-dvh flex-col bg-background"
+      style={{
+        backgroundImage: `url(${mapUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
       <header
         // shrink-0 because overflow-hidden (needed to clip the blobs) turns any
         // flex squeeze into a clipped heading — the taller sign-up form was
         // cutting "someone's treasure" in half.
         className="relative flex shrink-0 flex-col items-center gap-3 overflow-hidden px-6 pb-8 pt-10 text-center"
-        style={{
-          backgroundImage: `linear-gradient(rgba(47,106,82,0.92), rgba(47,106,82,0.92)), url(${mapUrl})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
+        style={{ backgroundColor: 'rgba(47,106,82,0.94)' }}
       >
         <div className="absolute right-3 top-3">
           <LanguageSwitcher className="text-primary-foreground hover:bg-primary-foreground/10" />
@@ -48,6 +53,7 @@ export default function AuthMobile() {
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={spring.gentle}
+        style={{ backgroundColor: 'rgba(247,242,225,0.93)' }}
         className="flex flex-1 flex-col gap-5 px-6 py-8"
       >
         <T

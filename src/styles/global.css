@@ -14,6 +14,32 @@
     padding: 0;
   }
 
+  /* An app, not a document: dragging across the UI should not paint a blue
+   * selection over labels and buttons the way it does on a web page.
+   *
+   * Selection is restored below for the things people genuinely copy — an
+   * invite code, an email address, a message someone sent them. Turning it off
+   * everywhere with no exceptions is the version of this that gets sworn at,
+   * because the one time you need to copy something you cannot.
+   */
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+    /* Stops the grey flash on tap in iOS Safari, which is the touch equivalent
+     * of the same problem. */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Anything a person may legitimately want to copy. */
+  input,
+  textarea,
+  [contenteditable],
+  [data-selectable],
+  ::placeholder {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
   html, body {
     height: 100%;
     background: var(--surface-page);

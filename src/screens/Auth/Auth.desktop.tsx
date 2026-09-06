@@ -18,13 +18,23 @@ export default function AuthDesktop() {
   const a = useAuthScreen(useAuthMode())
 
   return (
-    <div className="grid min-h-dvh grid-cols-2 bg-background">
+    // The map spans the whole screen rather than sitting inside the green
+    // panel, so it is one continuous drawing crossing the seam instead of two
+    // that happen to meet. Each half then lays its own tint over it: near-opaque
+    // green on the left, a heavy parchment wash on the right where a form has
+    // to stay readable on top of it.
+    <div
+      className="grid min-h-dvh grid-cols-2 bg-background"
+      style={{
+        backgroundImage: `url(${mapUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
       <aside
         className="relative flex flex-col justify-between overflow-hidden p-10"
         style={{
-          backgroundImage: `linear-gradient(rgba(47,106,82,0.92), rgba(47,106,82,0.92)), url(${mapUrl})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          backgroundColor: 'rgba(47,106,82,0.94)',
         }}
       >
         <DriftingBlobs />
@@ -49,7 +59,12 @@ export default function AuthDesktop() {
         />
       </aside>
 
-      <main className="relative flex items-center justify-center px-14">
+      {/* 0.93 was found by looking: at 0.85 the map read as dirt behind the
+          labels, and much above 0.95 it disappeared entirely. */}
+      <main
+        className="relative flex items-center justify-center px-14"
+        style={{ backgroundColor: 'rgba(247,242,225,0.93)' }}
+      >
         <div className="absolute right-6 top-6">
           <LanguageSwitcher />
         </div>

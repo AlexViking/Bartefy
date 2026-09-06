@@ -117,7 +117,7 @@ STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_COLLECTOR, STRIPE_PRICE_C
 7. **profiles.is_staff** — staff gate on `/admin/reports` not implemented.
 8. **Account deletion** — Settings records `deletion_requested_at` and signs out; real deletion needs a service-role job.
 9. **Language packs** — de/fr/es/lv are stubs. Keys fall back to EN until translated.
-10. **Logo asset** — RGB with no alpha, so it cannot sit on green. `Wordmark` sets the brand as type on dark surfaces; replace with a transparent SVG when one exists.
+10. ~~**Logo asset**~~ — FIXED. The lockup has a real alpha channel, and `Wordmark` renders it on both light and dark surfaces. It is sized by width, not height: the asset is nearly 2:1, so height-based sizing renders the mark too small to read.
 11. **AddItem, ItemDetail, Arrange, Profile** — on shadcn and translated, but not yet platform-split; they are single-file with a max-width container.
 
 ## V3 design reference files (in the v2 repo)
