@@ -4,7 +4,6 @@ import { OfferSheet } from '@/components/offer/OfferSheet'
 import { HuntStack } from '@/components/hunt/HuntStack'
 import { NextStep } from '@/components/guidance/NextStep'
 import { Button } from '@/components/ui/button'
-import { Icon } from '@/components/ui/icon'
 import {
   Dialog,
   DialogContent,
@@ -55,14 +54,8 @@ export default function HuntDesktop() {
               <T as="p" k="hunt.loading" className="font-body text-sm text-muted-foreground" />
             ) : h.top ? (
               <>
-                <HuntStack cards={h.cards} onDecide={h.decide} className="max-w-[340px]" />
+                <HuntStack cards={h.cards} onDecide={h.decide} onUndo={h.rewind} canUndo={h.canRewind} className="max-w-[340px]" />
                 <T as="p" k="hunt.hintKeys" className="font-body text-[13px] text-muted-foreground" />
-                {h.canRewind && (
-                  <Button variant="ghost" size="sm" onClick={h.rewind} data-i18n="hunt.rewind">
-                    <Icon name="RotateCcw" size={16} />
-                    {t('hunt.rewind')}
-                  </Button>
-                )}
               </>
             ) : (
               <EmptyState

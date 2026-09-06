@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Check, RotateCcw, X } from 'lucide-react'
 
 import { animate, motion, useMotionValue, useTransform } from 'framer-motion'
@@ -35,6 +35,22 @@ export function HuntStack({
 }) {
   const { t } = useT()
   const ref = useRef<HTMLDivElement>(null)
+
+  /** The deck takes focus on mount so the arrow keys work straight away.
+   *
+   *  onKeyDown lives on the card, so until something focused it the desktop
+   *  hint -- "Or use the left and right arrow keys" -- was a promise the
+   *  screen did not keep: you had to click the card first, and clicking it is
+   *  not an obvious thing to do when the buttons are right there.
+   *
+   *  preventScroll because focusing an element the browser thinks is partly
+   *  off-screen otherwise jumps the page to it. */
+  useEffect(() => {
+    // Never steal focus from someone already typing or tabbing elsewhere.
+    const active = document.activeElement
+    if (active && active !== document.body && active !== ref.current) return
+    ref.current?.focus({ preventScroll: true })
+  }, [])
   const x = useMotionValue(0)
   const rotate = useTransform(x, [-260, 0, 260], [-13, 0, 13])
   const passOpacity = useTransform(x, [-140, -30, 0], [1, 0, 0])
