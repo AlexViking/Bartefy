@@ -83,6 +83,34 @@ STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_COLLECTOR, STRIPE_PRICE_C
 - **Branch `main`**: Currently deployed v2
 - **Branch `v3`**: All v3 client changes committed and pushed, ready to merge
 
+## V4 rebuild — shipped 2026-09-06
+
+**Matching is offer → accept**, not mutual-like. Like a find → pick ONE of
+your items to offer → the owner sees that single offer → they accept → a
+1-to-1 match opens a chat → both confirm the handover. Bundling happens in
+conversation, never in the schema.
+
+- Engine tables: `barter_offers`, `barter_matches`, `barter_messages`
+- RPCs: `make_offer`, `respond_to_offer`, `confirm_barter`, `cancel_barter`,
+  `report_item`, `renew_item`
+- Client: `src/lib/barter.ts` (new engine) is SEPARATE from `src/lib/api.ts`
+  (old, still holds the mutual-like functions). Do not mix them.
+- The old `offers`/`swaps`/`messages` tables still exist, unread. Drop when
+  nothing references them.
+- Database was wiped (migration 014). Nothing was migrated.
+- **Ratings are CUT.** Trust is `profiles.completed_trades`, written only by
+  `confirm_barter`. No stars anywhere.
+- Routes renamed: `/discover` `/items` `/matches` `/matches/:id`. Old paths
+  redirect.
+- Dark theme is the DEFAULT.
+
+### Read the wireframes before building UI
+`files/Bartefy_Wireframes_v2.html` is the spec — 16 screens. Its tab bar is
+**Deck / Matches / + / Profile**, four items, and "my items" lives inside
+Profile. `Bartefy V5 Pilot.html` (repo root) has the animation vocabulary and
+the real copy. Building from V5's component names instead produced an "Items"
+tab that does not exist in the design.
+
 ## Hard invariants — never regress these
 - **Uploads**: client mints `uploadId` (UUIDv4) once per photo; retries overwrite, never duplicate
 - **Matching**: all swipe→match logic inside `record_swipe_and_match()` — one transaction
@@ -95,6 +123,20 @@ STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_COLLECTOR, STRIPE_PRICE_C
 - **Addresses never enter storage**
 - **402 means "open the upgrade sheet"**
 - **Three button variants**: primary, accent, ghost. No red buttons. No danger variant.
+- **Guard async on a ref, never on shared `busy` state.** `busy` flips false the
+  instant one operation finishes, letting a blocked second one through. And
+  never guard on "have I seen this value before" — that locked people out of
+  retyping a valid OTP.
+- **A resend is a button, never automatic.** Requesting a new code invalidates
+  the one already in the inbox.
+- **Never animate a layout property.** `fontSize` and `height` reflow on every
+  frame; use `transform` and CSS transitions.
+- **`canvas.toBlob` silently returns PNG** for a type it cannot encode. Check
+  the blob's type; never trust it. Photos have a hard 400 KB ceiling — the R2
+  bucket is metered.
+- **Verify PostgREST joins against the live schema.** Embedded joins depend on
+  exact FK constraint names, and a wrong one returns an empty array, not an
+  error.
 - **CSS resets belong in `@layer base`** — unlayered CSS beats anything inside `@layer`, so an unlayered `* { padding: 0 }` silently defeats every Tailwind padding utility with no warning.
 - **All user-visible copy goes through i18n** — never a bare English string in JSX. Rows rendering user data (an email, a name) must not carry `data-i18n`.
 - **One UI library** — shadcn. Compose it; never fork an atom it already ships.
