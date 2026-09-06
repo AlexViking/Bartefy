@@ -41,6 +41,7 @@ export function useAuthScreen(mode: AuthMode) {
   const [email, setEmail] = useState(
     () => (location.state as { email?: string } | null)?.email ?? '',
   )
+  const [name, setName] = useState('')
   const [referral, setReferralRaw] = useState('')
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
@@ -51,10 +52,15 @@ export function useAuthScreen(mode: AuthMode) {
   const [referralValid, setReferralValid] = useState<boolean | null>(null)
 
   const emailValid = EMAIL_RE.test(email.trim())
+  /** Required on sign-up: this is the one thing the other side of a swap sees
+   *  before deciding whether to meet you, and there is nowhere else in the app
+   *  to set it. Capped to match the 60 the trigger truncates at, so the limit
+   *  is felt while typing rather than discovered afterwards. */
+  const nameValid = mode !== 'signup' || (name.trim().length >= 2 && name.trim().length <= 60)
   // An invite code is optional, so an empty one is valid. A malformed one is
   // not worth sending — but it never blocks signup, only warns.
   const referralWellFormed = referral.trim() === '' || CODE_RE.test(referral.trim())
-  const valid = emailValid && referralWellFormed
+  const valid = emailValid && nameValid && referralWellFormed
 
   useEffect(() => {
     if (countdown <= 0) return
@@ -126,7 +132,10 @@ export function useAuthScreen(mode: AuthMode) {
 
     const { error: otpError } =
       mode === 'signup'
-        ? await requestSignUpOTP(address, referral.trim() || undefined)
+        ? await requestSignUpOTP(address, {
+            name: name.trim() || undefined,
+            referralCode: referral.trim() || undefined,
+          })
         : await requestSignInOTP(address)
 
     setBusy(false)
@@ -187,6 +196,9 @@ export function useAuthScreen(mode: AuthMode) {
     step,
     email,
     setEmail,
+    name,
+    setName,
+    nameValid,
     referral,
     setReferral,
     referralValid,

@@ -19,7 +19,10 @@ export default function AuthMobile() {
   return (
     <div className="flex min-h-dvh flex-col bg-background">
       <header
-        className="relative flex flex-col items-center gap-3 overflow-hidden px-6 pb-8 pt-10 text-center"
+        // shrink-0 because overflow-hidden (needed to clip the blobs) turns any
+        // flex squeeze into a clipped heading — the taller sign-up form was
+        // cutting "someone's treasure" in half.
+        className="relative flex shrink-0 flex-col items-center gap-3 overflow-hidden px-6 pb-8 pt-10 text-center"
         style={{
           backgroundImage: `linear-gradient(rgba(47,106,82,0.92), rgba(47,106,82,0.92)), url(${mapUrl})`,
           backgroundSize: 'cover',

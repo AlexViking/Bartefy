@@ -66,7 +66,10 @@
     "inviteFound": "That invite checks out.",
     "errorNoAccount": "We have no account for that address. Sign up and it takes a moment.",
     "errorHaveAccount": "That address already has an account. Log in instead.",
-    "createAccount": "Create account"
+    "createAccount": "Create account",
+    "nameLabel": "Your name",
+    "namePlaceholder": "Ada",
+    "nameHelp": "What other swappers will see. A first name is plenty."
   },
   "onboarding": {
     "step1Title": "Welcome to the flea market",

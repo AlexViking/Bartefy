@@ -71,6 +71,26 @@ function EmailStep({ a }: { a: ReturnType<typeof useAuthScreen> }) {
         />
       </motion.div>
 
+      {/* Name first, as in v5: it is the friendliest thing to be asked, and it
+          is the only field here that is about the person rather than the
+          account. Sign-in has no use for it — that account already has one. */}
+      {isSignUp && (
+        <motion.div variants={itemUp}>
+          <Field
+            label="auth.nameLabel"
+            help="auth.nameHelp"
+            placeholder="auth.namePlaceholder"
+            autoComplete="name"
+            autoFocus
+            autoCapitalize="words"
+            maxLength={60}
+            value={a.name}
+            onChange={(e) => a.setName(e.target.value)}
+            required
+          />
+        </motion.div>
+      )}
+
       <motion.div variants={itemUp}>
         <Field
           type="email"
