@@ -4,6 +4,12 @@ import { requestOTP, verifyOTP } from '@/lib/api'
 import { useT } from '@/i18n/T'
 import { useAuthStore } from '@/store/auth'
 
+/** Must match "Email OTP Length" under Authentication > Providers > Email in the
+ *  Supabase dashboard. Supabase defaults to 8; six is the length people expect
+ *  from an auth code and the one that fits a phone-width row of boxes. If the
+ *  two ever disagree the boxes fill before the code is complete and every
+ *  attempt fails, so change them together.
+ */
 export const CODE_LENGTH = 6
 const RESEND_SECONDS = 60
 
