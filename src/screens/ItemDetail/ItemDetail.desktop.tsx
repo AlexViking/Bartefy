@@ -1,5 +1,6 @@
-import { ArrowLeft, Eye } from 'lucide-react'
+import { ArrowLeft, Eye, Flag } from 'lucide-react'
 
+import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { AppShell } from '@/components/shell/AppShell'
@@ -9,6 +10,7 @@ import { InfoHint } from '@/components/guidance/InfoHint'
 import { ResponsiveSheet } from '@/components/ui/responsive-sheet'
 import { PhotoViewer } from '@/components/ui/photo-viewer'
 import { OfferSheet } from '@/components/offer/OfferSheet'
+import { ReportItemSheet } from '@/components/hunt/ReportItemSheet'
 import { T, useT } from '@/i18n/T'
 import { Facts } from './Facts'
 import { useItemDetail } from './useItemDetail'
@@ -19,6 +21,7 @@ import { useItemDetail } from './useItemDetail'
  */
 export default function ItemDetailDesktop() {
   const d = useItemDetail()
+  const [reporting, setReporting] = useState(false)
   const { t } = useT()
   const navigate = useNavigate()
 
@@ -52,10 +55,26 @@ export default function ItemDetailDesktop() {
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-[1160px] px-6 py-6">
-        <Button variant="ghost" size="sm" onClick={d.goBack} className="mb-4" data-i18n="common.back">
-          <ArrowLeft aria-hidden="true" />
-          {t('common.back')}
-        </Button>
+        <div className="mb-4 flex items-center">
+          <Button variant="ghost" size="sm" onClick={d.goBack} data-i18n="common.back">
+            <ArrowLeft aria-hidden="true" />
+            {t('common.back')}
+          </Button>
+          {/* Reporting is ALWAYS_FREE and belongs on every surface showing
+              someone else's listing, not only the Hunt card. */}
+          {!d.owned && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setReporting(true)}
+              className="ml-auto"
+              data-i18n="item.report"
+            >
+              <Flag aria-hidden="true" />
+              {t('item.report')}
+            </Button>
+          )}
+        </div>
 
         <div className="grid gap-8 grid-cols-[1.15fr_1fr]">
           <div className="flex flex-col gap-3">
@@ -184,6 +203,16 @@ export default function ItemDetailDesktop() {
         onIndexChange={d.setPhoto}
         onClose={() => d.setViewerOpen(false)}
         title={d.item.title}
+      />
+
+      <ReportItemSheet
+        open={reporting}
+        onOpenChange={setReporting}
+        itemId={d.item.id}
+        itemTitle={d.item.title}
+        ownerId={d.owner.id}
+        ownerName={d.owner.name}
+        onDone={() => setReporting(false)}
       />
 
       <OfferSheet

@@ -1,5 +1,6 @@
-import { ArrowLeft, Heart } from 'lucide-react'
+import { ArrowLeft, Flag, Heart } from 'lucide-react'
 
+import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { AppShell } from '@/components/shell/AppShell'
@@ -8,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { ResponsiveSheet } from '@/components/ui/responsive-sheet'
 import { PhotoViewer } from '@/components/ui/photo-viewer'
 import { OfferSheet } from '@/components/offer/OfferSheet'
+import { ReportItemSheet } from '@/components/hunt/ReportItemSheet'
 import { T, useT } from '@/i18n/T'
 import { Facts } from './Facts'
 import { useItemDetail } from './useItemDetail'
@@ -20,6 +22,7 @@ export default function ItemDetailMobile() {
   const d = useItemDetail()
   const { t } = useT()
   const navigate = useNavigate()
+  const [reporting, setReporting] = useState(false)
 
   if (d.notFound) {
     return (
@@ -80,6 +83,21 @@ export default function ItemDetailMobile() {
           >
             <ArrowLeft className="size-5" aria-hidden="true" />
           </button>
+          {/* Reporting is ALWAYS_FREE and the wireframe puts a flag on every
+              surface that shows someone else's listing. It was only ever on
+              the Hunt card, so a find opened from anywhere else could not be
+              reported at all. Hidden on your own listing: there is no one to
+              report but yourself. */}
+          {!d.owned && (
+            <button
+              type="button"
+              onClick={() => setReporting(true)}
+              aria-label={t('item.report')}
+              className="absolute right-3.5 top-3.5 flex size-9 items-center justify-center rounded-pill bg-card/90 text-muted-foreground backdrop-blur-sm"
+            >
+              <Flag className="size-4" aria-hidden="true" />
+            </button>
+          )}
 
           {d.gallery.length > 1 && (
             <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
@@ -178,6 +196,16 @@ export default function ItemDetailMobile() {
         onIndexChange={d.setPhoto}
         onClose={() => d.setViewerOpen(false)}
         title={d.item.title}
+      />
+
+      <ReportItemSheet
+        open={reporting}
+        onOpenChange={setReporting}
+        itemId={d.item.id}
+        itemTitle={d.item.title}
+        ownerId={d.owner.id}
+        ownerName={d.owner.name}
+        onDone={() => setReporting(false)}
       />
 
       <OfferSheet

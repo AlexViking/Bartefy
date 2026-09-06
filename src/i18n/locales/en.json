@@ -562,14 +562,14 @@
     "thanksTitle": "Thank you",
     "thanksBody": "A person reads every report. The listing stays up until they do.",
     "alreadyReported": "You have already reported this find.",
-    "action": "Report this find",
     "userTitle": "What happened?",
     "thisItem": "This find",
     "thisUser": "This person",
     "reason_unsafe": "I felt unsafe",
     "reason_asked_for_money": "They asked for money",
     "reason_no_show": "They did not turn up",
-    "reason_not_as_described": "The find was not as described"
+    "reason_not_as_described": "The find was not as described",
+    "action": "Report"
   },
   "block": {
     "title": "Block {{name}}?",
