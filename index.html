@@ -2,7 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <!-- /vite.svg never existed in public/, so the tab has been showing a
+         broken icon in production. The .ico carries 16 and 32 for browsers
+         that still ask for it; the PNG is what modern ones pick. -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <!-- maximum-scale/user-scalable lock zoom in the Capacitor wrapper and on
          Android. iOS Safari has ignored user-scalable=no since iOS 10 (an
          accessibility decision by Apple), so pinch still works there by
