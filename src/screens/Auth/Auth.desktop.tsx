@@ -39,8 +39,10 @@ export default function AuthDesktop() {
       >
         <DriftingBlobs />
 
-        {/* relative on each child so the blobs stay behind the copy. */}
-        <Wordmark on="dark" className="relative" />
+        {/* The logo lives on the parchment side, not here: the mark is mostly
+            Bartefy green, so on a green panel the wordmark disappears and only
+            its illustrations survive. relative on each child keeps the blobs
+            behind the copy. */}
         <div className="relative max-w-[420px] space-y-4">
           <T as="h1" k="auth.welcomeTitle" className="font-display text-h2 text-primary-foreground" />
           <T
@@ -72,8 +74,9 @@ export default function AuthDesktop() {
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={spring.gentle}
-          className="w-full max-w-[400px]"
+          className="flex w-full max-w-[400px] flex-col gap-6"
         >
+          <Wordmark />
           <AuthForm a={a} />
         </motion.div>
       </main>

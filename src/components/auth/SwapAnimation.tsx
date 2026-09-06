@@ -22,91 +22,78 @@ export function SwapAnimation({ className }: { className?: string }) {
   return (
     <div className={className} aria-hidden="true">
       <div className="relative flex h-[150px] items-center justify-center">
-        {/* The two arcs are one circuit: something leaving along the top as
-            something else returns along the bottom. */}
-        <svg
-          viewBox="0 0 300 120"
-          preserveAspectRatio="none"
-          className="absolute inset-0 size-full opacity-50"
-        >
-          <motion.path
-            d="M70 74 C 110 24, 190 24, 230 74"
-            fill="none"
-            stroke="rgba(255,255,255,.85)"
-            strokeWidth={1.6}
-            strokeLinecap="round"
-            strokeDasharray="5 9"
-            animate={still ? undefined : { strokeDashoffset: [0, -56] }}
-            transition={{ duration: 3.4, repeat: Infinity, ease: 'linear' }}
-          />
-          <motion.path
-            d="M230 86 C 190 130, 110 130, 70 86"
-            fill="none"
-            stroke="rgba(255,255,255,.55)"
-            strokeWidth={1.6}
-            strokeLinecap="round"
-            strokeDasharray="5 9"
-            animate={still ? undefined : { strokeDashoffset: [-56, 0] }}
-            transition={{ duration: 3.4, repeat: Infinity, ease: 'linear' }}
-          />
-        </svg>
+        {/* All three change places, in a rotation rather than a swap: each
+            card takes the next one's seat, so over a full cycle every find has
+            been everywhere. Two travelling while a third sat still read as one
+            pair trading past a bystander.
 
-        {/* The outer two swap; the middle one stays put, so the exchange reads
-            as two things passing rather than everything drifting.
-
-            Each card carries a real find rather than a blank tile — a guitar
-            going one way, a ring the other, which is the swap the copy beside
-            it describes. The three artworks have quite different aspect ratios
-            (0.53, 1.15, 1.37), so they are fitted rather than filled: cropping
-            a guitar to a card shape would cut the neck off. */}
-        <SwapCard offset={-130} tone=".28" travel={196} float={4.2} arc={-34} art={card1} still={still} />
-        <SwapCard offset={-32} tone=".12" travel={0} float={5.6} delay={0.7} art={card2} still={still} />
-        <SwapCard offset={66} tone=".22" travel={-196} float={4.8} arc={34} delay={0.35} art={card3} still={still} />
+            Each carries a real find — the artworks have quite different aspect
+            ratios (0.53, 1.15, 1.37), so they are fitted rather than filled:
+            cropping a guitar to a card shape would cut the neck off. */}
+        <SwapCard seat={0} tone=".28" float={4.2} art={card1} still={still} />
+        <SwapCard seat={1} tone=".14" float={5.6} delay={0.7} art={card2} still={still} />
+        <SwapCard seat={2} tone=".22" float={4.8} delay={0.35} art={card3} still={still} />
       </div>
     </div>
   )
 }
 
+/** The three places a card can sit, left to right. */
+const SEATS = [-160, 0, 160]
+
+/** Each card owns a lane, so two cards crossing in opposite directions pass
+ *  above and below one another instead of through. Three cards sharing one
+ *  corridor is what made the earlier rotation stack them mid-flight. */
+const LANES = [-46, 4, 54]
+
 function SwapCard({
-  offset,
+  seat,
   tone,
-  travel,
   float,
-  arc = 0,
   delay = 0,
   art,
   still,
 }: {
-  offset: number
+  /** Which seat this card starts in. It visits the other two in turn. */
+  seat: number
   tone: string
-  travel: number
   float: number
-  /** Vertical detour at the midpoint, so two travellers pass instead of collide. */
-  arc?: number
   delay?: number
   /** Artwork for this card. Fitted, never cropped. */
   art: string
   still: boolean | null
 }) {
-  const swapping = travel !== 0 && !still
+  // Each card walks the seats in order from wherever it starts, holding each
+  // new seat for a beat before moving on. It stays in its own lane throughout,
+  // which is what keeps three moving cards from ever occupying one point.
+  const steps = [0, 1, 1, 2, 2, 3, 3]
+  const path = steps.map((step) => SEATS[(seat + step) % 3] - SEATS[seat])
+  const lane = LANES[seat]
+
   return (
     <motion.div
       className="absolute left-1/2"
-      style={{ marginLeft: offset }}
+      style={{ marginLeft: SEATS[seat] - 32, marginTop: lane }}
       animate={
-        swapping
-          ? {
-              x: [0, travel, 0],
-              // The two travellers arc over and under each other rather than
-              // straight through. In v5 the panel was wide enough that they
-              // cleared on the horizontal alone; in half a split screen they
-              // met in the middle and read as one smear.
-              y: [0, arc, 0],
-              rotate: [-7, 7, -7],
+        still
+          ? { rotate: -2 }
+          : {
+              x: path,
+              rotate: [-6, 4, 4, -5, -5, 3, -6],
             }
-          : { rotate: -2 }
       }
-      transition={swapping ? { duration: 9, repeat: Infinity, ease: [0.45, 0, 0.35, 1] } : undefined}
+      transition={
+        still
+          ? undefined
+          : {
+              duration: 15,
+              repeat: Infinity,
+              ease: 'easeInOut',
+              // Cross, rest, cross, rest — the pauses are what stop three cards
+              // being in the same place at the same moment.
+              times: [0, 0.22, 0.38, 0.6, 0.76, 0.96, 1],
+            }
+      }
     >
       <motion.span
         animate={still ? undefined : { y: [0, -10, 0] }}

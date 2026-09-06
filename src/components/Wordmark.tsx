@@ -4,11 +4,13 @@ import { cn } from '@/lib/utils'
 
 /** The brand lockup.
  *
- *  The asset used to be RGB with a baked-in white background, so on green it
- *  could only be set as type — an opaque rectangle reads as a white box, and
- *  the old `brightness-0 invert` trick made that worse rather than better. It
- *  has had a real alpha channel since the logo was redrawn, so both surfaces
- *  now get the actual mark.
+ *  The asset has a real alpha channel, but its wordmark is drawn in Bartefy
+ *  green — so on a green surface the type disappears and only the illustrations
+ *  around it survive. Transparency was never the problem there; contrast is.
+ *
+ *  So `on="dark"` still sets the brand as type, and the auth screens moved the
+ *  lockup to the parchment side rather than fighting it. Replace the dark
+ *  branch with a light-on-dark artwork if one is ever drawn.
  */
 export function Wordmark({
   on = 'light',
@@ -21,6 +23,19 @@ export function Wordmark({
 }) {
   const { t } = useT()
 
+  if (on === 'dark') {
+    return (
+      <span
+        className={cn(
+          'select-none font-display text-[34px] font-bold leading-none tracking-tight text-primary-foreground',
+          className,
+        )}
+      >
+        {t('brand.name')}
+      </span>
+    )
+  }
+
   return (
     <img
       src={logoUrl}
@@ -31,7 +46,7 @@ export function Wordmark({
       // Sized by width, not height. The lockup is nearly 2:1, so a height
       // that suited the old type treatment rendered the mark too small to
       // read — the wordmark inside it is a fraction of the asset's height.
-      className={cn('h-auto select-none', on === 'dark' ? 'w-[190px]' : 'w-[210px]', className)}
+      className={cn('h-auto w-[190px] select-none', className)}
     />
   )
 }
