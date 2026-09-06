@@ -53,6 +53,9 @@ export function useAuthScreen(mode: AuthMode) {
   /** In-flight guard for verify. A ref, not `busy`, because `busy` is state the
    *  auto-submit effect watches -- see the note on verify below. */
   const verifying = useRef(false)
+  /** In-flight guard for send, kept apart from verify's. Sharing one flag is
+   *  what let a blocked submit fire the moment a verification returned. */
+  const sending = useRef(false)
 
   const emailValid = EMAIL_RE.test(email.trim())
   /** Required on sign-up: this is the one thing the other side of a swap sees
@@ -141,9 +144,24 @@ export function useAuthScreen(mode: AuthMode) {
   }
 
   /** Ask for a code. Doubles as the resend, which is why it clears whatever
-   *  the last failed attempt left in the boxes. */
+   *  the last failed attempt left in the boxes.
+   *
+   *  NEVER called automatically. A code is good for an hour, so a second email
+   *  arriving on its own is not a convenience -- it invalidates the code the
+   *  person is already holding, and they are then typing a dead one from an
+   *  email they were reading a moment ago. Only the Resend button and the
+   *  email form's own submit reach this.
+   */
   const send = async () => {
-    if (!valid || busy || countdown > 0) return
+    // Guarded on its own ref, not on `busy`. `busy` is shared with verify, so
+    // it flips false the instant a verification finishes -- and a submit that
+    // was blocked during the check would then go through and send a second
+    // email nobody asked for.
+    if (!valid || sending.current || countdown > 0) return
+    // A resend belongs to the email step. Reaching here from the code step
+    // means a stray submit, which is exactly the duplicate-email path.
+    if (step === 'code' && countdown > 0) return
+    sending.current = true
     setBusy(true)
     setError(null)
     const address = email.trim()
@@ -156,6 +174,7 @@ export function useAuthScreen(mode: AuthMode) {
           })
         : await requestSignInOTP(address)
 
+    sending.current = false
     setBusy(false)
     if (otpError) {
       setError(messageFor(otpError.message, 'send'))

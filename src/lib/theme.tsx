@@ -29,8 +29,13 @@ function systemTheme(): Theme {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
+/** Dark is the default, per V5. Someone who has never opened the setting
+ *  meets the dark theme; light is a choice they make, not one they fall into
+ *  because their laptop is set that way. */
+const DEFAULT_PREF: ThemePref = 'dark'
+
 function storedPref(): ThemePref {
-  if (typeof window === 'undefined') return 'system'
+  if (typeof window === 'undefined') return DEFAULT_PREF
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw === 'light' || raw === 'dark' || raw === 'system') return raw
@@ -38,7 +43,7 @@ function storedPref(): ThemePref {
     // Private windows and blocked site data throw on access rather than
     // returning null. A theme is not worth failing a render over.
   }
-  return 'system'
+  return DEFAULT_PREF
 }
 
 /** Writes the attribute the CSS selects on. Light is the absence of the

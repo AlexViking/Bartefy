@@ -60,6 +60,12 @@ function EmailStep({ a }: { a: ReturnType<typeof useAuthScreen> }) {
       className="flex w-full flex-col gap-4"
       onSubmit={(e) => {
         e.preventDefault()
+        // Only the email step asks for a code. On the code step this form
+        // still exists and Enter still submits it -- which sent a SECOND
+        // email while the person was holding a perfectly good one, and
+        // requesting a new code invalidates the old. Resending is a button
+        // they press, never something that happens to them.
+        if (a.step === 'code') return
         void a.send()
       }}
     >
@@ -199,27 +205,28 @@ function CodeStep({ a }: { a: ReturnType<typeof useAuthScreen> }) {
   const { t } = useT()
   const { code, verify, busy } = a
 
-  /** Fire once per distinct code, never once per render that happens to see a
-   *  full one. Both `busy` and `verify`'s identity flip false->true->false across
-   *  a single attempt, so an effect keyed on either re-runs while the six digits
-   *  are still in the boxes and sends the same token twice. Supabase consumes a
-   *  code on first use, so that second call is answered 403 and the person is
-   *  told their correct code was wrong. The ref records what has already been
-   *  submitted, which state cannot do without triggering the render it guards.
+  /** Fire once per attempt, not once per render that happens to see six
+   *  digits. Both `busy` and `verify`'s identity flip false->true->false across
+   *  one attempt, so an effect keyed on either re-runs while the digits are
+   *  still in the boxes and sends the same token twice -- Supabase consumes a
+   *  code on first use, so the second call is answered 403 and the person is
+   *  told their correct code was wrong.
+   *
+   *  The guard is "is an attempt in flight", NOT "have I seen this code
+   *  before". Remembering the code locked people out: a rejected code stayed
+   *  remembered, so retyping the same digits did nothing at all, and a code
+   *  that is valid for an hour became unusable after one bad render. Backing
+   *  out one digit and retyping now works, and so does the same code twice.
    */
-  const submitted = useRef<string | null>(null)
+  const inFlight = useRef(false)
 
   useEffect(() => {
-    if (code.length !== CODE_LENGTH) {
-      // Backspacing out of a full code arms the next attempt, so a genuinely
-      // rejected code can be retyped -- including the same digits again.
-      if (code.length === 0) submitted.current = null
-      return
-    }
-    if (busy || submitted.current === code) return
-    submitted.current = code
-    void verify(code)
-  }, [code, busy, verify])
+    if (code.length !== CODE_LENGTH || inFlight.current) return
+    inFlight.current = true
+    void Promise.resolve(verify(code)).finally(() => {
+      inFlight.current = false
+    })
+  }, [code, verify])
 
   const clock = `${Math.floor(a.countdown / 60)}:${String(a.countdown % 60).padStart(2, '0')}`
 

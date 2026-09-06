@@ -59,7 +59,7 @@
     "codeLabel": "Six-digit code",
     "codeSentTitle": "Check your email",
     "codeSentBody": "We sent a six-digit code to {{email}}. Enter it here — it expires in an hour.",
-    "errorBadCode": "That code did not work. Check the digits and type it again — the newest email is the one that counts.",
+    "errorBadCode": "That code did not work. Check the digits and type it again — the newest email is the one that counts, and it stays good for an hour.",
     "errorRateLimited": "That is a few too many tries. Codes are capped by the hour, so give it a while before asking for another.",
     "errorBadEmail": "That address did not look right to us. Check it and try again.",
     "signInTitle": "Welcome back",
