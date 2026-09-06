@@ -45,8 +45,9 @@ Bartefy is a peer-to-peer item-swap app: list items, swipe nearby finds, mutual 
 - `src/lib/membership.ts` — Tier entitlements, ALWAYS_FREE list
 
 ### Screens
-Platform-split (folder with `.mobile`/`.desktop`/`use*`): Auth, Onboarding, Hunt, Browse, SwapsInbox, Chat.
-Single-file (layout is the same shape on both): AddItem, Arrange, BlockedList, ItemDetail, Membership, Profile, Settings, Verify, admin/ReportQueue.
+Platform-split (folder with `.mobile`/`.desktop`/`use*`): Auth, Onboarding, Hunt, SwapsInbox, Chat, AddItem, ItemDetail.
+Single-file: Arrange, BlockedList, Membership, MyItems, Profile, Rewards, Settings, admin/ReportQueue.
+**Browse was deleted** with search and filters.
 Redirect shims: Match, Rate — legacy push-notification targets whose UX now lives in sheets.
 
 Deleted in the V4 rebuild: the ten inline-style components, plus Login, Register, Welcome, CityPicker (now a shared component), Cancel (now TroubleSheet) and DesignProfile.
@@ -114,6 +115,35 @@ compare — both themes, 390x844 and 1440x900. Measure rather than eyeball.
 Specifically unchecked: every screen in **dark theme** (now the default, and
 most were only ever seen in light), **Settings**, and **desktop at 1440**
 beyond the Hunt screen. 14 of the pilot's 18 animations are ported but unused.
+
+## Points economy — shipped 2026-09-07
+
+**There is no payment integration.** Everything is free; users EARN points and
+spend them on what money will buy later. Migrations 024 (economy), 025
+(lockdown), 026 (feed fix).
+
+- Earn: list +5, offer accepted +10, swap completed +40, referral's first
+  swap +100. Spend: Collector 30d = 600, Curator 30d = 1200, boost 200,
+  eyeing 150, radius 300.
+- `spend_points_on_tier` writes `profiles.tier` + `tier_valid_until` — the
+  SAME columns Stripe will write. Adding checkout is a second path to one
+  state; never invent a parallel "paid" flag.
+- Balance is the SUM of the append-only `point_events` ledger. **Never add a
+  balance column.**
+- Awards fire from TRIGGERS (`points_on_match`, `points_on_item`), never from
+  edits to `confirm_barter` / `respond_to_offer`.
+- `award_points` is internal: revoked from `anon` (the role PostgREST connects
+  as) and gated on a transaction-local `bartefy.internal` flag.
+  **`auth.uid() is not null` is NOT a valid internal-only guard** — it is
+  request-scoped and a trigger inside that request still sees it.
+- Client: `lib/points.ts`, `screens/Rewards.tsx` at `/points`.
+- **UNVERIFIED:** no award has ever actually fired (DB empty since the 014
+  wipe). List a find and confirm 5 points before trusting the chain.
+
+## Navigation — changed 2026-09-06
+Tab bar and rail are **Discover · Matches · My Items · ＋**. Profile is behind
+the avatar. **Filtering, search and Browse are cut from the product** — not
+unbuilt, deliberately removed. Do not re-add them without asking.
 
 ### Read the wireframes before building UI
 `files/Bartefy_Wireframes_v2.html` is the spec — 16 screens. Its tab bar is
