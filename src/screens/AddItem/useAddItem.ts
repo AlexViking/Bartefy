@@ -137,7 +137,10 @@ export function useAddItem() {
         const res = await fetch(target.uploadUrl, {
           method: 'PUT',
           body: blob,
-          headers: { 'Content-Type': 'image/webp' },
+          // The blob's own type, not a hardcoded one. toWebP falls back to
+          // JPEG where WebP encoding is unavailable, and declaring webp for a
+          // JPEG makes R2 serve it with the wrong content type.
+          headers: { 'Content-Type': blob.type || 'image/webp' },
         })
         if (!res.ok) throw new Error(`upload failed: ${res.status}`)
 

@@ -45,8 +45,15 @@ export async function warmPhoto(photo: Photo, variant: Variant = 'card') {
 /** Longest edge of a stored original. Big enough for a full-screen view on a
  *  dense phone, small enough that a 12MP camera photo does not cost the user
  *  several megabytes of mobile data on the way up. */
-const MAX_EDGE = 1600
+/** 1280, not 1600. The largest a photo is ever shown is the full-screen
+ *  viewer on a phone, where 1280 on the long edge is already beyond what the
+ *  screen resolves. The extra pixels cost megabytes on Tbilisi mobile data
+ *  and buy nothing anyone can see. */
+const MAX_EDGE = 1280
 const WEBP_QUALITY = 0.82
+/** Slightly higher than the WebP figure: JPEG needs more to reach the same
+ *  perceived quality, and this path only runs where WebP is unavailable. */
+const JPEG_QUALITY = 0.85
 
 /** Re-encode a picked file to WebP, downscaling the longest edge to MAX_EDGE.
  *
@@ -77,6 +84,20 @@ export async function toWebP(file: File): Promise<Blob> {
       canvas.toBlob(resolve, 'image/webp', WEBP_QUALITY),
     )
     if (!blob) throw new Error('webp encoding failed')
+
+    // toBlob SILENTLY ignores a type it cannot encode and returns PNG instead
+    // -- no error, no warning, just a blob of the wrong type. Older iOS Safari
+    // does exactly this with image/webp, which is how a 1600px photo at
+    // quality 0.82 arrived in the bucket at 3.4 MB: it was never WebP.
+    //
+    // A lossy JPEG is far better than a lossless PNG here. It is a photograph
+    // of second-hand furniture, not a diagram.
+    if (blob.type !== 'image/webp') {
+      const jpeg = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, 'image/jpeg', JPEG_QUALITY),
+      )
+      if (jpeg) return jpeg
+    }
     return blob
   } finally {
     bitmap.close()
