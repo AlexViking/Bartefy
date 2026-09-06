@@ -108,7 +108,21 @@
     --destructive: 11 60% 56%; /* #D2624A terracotta, pushed for legibility */
     --destructive-foreground: 16 41% 7%;
 
-    --border: 43 8% 17%; /* #2E2C27 */
+    /* Borders are consumed as `border-border/[0.14]` in 71 places, so this has
+       to be a colour that survives being taken down to 14% alpha. #2E2C27 did
+       not: it is already darker than most dark surfaces, so 14% of it over
+       #121210 landed at 1.03:1 -- mathematically present, visually absent.
+       That is why the topbar rule could not be seen while the rail's border
+       could: the rail reads as an edge between two different backgrounds, not
+       because the line itself was visible.
+
+       A light warm tint at 14% gives ~1.4:1 over both --background and --card,
+       which is the same hairline weight the light theme gets from dark ink on
+       parchment. The value is deliberately near --card-foreground: a border is
+       a faint echo of the text colour, not a colour of its own. */
+    --border: 45 12% 88%;
+    /* Inputs keep the darker value -- a field's edge sits on a filled surface
+       and reads as a container, where a light hairline looks like a seam. */
     --input: 43 8% 17%;
     --ring: 154 34% 46%;
 

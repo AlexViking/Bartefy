@@ -69,7 +69,7 @@ export function Sidebar({
       style={{ width: collapsed ? 68 : 224 }}
       className="sticky top-0 hidden h-dvh shrink-0 flex-col gap-1 border-r border-border/[0.14] bg-card/40 p-3 [transition:width_240ms_var(--ease-out)] md:flex"
     >
-      <div className="mb-2 flex h-11 items-center gap-2 px-1">
+      <div className={cn('mb-2 flex h-11 items-center gap-2', collapsed ? 'justify-center' : 'px-1')}>
         {/* The lockup, not type. It disappears when collapsed rather than
             shrinking to an illegible smudge -- the rail is 68px there and the
             mark is nearly 2:1. */}
@@ -78,7 +78,12 @@ export function Sidebar({
           type="button"
           onClick={onToggleCollapse}
           aria-label={t(collapsed ? 'nav.expand' : 'nav.collapse')}
-          className="ml-auto grid size-8 place-items-center rounded-card-sm text-muted-foreground transition-colors duration-fast hover:bg-secondary hover:text-foreground"
+          className={cn(
+            'grid size-8 place-items-center rounded-card-sm text-muted-foreground transition-colors duration-fast hover:bg-secondary hover:text-foreground',
+            // ml-auto only makes sense with the wordmark beside it; alone in a
+            // 68px rail it pinned the chevron to the right edge.
+            !collapsed && 'ml-auto',
+          )}
         >
           <motion.span
             initial={false}
@@ -109,10 +114,17 @@ export function Sidebar({
             onClick={() => navigate(item.path)}
             aria-current={active ? 'page' : undefined}
             className={cn(
-              'relative flex h-11 w-full items-center gap-3 rounded-card-lg px-3 text-left outline-none',
+              'relative flex h-11 items-center rounded-card-lg outline-none',
               'transition-colors duration-fast ease-brand',
               active ? 'text-primary-foreground' : 'text-muted-foreground hover:text-foreground',
               'focus-visible:ring-2 focus-visible:ring-ring',
+              // Collapsed the row is a 44px square centred in the rail, not a
+              // full-width row with left padding: px-3 put the glyph at x=12
+              // of a 44px track, so both the icon and the pill behind it sat
+              // left of centre and the whole strip looked nudged.
+              collapsed
+                ? 'w-11 shrink-0 justify-center self-center'
+                : 'w-full gap-3 px-3 text-left',
             )}
           >
             {/* The pill is plain: it appears and disappears with the row it
@@ -138,7 +150,7 @@ export function Sidebar({
               {collapsed && count > 0 && (
                 <span
                   className={cn(
-                    'absolute -right-1.5 -top-1.5 grid size-4 place-items-center rounded-pill',
+                    'absolute -right-2 -top-2 grid size-4 place-items-center rounded-pill',
                     'font-body text-[9px] font-bold ring-2 ring-card',
                     active
                       ? 'bg-primary-foreground text-primary'
@@ -149,15 +161,20 @@ export function Sidebar({
                 </span>
               )}
             </motion.span>
-            <motion.span
-              initial={false}
-              animate={{ opacity: collapsed ? 0 : 1, x: collapsed ? -6 : 0 }}
-              transition={tween.fast}
-              data-i18n={item.label}
-              className="relative z-10 truncate font-display text-[15px] font-semibold"
-            >
-              {t(item.label)}
-            </motion.span>
+            {/* Unmounted when collapsed, not faded: a zero-opacity label still
+                claims width, which would stretch the 44px square back into a
+                lopsided row. The tooltip carries the name there instead. */}
+            {!collapsed && (
+              <motion.span
+                initial={false}
+                animate={{ opacity: 1 }}
+                transition={tween.fast}
+                data-i18n={item.label}
+                className="relative z-10 truncate font-display text-[15px] font-semibold"
+              >
+                {t(item.label)}
+              </motion.span>
+            )}
             {/* Expanded, the count sits at the end of the row. The collapsed
                 one lives on the icon above. */}
             {!collapsed && count > 0 && (
