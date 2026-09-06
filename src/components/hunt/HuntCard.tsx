@@ -85,10 +85,13 @@ export function HuntCard({
           </span>
         </p>
         <div className="flex items-center gap-2">
-          <UserAvatar name={item.owner} size="sm" />
+          <UserAvatar name={item.owner || t('swaps.someone')} size="sm" />
           <div className="flex min-w-0 flex-col">
+            {/* A person with no name set reads as "Someone", not as an
+                invented one: "Swapper" looked like a real account and made
+                every nameless profile look like the same person. */}
             <span className="truncate font-display text-sm font-semibold text-foreground">
-              {item.owner}
+              {item.owner || t('swaps.someone')}
             </span>
             {/* Trust is a count of finished swaps, not a star rating. Peer
                 ratings are cut from the product: they invite retaliation, and

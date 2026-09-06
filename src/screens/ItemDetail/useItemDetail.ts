@@ -75,7 +75,7 @@ export function useItemDetail() {
 
   const owner: PersonRef = {
     id: String(data.user_id ?? ''),
-    name: String(ownerData?.name ?? ownerData?.display_name ?? 'Swapper'),
+    name: String(ownerData?.name ?? ownerData?.display_name ?? ''),
     rating: ownerData?.rating != null ? Number(ownerData.rating) : undefined,
     swapCount: ownerData?.swap_count != null ? Number(ownerData.swap_count) : 0,
     verified: Boolean(ownerData?.verified),

@@ -33,7 +33,7 @@ export default function ChatMobile() {
           >
             <ArrowLeft className="size-5" aria-hidden="true" />
           </button>
-          <UserAvatar name={c.ctx?.otherName ?? 'Swapper'} size="sm" />
+          <UserAvatar name={c.ctx?.otherName || t('swaps.someone')} size="sm" />
           <span className="min-w-0 flex-1 truncate font-display text-[15px] font-semibold text-foreground">
             {c.ctx?.otherName ?? ''}
           </span>

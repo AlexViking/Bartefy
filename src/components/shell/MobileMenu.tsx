@@ -63,7 +63,7 @@ export function MobileMenu({
         onClick={() => go('/profile')}
         className="mb-3 flex w-full items-center gap-3 rounded-card border-[1.5px] border-border/[0.14] bg-card p-3 text-left transition-colors hover:border-primary/40"
       >
-        <UserAvatar name={name || 'Swapper'} size="md" />
+        <UserAvatar name={name} size="md" />
         {/* An email address is user data: no translation key on this line. */}
         <span className="min-w-0 flex-1 truncate font-body text-body text-foreground">
           {name}

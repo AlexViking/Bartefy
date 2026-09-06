@@ -94,7 +94,7 @@ export function useHunt() {
         category: String(it.category ?? ''),
         condition: String(it.condition ?? ''),
         distance: String(it.location_city ?? city),
-        owner: String(it.owner ?? 'Swapper'),
+        owner: it.owner ? String(it.owner) : '',
         wants: Array.isArray(it.wants) ? (it.wants as string[]) : [],
         photoColor: 'hsl(var(--illo-terracotta))',
         photoUrl:

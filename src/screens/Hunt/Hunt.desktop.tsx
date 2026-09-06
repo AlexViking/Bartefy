@@ -32,17 +32,20 @@ export default function HuntDesktop() {
 
   return (
     <AppShell>
-      <div className="grid h-[calc(100dvh-68px)] grid-cols-[260px_1fr_320px]">
-        <aside className="flex flex-col gap-4 overflow-y-auto border-r border-border/[0.14] bg-card p-5">
-          {/* The panes carry caption labels, not headings, so the screen would
-              otherwise have no h1 for a screen reader to announce. */}
+      {/* Two columns, not three.
+       *
+       *  The filter rail was 260px of vertical chip list -- sixteen categories
+       *  one per row, because a 260px column cannot wrap chips -- and with the
+       *  app sidebar beside it that was 480px of chrome before the card. The
+       *  categories move above the deck where they can wrap into two lines,
+       *  and the deck gets the width it was missing. */}
+      <div className="grid h-[calc(100dvh-68px)] grid-cols-[1fr_340px]">
+        {/* Filters and deck in one column: the chips wrap across the full
+            width here instead of stacking sixteen deep in a narrow rail. */}
+        <section className="flex min-h-0 flex-col overflow-y-auto px-6 py-5">
           <T as="h1" k="hunt.title" className="sr-only" />
 
-          {/* Your side of the trade, at the top of the rail that already
-              answers "what am I hunting for" — the two halves of the same
-              question belong together. */}
-
-          <div className="flex items-center gap-1.5">
+          <div className="mb-1 flex items-center gap-1.5">
             <T
               as="span"
               k="hunt.filtersTitle"
@@ -50,7 +53,7 @@ export default function HuntDesktop() {
             />
             <InfoHint k="help.whyWants" side="right" />
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="mb-5 flex flex-wrap gap-2">
             {HUNT_CATEGORIES.map((c) => (
               <Chip key={c.id} icon={c.icon} active={h.filters.includes(c.id)} onClick={() => h.toggleFilter(c.id)}>
                 {t(c.label)}
@@ -58,35 +61,37 @@ export default function HuntDesktop() {
             ))}
           </div>
 
+          {/* The deck, centred in what is left. max-w keeps the card a card:
+              a 900px-wide swipe card is a poster. */}
+          <div className="flex flex-1 flex-col items-center justify-center gap-4">
+            {h.isLoading ? (
+              <T as="p" k="hunt.loading" className="font-body text-sm text-muted-foreground" />
+            ) : h.top ? (
+              <>
+                <HuntStack cards={h.cards} onDecide={h.decide} className="max-w-[340px]" />
+                <T as="p" k="hunt.hintKeys" className="font-body text-[13px] text-muted-foreground" />
+              </>
+            ) : (
+              <EmptyState
+                title="hunt.emptyTitle"
+                body="hunt.emptyBody"
+                bodyValues={{ radius: h.radiusKm }}
+                actionLabel="hunt.widen"
+                actionValues={{ radius: Math.round(h.radiusKm * 2.5) }}
+                onAction={h.widen}
+                secondaryLabel="hunt.browseInstead"
+                onSecondary={h.goBrowse}
+              />
+            )}
+          </div>
+
           <NextStep
             id="hunt-list-first"
             body="stuck.listFirst"
             action="onboarding.listFirst"
             onAction={h.goAdd}
-            className="mt-auto"
+            className="mt-5"
           />
-        </aside>
-
-        <section className="flex flex-col items-center justify-center gap-4 px-6 py-6">
-          {h.isLoading ? (
-            <T as="p" k="hunt.loading" className="font-body text-sm text-muted-foreground" />
-          ) : h.top ? (
-            <>
-              <HuntStack cards={h.cards} onDecide={h.decide} />
-              <T as="p" k="hunt.hintKeys" className="font-body text-[13px] text-muted-foreground" />
-            </>
-          ) : (
-            <EmptyState
-              title="hunt.emptyTitle"
-              body="hunt.emptyBody"
-              bodyValues={{ radius: h.radiusKm }}
-              actionLabel="hunt.widen"
-              actionValues={{ radius: Math.round(h.radiusKm * 2.5) }}
-              onAction={h.widen}
-              secondaryLabel="hunt.browseInstead"
-              onSecondary={h.goBrowse}
-            />
-          )}
         </section>
 
         <aside className="flex flex-col gap-4 overflow-y-auto border-l border-border/[0.14] bg-card p-5">

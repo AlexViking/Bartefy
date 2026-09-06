@@ -46,8 +46,8 @@ export function useBrowse() {
         const ownerObj = it.owner as Record<string, unknown> | string | undefined
         const owner =
           typeof ownerObj === 'object' && ownerObj
-            ? String(ownerObj.name ?? 'Swapper')
-            : String(ownerObj ?? 'Swapper')
+            ? String(ownerObj.name ?? '')
+            : String(ownerObj ?? '')
         return {
           id: String(it.id),
           title: String(it.title ?? ''),

@@ -128,7 +128,7 @@ export function Topbar({
           <ThemeToggle />
         </span>
         <UserAvatar
-          name={name || 'Swapper'}
+          name={name}
           size="md"
           className="hidden cursor-pointer md:block"
           onClick={() => navigate('/profile')}

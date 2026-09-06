@@ -29,7 +29,7 @@ export function ChatPane() {
             <OwnerRow
               person={{
                 id: c.ctx?.otherId ?? '',
-                name: c.ctx?.otherName ?? 'Swapper',
+                name: c.ctx?.otherName || t('swaps.someone'),
                 swapCount: 0,
                 verified: false,
               }}

@@ -143,7 +143,7 @@ export function useChat() {
       const isUserA = swap.user_a_id === userId
       const otherId = String((isUserA ? swap.user_b_id : swap.user_a_id) ?? '')
 
-      let otherName = 'Swapper'
+      let otherName = ''
       if (otherId) {
         // profiles_public exposes name/rating/swap_count only; the base table
         // is readable to its owner alone (migration 008).
@@ -152,7 +152,7 @@ export function useChat() {
           .select('name')
           .eq('id', otherId)
           .maybeSingle()
-        otherName = String(profile?.name ?? 'Swapper')
+        otherName = String(profile?.name ?? '')
       }
 
       if (cancelled) return
