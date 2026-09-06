@@ -14,8 +14,10 @@ import { PausedFindsSheet } from '@/components/membership/PausedFindsSheet'
 import { useMembershipStore } from '@/store/membership'
 import { useAuthStore } from '@/store/auth'
 import { tierOf } from '@/lib/membership'
+import { Icon } from '@/components/ui/icon'
+import { resetLocal } from '@/lib/resetLocal'
 import { cn } from '@/lib/utils'
-import { getProfile, getMyItems } from '@/lib/api'
+import { getProfile, getMyItems, signOut } from '@/lib/api'
 import { keys, STALE } from '@/lib/cache/queryClient'
 import type { ItemRef } from '@/types/swap'
 import { DEFAULT_CITY } from '@/screens/Onboarding/useOnboarding'
@@ -23,10 +25,27 @@ import { DEFAULT_CITY } from '@/screens/Onboarding/useOnboarding'
 type Tab = 'live' | 'paused' | 'eyeing'
 
 /** T3 - gallery. Identity, trust, then the finds. */
+/** The four hub destinations, in the wireframe's order. Rewards is absent
+ *  until the points wallet ships -- a row leading to a screen that says
+ *  "coming soon" is worse than no row. */
+const HUB_ROWS = [
+  { path: '/invite', label: 'profile.hubInvite', icon: 'Sparkles' as const },
+  { path: '/settings/blocked', label: 'profile.hubBlocked', icon: 'ShieldAlert' as const },
+  { path: '/settings', label: 'profile.hubSettings', icon: 'Settings' as const },
+]
+
 export function Profile() {
   const { t } = useT()
   const isDesktop = useIsDesktop()
   const navigate = useNavigate()
+
+  /** Signing out clears the local caches too -- see lib/resetLocal. A browser
+   *  that keeps the previous account's cached feed shows it to whoever signs
+   *  in next. */
+  const handleSignOut = async () => {
+    await resetLocal({ signOut })
+    navigate('/')
+  }
   const userId = useAuthStore((s) => s.session?.user?.id)
   const tier = useMembershipStore((s) => s.tier)
   const spec = tierOf(tier)
@@ -234,9 +253,41 @@ export function Profile() {
         {tab === 'live' && (
           <div className="mt-5 flex flex-wrap gap-2">
             <Chip onClick={() => navigate('/add')}>{t('profile.listAnother')}</Chip>
-            <Chip onClick={() => navigate('/settings')}>{t('settings.title')}</Chip>
           </div>
         )}
+
+        {/* The hub, per the wireframe: rows, not chips buried under the grid.
+            These are destinations, and a chip reads as a filter -- which is
+            exactly what the chips directly above it are. */}
+        <nav className="mt-6 overflow-hidden rounded-card border-[1.5px] border-border/[0.14] bg-card">
+          {HUB_ROWS.map((row, i) => (
+            <button
+              key={row.path}
+              type="button"
+              onClick={() => navigate(row.path)}
+              className={cn(
+                'flex min-h-hit w-full items-center gap-3 px-4 py-3.5 text-left',
+                'transition-colors duration-fast ease-brand hover:bg-secondary',
+                i > 0 && 'border-t border-border/[0.14]',
+              )}
+            >
+              <Icon name={row.icon} size={18} className="shrink-0 text-muted-foreground" />
+              <span data-i18n={row.label} className="flex-1 font-body text-body text-foreground">
+                {t(row.label)}
+              </span>
+              <Icon name="ChevronRight" size={16} className="shrink-0 text-muted-foreground" />
+            </button>
+          ))}
+        </nav>
+
+        <button
+          type="button"
+          onClick={handleSignOut}
+          data-i18n="settings.signOut"
+          className="mt-4 min-h-hit w-full font-body text-body text-muted-foreground transition-colors hover:text-destructive"
+        >
+          {t('settings.signOut')}
+        </button>
       </div>
 
       <PausedFindsSheet

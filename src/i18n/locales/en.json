@@ -348,7 +348,10 @@
     "emptyEyeingTitle": "Nothing saved yet",
     "emptyEyeingBody": "Save a find while you think about it — it will be here.",
     "inviteTitle": "Your invite code",
-    "inviteBody": "Share it. You both get credit when they finish their first swap."
+    "inviteBody": "Share it. You both get credit when they finish their first swap.",
+    "hubInvite": "Invite friends",
+    "hubBlocked": "Blocked users",
+    "hubSettings": "Settings"
   },
   "membership": {
     "title": "Membership",
@@ -580,5 +583,18 @@
     "silent": "They are not told they were blocked.",
     "confirm": "Block",
     "action": "Block"
+  },
+  "invite": {
+    "title": "Invite friends",
+    "pitch": "Invite a friend. When they finish their first swap, you both earn points.",
+    "yourCode": "Your code",
+    "copy": "Copy code",
+    "share": "Share invite link",
+    "shareTitle": "Join me on Bartefy",
+    "shareText": "Trade the things you no longer need. No money changes hands.",
+    "yourInvites": "Your invites",
+    "joined": "joined",
+    "traded": "have swapped",
+    "whenPaid": "Points arrive when an invited friend finishes their first swap — not when they sign up."
   }
 }

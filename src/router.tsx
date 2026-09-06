@@ -18,6 +18,7 @@ import { Hunt } from './screens/Hunt'
 import { Browse } from './screens/Browse'
 import { SwapsInbox } from './screens/SwapsInbox'
 import Offers from './screens/Offers/Offers'
+import Invite from './screens/Invite'
 import MatchThread from './screens/Chat/MatchThread'
 import { ItemDetail } from './screens/ItemDetail'
 import { Arrange } from './screens/Arrange'
@@ -88,6 +89,7 @@ export function AppRouter() {
         <Route path="/items" element={guard(<Browse />)} />
         <Route path="/matches" element={guard(<SwapsInbox />)} />
         <Route path="/offers" element={guard(<Offers />)} />
+        <Route path="/invite" element={guard(<Invite />)} />
         <Route path="/profile" element={guard(<Profile />)} />
 
         <Route path="/item/:itemId" element={guard(<ItemDetail />)} />
