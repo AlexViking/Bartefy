@@ -31,10 +31,15 @@ export default function AuthDesktop() {
         backgroundPosition: 'center',
       }}
     >
+      {/* Both washes are drawn from tokens rather than literal rgba, so the
+          dark theme moves them with everything else. --brand-deep stays the
+          book green in both themes: this panel is the brand surface, and a
+          lifted green here would read as a different colour to the logo
+          sitting beside it. */}
       <aside
         className="relative flex flex-col justify-between overflow-hidden p-10"
         style={{
-          backgroundColor: 'rgba(47,106,82,0.94)',
+          backgroundColor: 'hsl(var(--brand-deep) / 0.94)',
         }}
       >
         <DriftingBlobs />
@@ -44,11 +49,11 @@ export default function AuthDesktop() {
             its illustrations survive. relative on each child keeps the blobs
             behind the copy. */}
         <div className="relative max-w-[420px] space-y-4">
-          <T as="h1" k="auth.welcomeTitle" className="font-display text-h2 text-primary-foreground" />
+          <T as="h1" k="auth.welcomeTitle" className="font-display text-h2 text-[hsl(var(--parchment-on-brand))]" />
           <T
             as="p"
             k="auth.welcomeBody"
-            className="font-body text-body leading-relaxed text-primary-foreground/80"
+            className="font-body text-body leading-relaxed text-[hsl(var(--parchment-on-brand))]/80"
           />
         </div>
 
@@ -57,7 +62,7 @@ export default function AuthDesktop() {
         <T
           as="p"
           k="membership.alwaysFreeBody"
-          className="relative max-w-[420px] font-body text-sm leading-relaxed text-primary-foreground/70"
+          className="relative max-w-[420px] font-body text-sm leading-relaxed text-[hsl(var(--parchment-on-brand))]/70"
         />
       </aside>
 
@@ -65,7 +70,7 @@ export default function AuthDesktop() {
           labels, and much above 0.95 it disappeared entirely. */}
       <main
         className="relative flex items-center justify-center px-14"
-        style={{ backgroundColor: 'rgba(247,242,225,0.93)' }}
+        style={{ backgroundColor: 'hsl(var(--background) / 0.93)' }}
       >
         <div className="absolute right-6 top-6">
           <LanguageSwitcher />

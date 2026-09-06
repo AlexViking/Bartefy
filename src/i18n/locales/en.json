@@ -466,5 +466,13 @@
     "failed": "Could not load the reviews. Try again in a moment.",
     "fromCancelled": "From a swap that fell through",
     "seeAll": "See reviews"
+  },
+  "theme": {
+    "switchToDark": "Switch to dark",
+    "switchToLight": "Switch to light",
+    "label": "Appearance",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "Match my device"
   }
 }

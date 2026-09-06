@@ -33,7 +33,7 @@ export default function AuthMobile() {
           on either side to justify it. */}
       <div
         className="flex min-h-dvh flex-col"
-        style={{ backgroundColor: 'rgba(247,242,225,0.93)' }}
+        style={{ backgroundColor: 'hsl(var(--background) / 0.93)' }}
       >
         <header className="flex shrink-0 items-start justify-between px-6 pt-8">
           <Wordmark />

@@ -46,7 +46,17 @@ export function Wordmark({
       // Sized by width, not height. The lockup is nearly 2:1, so a height
       // that suited the old type treatment rendered the mark too small to
       // read — the wordmark inside it is a fraction of the asset's height.
-      className={cn('h-auto w-[190px] select-none', className)}
+      //
+      // The dark-theme filter lifts the artwork off a dark ground. The type in
+      // the asset is Bartefy green, which sits at roughly 2:1 against #121210
+      // and reads as a smudge; brightening and slightly desaturating restores
+      // it without needing a second asset drawn light-on-dark. Replace this
+      // with that asset if one is ever made.
+      className={cn(
+        'h-auto w-[190px] select-none',
+        '[html[data-theme=dark]_&]:brightness-[1.55] [html[data-theme=dark]_&]:saturate-[0.85]',
+        className,
+      )}
     />
   )
 }
