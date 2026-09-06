@@ -102,6 +102,15 @@ export function useHunt() {
             ? String((it.photo_urls as string[])[0])
             : undefined,
         city: it.location_city ? String(it.location_city) : undefined,
+        photos: Array.isArray(it.photo_urls)
+          ? (it.photo_urls as string[]).map(String)
+          : Array.isArray(it.images)
+            ? (it.images as string[]).map(String)
+            : [],
+        description: it.description ? String(it.description) : undefined,
+        daysLeft: it.expires_at
+          ? Math.max(0, Math.ceil((new Date(String(it.expires_at)).getTime() - Date.now()) / 86_400_000))
+          : undefined,
         ownerId: String(it.user_id ?? ''),
         rating: it.rating != null ? Number(it.rating) : undefined,
         swapCount: it.swaps != null ? Number(it.swaps) : 0,

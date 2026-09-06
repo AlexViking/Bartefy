@@ -14,6 +14,11 @@ export interface CardItem {
   wants: string[]
   photoColor: string
   photoUrl?: string
+  /** Every photo, not just the first. A listing carries up to five and the
+   *  deck showed one, so the other four were invisible to everyone. */
+  photos?: string[]
+  description?: string
+  daysLeft?: number
   ownerId?: string
   rating?: number
   swapCount?: number

@@ -3,9 +3,7 @@ import { EmptyState } from '@/components/EmptyState'
 import { OfferSheet } from '@/components/offer/OfferSheet'
 import { HuntStack } from '@/components/hunt/HuntStack'
 import { NextStep } from '@/components/guidance/NextStep'
-import { InfoHint } from '@/components/guidance/InfoHint'
 import { Button } from '@/components/ui/button'
-import { Chip } from '@/components/ui/tone-badge'
 import {
   Dialog,
   DialogContent,
@@ -17,7 +15,7 @@ import { OwnerRow } from '@/components/swap/OwnerRow'
 import { SwapPair } from '@/components/swap/SwapPair'
 import { WantsRow } from '@/components/swap/WantsRow'
 import { T, useT } from '@/i18n/T'
-import { HUNT_CATEGORIES, useHunt } from './useHunt'
+import { useHunt } from './useHunt'
 
 /** Hunt, desktop shape: filters left, stack centre, the find's details right.
  *
@@ -45,21 +43,11 @@ export default function HuntDesktop() {
         <section className="flex min-h-0 flex-col overflow-y-auto px-6 py-5">
           <T as="h1" k="hunt.title" className="sr-only" />
 
-          <div className="mb-1 flex items-center gap-1.5">
-            <T
-              as="span"
-              k="hunt.filtersTitle"
-              className="font-display text-caption uppercase tracking-[0.18em] text-muted-foreground"
-            />
-            <InfoHint k="help.whyWants" side="right" />
-          </div>
-          <div className="mb-5 flex flex-wrap gap-2">
-            {HUNT_CATEGORIES.map((c) => (
-              <Chip key={c.id} icon={c.icon} active={h.filters.includes(c.id)} onClick={() => h.toggleFilter(c.id)}>
-                {t(c.label)}
-              </Chip>
-            ))}
-          </div>
+          {/* No category rail on the deck. The pilot's Discover screen is the
+              card and nothing else: filtering is something you do in Browse
+              when you already know what you want, and sixteen chips above a
+              swipe deck is a decision asked before anyone has seen anything.
+              The filters live in Browse, reached from the topbar search. */}
 
           {/* The deck, centred in what is left. max-w keeps the card a card:
               a 900px-wide swipe card is a poster. */}

@@ -4,6 +4,7 @@ import { Check, RotateCcw, X } from 'lucide-react'
 import { animate, motion, useMotionValue, useTransform } from 'framer-motion'
 
 import { Icon } from '@/components/ui/icon'
+import { PhotoViewer } from '@/components/ui/photo-viewer'
 import { ReportItemSheet } from './ReportItemSheet'
 import { Stamp } from '@/components/ui/stamp'
 import { useT } from '@/i18n/T'
@@ -48,6 +49,8 @@ export function HuntStack({
   const swapOpacity = useTransform(x, [0, 30, 140], [0, 0, 1])
 
   const [reporting, setReporting] = useState(false)
+  const [viewing, setViewing] = useState(false)
+  const [viewerAt, setViewerAt] = useState(0)
 
   const top = cards[0]
   const behind = cards[1]
@@ -117,7 +120,7 @@ export function HuntStack({
           <motion.div style={{ opacity: passOpacity }} className="pointer-events-none">
             <Stamp kind="pass" visible />
           </motion.div>
-          <HuntCard item={top} />
+          <HuntCard item={top} onExpand={(i) => { setViewerAt(i); setViewing(true) }} />
           {/* On the card, per the scope contract: the moment you notice a
               listing is wrong is the moment you are looking at it. Behind a
               menu on the detail screen, most people just swipe past instead.
@@ -136,6 +139,15 @@ export function HuntStack({
           </button>
         </motion.div>
       </div>
+
+      <PhotoViewer
+        open={viewing}
+        photos={top.photos ?? (top.photoUrl ? [top.photoUrl] : [])}
+        index={viewerAt}
+        onIndexChange={setViewerAt}
+        onClose={() => setViewing(false)}
+        title={top.title}
+      />
 
       <ReportItemSheet
         open={reporting}
