@@ -25,12 +25,17 @@ export function HuntStack({
   onDecide,
   onUndo,
   canUndo = false,
+  onUndoBlocked,
   className,
 }: {
   cards: CardItem[]
   onDecide: (item: CardItem, want: boolean) => void
   onUndo?: () => void
   canUndo?: boolean
+  /** Pressed undo with nothing left to undo. When given, the button stays
+   *  live in that state so the press has somewhere to go -- a disabled button
+   *  cannot explain why it is disabled. */
+  onUndoBlocked?: () => void
   className?: string
 }) {
   const { t } = useT()
@@ -189,8 +194,8 @@ export function HuntStack({
           <button
             type="button"
             aria-label={t('hunt.undo')}
-            onClick={onUndo}
-            disabled={!canUndo}
+            onClick={canUndo ? onUndo : onUndoBlocked}
+            disabled={!canUndo && !onUndoBlocked}
             className="flex size-11 items-center justify-center rounded-pill border-[1.5px] border-border/[0.14] bg-card text-muted-foreground shadow-card transition-colors duration-fast ease-brand hover:bg-foreground/[0.06] disabled:opacity-40 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45"
           >
             <RotateCcw className="size-4" aria-hidden="true" />

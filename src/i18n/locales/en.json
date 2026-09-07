@@ -112,10 +112,12 @@
     "widen": "Widen to {{radius}} km",
     "hintSwipe": "Swipe left to pass. Swipe right to put one of yours on the table.",
     "hintKeys": "Or use ← and → on your keyboard",
+    "rewindMore": "Rewind further back",
     "matchTitle": "It's a bartefy!",
     "matchBody": "You both want what the other has.",
     "sayHello": "Say hello",
-    "keepHunting": "Keep hunting"
+    "keepHunting": "Keep hunting",
+    "reachFurther": "Hunt further out"
   },
   "item": {
     "condition": "Condition",
@@ -350,6 +352,8 @@
     "tierCollector": "Collector",
     "tierCurator": "Curator",
     "upgrade": "Upgrade",
+    "tryMonth": "Try a month",
+    "cancelAny": "Cancel any time. Swaps already agreed always finish under the limits you had.",
     "manage": "Manage membership",
     "alwaysFreeTitle": "Always free, on every tier",
     "alwaysFreeBody": "Reporting, blocking, meeting safely, confirming a handover, rating, reading your threads, and finishing a swap you already agreed.",
@@ -364,7 +368,54 @@
     "postage": "Prepaid postage label for a distant swap",
     "freeBlurb": "Everything you need to swap with your neighbours.",
     "collectorBlurb": "A wider map and more finds on the table at once.",
-    "curatorBlurb": "For people who swap constantly and want to be seen first."
+    "curatorBlurb": "For people who swap constantly and want to be seen first.",
+    "moments": {
+      "radius": {
+        "title": "Hunt further out",
+        "body": "Collector opens the whole city and 50 km around it.",
+        "free": "Or wait — new finds land within 10 km every day."
+      },
+      "live_finds": {
+        "title": "Keep more finds live",
+        "body": "Hunter holds six at a time. Collector has no cap.",
+        "free": "Or pause an older find to make room — nothing is deleted."
+      },
+      "active_swaps": {
+        "title": "More swaps at once",
+        "body": "Hunter runs three at a time so nobody gets left waiting.",
+        "free": "Or finish one of yours first."
+      },
+      "see_eyeing": {
+        "title": "See who is eyeing this",
+        "body": "Collector shows you who, so you can offer them something first.",
+        "free": "The count stays free, always."
+      },
+      "saved_search": {
+        "title": "Instant alerts",
+        "body": "Collector saves five searches and tells you the moment one lands.",
+        "free": "Your first search still arrives in the daily digest."
+      },
+      "after_fourth_swap": {
+        "title": "Four swaps in. Nicely done.",
+        "body": "Collector widens the map and lifts the caps, if you want more of this.",
+        "free": "Staying on Hunter changes nothing about what you already have."
+      },
+      "someone_likes_yours": {
+        "title": "People are eyeing this one",
+        "body": "Unlock who they are and you can offer them something first.",
+        "free": "The count stays free, always."
+      },
+      "stack_empty": {
+        "title": "That is everything nearby",
+        "body": "Collector opens the map out to 50 km, so there is more to see.",
+        "free": "Or widen the radius yourself — new finds land every day."
+      },
+      "just_passed": {
+        "title": "Changed your mind?",
+        "body": "Collector lets you rewind as far back as you like.",
+        "free": "Your last pass is always free to undo."
+      }
+    }
   },
   "settings": {
     "title": "Settings",

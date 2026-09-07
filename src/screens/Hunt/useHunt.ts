@@ -186,6 +186,10 @@ export function useHunt() {
     setSentTitle(target.title)
   }
 
+  /** Whether a free undo has been spent this session. The pitch below is gated
+   *  on it, so the deck's first-ever pass cannot trigger an upgrade prompt. */
+  const [usedUndo, setUsedUndo] = useState(false)
+
   /** Put the last passed card back on top.
    *
    *  Client-side only, and deliberately so: the pass is already recorded by the
@@ -195,7 +199,35 @@ export function useHunt() {
    *  not undoable here because a like is an offer, and withdrawing an offer
    *  someone may already have seen is a different action with its own rules.
    */
-  const rewind = () => unpass()
+  const rewind = () => {
+    if (!lastPassed) return
+    setUsedUndo(true)
+    unpass()
+  }
+
+  /** The trigger moment from the tier sheet: someone has already used their one
+   *  free undo and reaches for it again, with nothing left to undo. That is the
+   *  point at which unlimited rewind is a thing they actually want, so the
+   *  sheet is offered there and nowhere else.
+   *
+   *  It is offered once per session. A nudge that reappears every time the
+   *  button is pressed stops being a nudge. */
+  const [rewindPitch, setRewindPitch] = useState(false)
+  const [rewindPitched, setRewindPitched] = useState(false)
+
+  /** The empty deck's upgrade moment. It is deliberately NOT a sheet that opens
+   *  by itself: the empty state already says "that is everything nearby" and
+   *  offers the free widen, so a modal on top would restate the screen behind
+   *  it. It opens only when the person asks for more reach. */
+  const [reachPitch, setReachPitch] = useState(false)
+
+  /** Pressed undo with nothing to undo. The button is disabled when
+   *  `canRewind` is false, so this is the deliberate second reach. */
+  const rewindBlocked = () => {
+    if (rewindPitched) return
+    setRewindPitched(true)
+    setRewindPitch(true)
+  }
 
   /** Backing out of the sheet. The card stays: not choosing an item is not the
    *  same as passing on the find. */
@@ -219,6 +251,15 @@ export function useHunt() {
     dismissMatch: () => setMatched(null),
     rewind,
     canRewind: !!lastPassed,
+    /** Fires only once a free undo has been spent -- otherwise the deck's very
+     *  first pass would pitch an upgrade, which is exactly the mid-swipe
+     *  interstitial the tier sheet forbids. */
+    rewindBlocked: usedUndo && !lastPassed ? rewindBlocked : undefined,
+    rewindPitch,
+    dismissRewindPitch: () => setRewindPitch(false),
+    reachPitch,
+    openReachPitch: () => setReachPitch(true),
+    dismissReachPitch: () => setReachPitch(false),
     decide,
     /** Offer sheet state. */
     pendingTarget,

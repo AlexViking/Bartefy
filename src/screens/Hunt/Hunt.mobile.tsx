@@ -2,6 +2,7 @@ import { AppShell } from '@/components/shell/AppShell'
 import { EmptyState } from '@/components/EmptyState'
 import { OfferSheet } from '@/components/offer/OfferSheet'
 import { HuntStack } from '@/components/hunt/HuntStack'
+import { UpgradeSheet } from '@/components/membership/UpgradeSheet'
 import { NextStep } from '@/components/guidance/NextStep'
 import { Button } from '@/components/ui/button'
 import {
@@ -43,7 +44,7 @@ export default function HuntMobile() {
             <T as="p" k="hunt.loading" className="font-body text-sm text-muted-foreground" />
           ) : h.top ? (
             <>
-              <HuntStack cards={h.cards} onDecide={h.decide} onUndo={h.rewind} canUndo={h.canRewind} />
+              <HuntStack cards={h.cards} onDecide={h.decide} onUndo={h.rewind} canUndo={h.canRewind} onUndoBlocked={h.rewindBlocked} />
               <T
                 as="p"
                 k="hunt.hintSwipe"
@@ -58,6 +59,8 @@ export default function HuntMobile() {
               actionLabel="hunt.widen"
               actionValues={{ radius: Math.round(h.radiusKm * 2.5) }}
               onAction={h.widen}
+              secondaryLabel="hunt.reachFurther"
+              onSecondary={h.openReachPitch}
             />
           )}
         </section>
@@ -129,6 +132,27 @@ export default function HuntMobile() {
           </div>
         </SheetContent>
       </Sheet>
+      {/* The one upgrade moment on this screen: undo pressed with nothing left
+          to undo. Its free route is the truthful one -- the last pass really is
+          always free -- so the sheet just closes. */}
+      <UpgradeSheet
+        open={h.rewindPitch}
+        onOpenChange={(o) => !o && h.dismissRewindPitch()}
+        moment="just_passed"
+      />
+
+      {/* Reach, asked for rather than pushed. The free widen stays the primary
+          action on the empty state itself. */}
+      <UpgradeSheet
+        open={h.reachPitch}
+        onOpenChange={(o) => !o && h.dismissReachPitch()}
+        moment="stack_empty"
+        onFreeRoute={() => {
+          h.dismissReachPitch()
+          h.widen()
+        }}
+      />
+
     </AppShell>
   )
 }

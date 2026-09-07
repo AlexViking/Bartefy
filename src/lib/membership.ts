@@ -108,62 +108,12 @@ export type UpgradeMoment =
   | 'stack_empty'
   | 'just_passed'
 
-/** One sheet, one price, one line about what changes, and a visible free
- *  alternative. Never an interstitial on launch, never mid-swipe, never during
- *  a handover or a dispute.
+/** The moments' copy lives in i18n at `membership.moments.<moment>`, not here.
+ *  It is user-visible copy like any other, and a TS constant of English
+ *  strings could never be translated. `UpgradeSheet` reads it; nothing else
+ *  should need it.
+ *
+ *  The rules the copy encodes are unchanged: one sheet, one price, one line
+ *  about what changes, and a visible free alternative. Never an interstitial
+ *  on launch, never mid-swipe, never during a handover or a dispute.
  */
-export const UPGRADE_COPY: Record<UpgradeMoment, { title: string; body: string; free: string }> = {
-  radius: {
-    title: 'Hunt further out',
-    body: 'Collector opens the whole city and 50 km around it.',
-    free: 'Or wait - new finds land within 10 km every day.',
-  },
-  live_finds: {
-    title: 'Keep more finds live',
-    body: 'Hunter holds six at a time. Collector has no cap.',
-    free: 'Or pause an older find to make room - nothing is deleted.',
-  },
-  active_swaps: {
-    title: 'More swaps at once',
-    body: 'Hunter runs three at a time so nobody gets left waiting.',
-    free: 'Or finish one of yours first.',
-  },
-  see_eyeing: {
-    title: 'See who is eyeing this',
-    body: 'Collector shows you who, so you can offer them something first.',
-    free: 'The count stays free, always.',
-  },
-  saved_search: {
-    title: 'Instant alerts',
-    body: 'Collector saves five searches and tells you the moment one lands.',
-    free: 'Your first search still arrives in the daily digest.',
-  },
-  after_fourth_swap: {
-    title: 'Four swaps in. Nicely done.',
-    body: 'Collector widens the map and lifts the caps, if you want more of this.',
-    free: 'Staying on Hunter changes nothing about what you already have.',
-  },
-  /** The tier sheet calls this the strongest converter: concrete value plus
-   *  curiosity, at the moment somebody wants your thing. The COUNT is always
-   *  free -- only the names are behind the unlock, which is what keeps this a
-   *  nudge rather than a hostage situation. */
-  someone_likes_yours: {
-    title: 'People are eyeing this one',
-    body: 'Unlock who they are and you can offer them something first.',
-    free: 'The count stays free, always.',
-  },
-  /** An empty stack is the natural moment to widen the pool -- there is
-   *  nothing else to do on the screen. */
-  stack_empty: {
-    title: 'That is everything nearby',
-    body: 'Collector opens the map out to 50 km, so there is more to see.',
-    free: 'Or widen the radius yourself -- new finds land every day.',
-  },
-  /** FOMO on the one that got away, offered only once undo has been used and
-   *  there is nothing left to undo with. */
-  just_passed: {
-    title: 'Changed your mind?',
-    body: 'Collector lets you rewind as far back as you like.',
-    free: 'Your last pass is always free to undo.',
-  },
-}
