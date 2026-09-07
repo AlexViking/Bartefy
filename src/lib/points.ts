@@ -14,6 +14,7 @@ export type EarnReason =
   | 'offer_accepted'
   | 'swap_completed'
   | 'referral_first_swap'
+  | 'daily_visit'
   | 'backfill'
 
 export type SpendReason = 'buy_tier' | 'buy_boost' | 'buy_eyeing' | 'buy_radius'
@@ -32,11 +33,21 @@ export interface PointEvent {
  *  show the table without a round trip per row; the database remains the
  *  authority that actually pays out. */
 export const EARN_RATES: { reason: EarnReason; points: number }[] = [
-  { reason: 'list_find', points: 5 },
-  { reason: 'offer_accepted', points: 10 },
-  { reason: 'swap_completed', points: 40 },
-  { reason: 'referral_first_swap', points: 100 },
+  { reason: 'list_find', points: 20 },
+  { reason: 'offer_accepted', points: 60 },
+  { reason: 'swap_completed', points: 160 },
+  { reason: 'referral_first_swap', points: 400 },
 ]
+
+/** Listing is the only action with no counterparty, so it is the only one that
+ *  can be farmed alone. The first ten listings a month earn points; listing
+ *  itself stays unlimited (migration 023 removed those caps deliberately). */
+export const PAID_LISTINGS_PER_MONTH = 10
+
+/** What day N of a visit streak pays. Mirrors public.visit_value.
+ *  2,3,4,5,6,7 then flat -- a perfect week is 34 points. */
+export const visitValue = (streak: number) => Math.min(1 + Math.max(streak, 1), 7)
+export const MAX_VISIT_VALUE = 7
 
 /** Prices, mirroring public.tier_price and public.perk_price.
  *
@@ -44,8 +55,8 @@ export const EARN_RATES: { reason: EarnReason; points: number }[] = [
  *  cheapest consumable, an unlock sits just under it, and a month of a tier is
  *  the commitment. Expressed in earned points rather than purchased credits,
  *  because there is no card payment yet. */
-export const TIER_PRICES = { collector: 600, curator: 1200 } as const
-export const PERK_PRICES = { boost: 200, eyeing: 150, radius: 300 } as const
+export const TIER_PRICES = { collector: 600, curator: 1500 } as const
+export const PERK_PRICES = { boost: 75, eyeing: 50, radius: 120 } as const
 export const PERK_DAYS = { boost: 1, eyeing: 7, radius: 7 } as const
 
 export type Perk = keyof typeof PERK_PRICES
@@ -82,6 +93,27 @@ export async function getGrants(userId: string) {
     .select('id, perk, subject, expires_at')
     .eq('user_id', userId)
     .gt('expires_at', new Date().toISOString())
+}
+
+/** Claim today's visit. Idempotent per user per day -- the guard is a stored
+ *  date, not the caller, so calling it repeatedly pays once. Safe to fire on
+ *  every app open. */
+export async function claimDailyVisit() {
+  return supabase.rpc('claim_daily_visit')
+}
+
+export interface VisitStreak {
+  last_visit: string
+  streak: number
+  best_streak: number
+}
+
+export async function getStreak(userId: string) {
+  return supabase
+    .from('visit_streaks')
+    .select('last_visit, streak, best_streak')
+    .eq('user_id', userId)
+    .maybeSingle()
 }
 
 /** The database raises these; the screen turns them into copy. */

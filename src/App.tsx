@@ -5,6 +5,7 @@ import { idbPersister } from '@/lib/cache/idbPersister'
 import { AppRouter } from './router'
 import { useRealtime } from '@/lib/realtime'
 import { startOutbox, type Job } from '@/lib/outbox'
+import { claimDailyVisit } from '@/lib/points'
 import { useAuthStore } from '@/store/auth'
 import { supabase } from '@/lib/supabase'
 import { useEffect } from 'react'
@@ -53,6 +54,24 @@ function Live() {
     )
     return () => subscription.unsubscribe()
   }, [setSession, setInitialized])
+
+  /** Today's visit. Fires once the session lands and once per user per day:
+   *  the RPC is idempotent on a stored date, so a refresh or a second tab
+   *  cannot pay twice and this does not need its own guard. Failure is
+   *  deliberately silent -- a missed streak point must never block the app,
+   *  and tomorrow's claim will still see the right streak. */
+  useEffect(() => {
+    if (!userId) return
+    claimDailyVisit()
+      .then(({ data }) => {
+        const row = Array.isArray(data) ? data[0] : data
+        // Only disturb the cache when something was actually awarded.
+        if (row && !row.already_claimed && row.awarded > 0) {
+          queryClient.invalidateQueries({ queryKey: ['points'] })
+        }
+      })
+      .catch(() => {})
+  }, [userId])
 
   useEffect(() => {
     return startOutbox(async (jobs: Job[]) => {

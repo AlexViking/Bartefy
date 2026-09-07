@@ -712,6 +712,15 @@
     "errorNotEnough": "Not quite enough points yet.",
     "errorNotForSale": "That is not something points buy.",
     "errorWhichFind": "Pick which find to boost.",
-    "errorSignedOut": "Sign in to spend points."
+    "errorSignedOut": "Sign in to spend points.",
+    "earn_daily_visit": "Come back tomorrow",
+    "reason_daily_visit": "Daily visit",
+    "earnVisitRange": "up to {{max}}",
+    "earnListingCap": "The first {{count}} finds you list each month earn points. List as many as you like beyond that.",
+    "streakTitle": "Your streak",
+    "streakDays": "{{count}} days running",
+    "streakDay": "1 day",
+    "streakBody": "Come back tomorrow for {{points}} points. Miss a day and it starts again.",
+    "streakBest": "Best: {{count}} days"
   }
 }

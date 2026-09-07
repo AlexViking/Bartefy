@@ -12,6 +12,10 @@ import { useIsDesktop } from '@/lib/platform'
 import { cn } from '@/lib/utils'
 import {
   EARN_RATES,
+  MAX_VISIT_VALUE,
+  PAID_LISTINGS_PER_MONTH,
+  getStreak,
+  visitValue,
   PERK_DAYS,
   PERK_PRICES,
   TIER_PRICES,
@@ -45,6 +49,16 @@ export default function Rewards() {
   const queryClient = useQueryClient()
   const userId = useAuthStore((s) => s.session?.user?.id)
   const [errorKey, setErrorKey] = useState<string | null>(null)
+
+  const { data: streak } = useQuery({
+    queryKey: ['points', 'streak', userId ?? ''],
+    queryFn: async () => {
+      const { data, error } = await getStreak(userId!)
+      if (error) throw error
+      return data
+    },
+    enabled: !!userId,
+  })
 
   const { data: balance = 0, isLoading } = useQuery({
     queryKey: ['points', 'balance', userId ?? ''],
@@ -138,6 +152,29 @@ export default function Rewards() {
           <T as="span" k="points.balanceLabel" className="font-body text-sm text-muted-foreground" />
         </div>
 
+        {/* The streak. Shown only once there is one -- an empty "0 days" card
+            is a reproach, not an invitation. It names tomorrow's number
+            because that, not today's, is the reason to come back. */}
+        {streak && streak.streak > 0 && (
+          <div className="mt-3 flex items-center gap-3 rounded-card border border-border/[0.14] bg-card px-4 py-3.5">
+            <div className="flex flex-col">
+              <T
+                as="span"
+                k="points.streakTitle"
+                className="font-display text-caption uppercase tracking-[0.18em] text-muted-foreground"
+              />
+              <span className="font-display text-[17px] font-bold text-foreground">
+                {streak.streak === 1
+                  ? t('points.streakDay')
+                  : t('points.streakDays', { count: streak.streak })}
+              </span>
+            </div>
+            <p className="flex-1 text-right font-body text-sm text-muted-foreground">
+              {t('points.streakBody', { points: visitValue(streak.streak + 1) })}
+            </p>
+          </div>
+        )}
+
         {errorKey && (
           <T
             as="p"
@@ -171,7 +208,27 @@ export default function Rewards() {
               </span>
             </div>
           ))}
+
+          {/* The visit pays a range rather than a fixed amount, so it cannot
+              sit in EARN_RATES with the others. */}
+          <div className="flex items-center gap-3 border-t border-border/[0.14] px-4 py-3.5">
+            <span data-i18n="points.earn_daily_visit" className="flex-1 font-body text-body">
+              {t('points.earn_daily_visit')}
+            </span>
+            <span className="font-display text-[15px] font-bold text-primary tabular-nums">
+              {t('points.earnVisitRange', { max: MAX_VISIT_VALUE })}
+            </span>
+          </div>
         </div>
+
+        {/* The honest footnote. Someone who lists their eleventh find this
+            month and sees no points would otherwise think it is broken. */}
+        <p
+          data-i18n="points.earnListingCap"
+          className="mt-2 font-body text-sm text-muted-foreground"
+        >
+          {t('points.earnListingCap', { count: PAID_LISTINGS_PER_MONTH })}
+        </p>
 
         {/* What it buys. A month of a tier, or a single perk -- both, because
             somebody who only wants to see who is eyeing should not have to buy
