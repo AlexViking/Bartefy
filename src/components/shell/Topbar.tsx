@@ -28,7 +28,9 @@ export function Topbar({
   name,
   waiting = 0,
 }: {
-  onMenu: () => void
+  /** Absent on tablet, where there is no rail width to toggle. The button is
+   *  `md:hidden` anyway, so it never renders at that width. */
+  onMenu?: () => void
   name: string
   /** Offers plus unread threads. Drives the dot on the bell. */
   waiting?: number

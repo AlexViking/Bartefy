@@ -1,5 +1,8 @@
 import { useParams } from 'react-router'
 
+import { useTwoPane } from '@/lib/platform'
+import { cn } from '@/lib/utils'
+
 import { AppShell } from '@/components/shell/AppShell'
 import { ChatPane } from '@/screens/Chat/ChatPane'
 import { EmptyState } from '@/components/EmptyState'
@@ -24,10 +27,30 @@ export default function SwapsInboxDesktop() {
   const s = useSwapsInbox()
   const { swapId } = useParams<{ swapId: string }>()
 
+  /** The wireframe's tablet note, honoured here rather than in a third file:
+   *  "build the two-pane once and show/hide the list based on width." Both
+   *  panes at once on desktop and on a landscape tablet; in portrait the
+   *  screen behaves like mobile -- the list, and then the chat as a full view
+   *  once a row is picked. */
+  const twoPane = useTwoPane()
+  const showList = twoPane || !swapId
+  const showPane = twoPane || !!swapId
+
   return (
     <AppShell>
-      <div className="grid h-[calc(100dvh-68px)] grid-cols-[minmax(300px,360px)_1fr]">
-        <section className="flex flex-col overflow-y-auto border-r border-border/[0.14] p-5">
+      <div
+        className={cn(
+          'grid h-[calc(100dvh-68px)]',
+          twoPane ? 'grid-cols-[minmax(300px,360px)_1fr]' : 'grid-cols-1',
+        )}
+      >
+        {showList && (
+        <section
+          className={cn(
+            'flex flex-col overflow-y-auto p-5',
+            twoPane && 'border-r border-border/[0.14]',
+          )}
+        >
           <T as="h1" k="swaps.title" className="mb-4 font-display text-h2 text-foreground" />
         <OffersLink className="mb-4" />
           <InboxTabs tab={s.tab} onChange={s.setTab} className="mb-4" />
@@ -52,11 +75,12 @@ export default function SwapsInboxDesktop() {
             />
           )}
         </section>
+        )}
 
         {/* With a swap picked the pane is the conversation itself. Keyed by id
             so switching rows remounts the thread rather than leaking the
             previous one's state into it. */}
-        {swapId ? (
+        {showPane && (swapId ? (
           <section className="min-w-0 overflow-hidden">
             <ChatPane key={swapId} />
           </section>
@@ -75,7 +99,7 @@ export default function SwapsInboxDesktop() {
               />
             )}
           </section>
-        )}
+        ))}
       </div>
     </AppShell>
   )

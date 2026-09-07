@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router'
+
 import { ConfirmAndRateSheet } from '@/components/swap/ConfirmAndRateSheet'
 import { TroubleSheet } from '@/components/swap/TroubleSheet'
 import { Button } from '@/components/ui/button'
@@ -6,7 +8,10 @@ import { ToneBadge } from '@/components/ui/tone-badge'
 import { OwnerRow } from '@/components/swap/OwnerRow'
 import { SwapPair } from '@/components/swap/SwapPair'
 import { InfoHint } from '@/components/guidance/InfoHint'
+import { Icon } from '@/components/ui/icon'
 import { T, useT } from '@/i18n/T'
+import { useTwoPane } from '@/lib/platform'
+import { cn } from '@/lib/utils'
 import { Thread } from './Thread'
 import { useChat } from './useChat'
 
@@ -20,12 +25,46 @@ import { useChat } from './useChat'
 export function ChatPane() {
   const c = useChat()
   const { t } = useT()
+  const navigate = useNavigate()
+
+  /** On a portrait tablet this pane IS the screen -- the swap list is not
+   *  beside it -- so it needs its own way back, exactly as the phone's Chat
+   *  does. With both panes visible the list is right there and a back button
+   *  would be noise. */
+  const twoPane = useTwoPane()
 
   return (
     <>
-      <div className="grid h-full grid-cols-[1fr_340px]">
-        <section className="flex min-h-0 min-w-0 flex-col border-r border-border/[0.14]">
+      <div
+        className={cn(
+          'grid h-full',
+          // Side by side where there is room. In portrait the rail costs 340px
+          // of 768, leaving the conversation narrower than a phone -- so it
+          // moves BELOW the thread rather than away. It carries the agree and
+          // arrange actions, and a chat you cannot act from is a dead end.
+          twoPane
+            ? 'grid-cols-[1fr_340px]'
+            : 'grid-cols-1 grid-rows-[minmax(0,1fr)_auto] overflow-y-auto',
+        )}
+      >
+        <section
+          className={cn(
+            'flex min-h-0 min-w-0 flex-col',
+            twoPane && 'border-r border-border/[0.14]',
+          )}
+        >
           <header className="flex items-center gap-3 border-b border-border/[0.14] bg-card px-5 py-3">
+            {!twoPane && (
+              <Button
+                variant="ghost"
+                size="icon"
+                pill
+                onClick={() => navigate('/matches')}
+                aria-label={t('common.back')}
+              >
+                <Icon name="ArrowLeft" size={20} />
+              </Button>
+            )}
             <OwnerRow
               person={{
                 id: c.ctx?.otherId ?? '',
@@ -45,7 +84,12 @@ export function ChatPane() {
           <Thread c={c} />
         </section>
 
-        <aside className="flex flex-col gap-4 overflow-y-auto bg-card p-5">
+        <aside
+          className={cn(
+            'flex flex-col gap-4 bg-card p-5',
+            twoPane ? 'overflow-y-auto' : 'border-t border-border/[0.14]',
+          )}
+        >
           <div className="flex items-center gap-1.5">
             <T
               as="span"

@@ -8,7 +8,7 @@ import { Topbar } from './Topbar'
 import { supabase } from '@/lib/supabase'
 import { getIncomingOffers } from '@/lib/barter'
 import { useAuthStore } from '@/store/auth'
-import { useIsDesktop } from '@/lib/platform'
+import { useIsDesktop, useIsTablet } from '@/lib/platform'
 import { useUnread } from '@/lib/useUnread'
 
 const COLLAPSE_KEY = 'bartefy.sidebar.collapsed'
@@ -72,13 +72,23 @@ export function AppShell({
    *  changes nothing at all, so the button was simply dead. */
   const [menuOpen, setMenuOpen] = React.useState(false)
 
-  const collapsed = React.useSyncExternalStore(
+  const storedCollapsed = React.useSyncExternalStore(
     subscribeCollapsed,
     () => collapsedValue,
     () => false,
   )
 
-  const toggleCollapse = () => setCollapsedValue(!collapsedValue)
+  /** A tablet's rail is always the slim icon-only one. The wireframe is
+   *  explicit -- "rail collapses to icons to save width" -- and at 768px an
+   *  expanded 224px rail is nearly a third of the screen. The stored
+   *  preference is not overwritten, only overridden, so a tablet user who
+   *  later opens the app on a desktop still gets the width they chose. */
+  const isTablet = useIsTablet()
+  const collapsed = isTablet || storedCollapsed
+
+  /** Nothing to toggle on a tablet: there is only one rail width there, and a
+   *  chevron that does nothing is worse than no chevron. */
+  const toggleCollapse = isTablet ? undefined : () => setCollapsedValue(!collapsedValue)
 
   /** Offers waiting on me. The shell owns this because the shell owns the
    *  badge; one query however many screens are mounted. */

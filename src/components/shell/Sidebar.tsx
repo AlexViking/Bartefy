@@ -29,7 +29,8 @@ export function Sidebar({
   badges,
 }: {
   collapsed: boolean
-  onToggleCollapse: () => void
+  /** Absent on tablet, where the rail has only one width. */
+  onToggleCollapse?: () => void
   isStaff: boolean
   badges: { offers: number; unread: number }
 }) {
@@ -74,6 +75,9 @@ export function Sidebar({
             shrinking to an illegible smudge -- the rail is 68px there and the
             mark is nearly 2:1. */}
         {!collapsed && <Wordmark className="w-[112px]" />}
+        {/* No chevron when there is nothing to toggle (tablet): a control that
+            does nothing is worse than an absent one. */}
+        {onToggleCollapse && (
         <button
           type="button"
           onClick={onToggleCollapse}
@@ -94,6 +98,7 @@ export function Sidebar({
             <Icon name="ChevronLeft" size={16} />
           </motion.span>
         </button>
+        )}
       </div>
 
       {[primary, secondary].map((group, gi) => (
