@@ -53,6 +53,18 @@ export const keys = {
   unreadBySwap: (userId: string) => ['unread', userId, 'by-swap'] as const,
   thread: (swapId: string) => ['thread', swapId] as const,
   offers: (swapId: string) => ['offers', swapId] as const,
+  /** The V4 barter offer lists, and the badge count derived from the same rows.
+   *
+   *  The count MUST NOT share a key with the list. One key is one cache entry,
+   *  so when the shell's badge (a number) and the Offers screen (an array) both
+   *  claimed ['barter','offers','incoming',id], whichever mounted first decided
+   *  the shape for both -- the shell won, the screen read a number, and
+   *  `rows.map` threw a blank page. Separate keys, both under the 'barter'
+   *  prefix so one invalidateQueries({ queryKey: ['barter'] }) still refreshes
+   *  the list and the badge together. */
+  barterOffers: (userId: string, box: 'incoming' | 'sent') =>
+    ['barter', 'offers', box, userId] as const,
+  barterOffersCount: (userId: string) => ['barter', 'offers', 'incoming-count', userId] as const,
   eyeing: (itemId: string) => ['eyeing', itemId] as const,
   profile: (userId: string) => ['profile', userId] as const,
   reviews: (userId: string) => ['reviews', userId] as const,

@@ -7,6 +7,7 @@ import { TabBar } from './TabBar'
 import { Topbar } from './Topbar'
 import { supabase } from '@/lib/supabase'
 import { getIncomingOffers } from '@/lib/barter'
+import { keys } from '@/lib/cache/queryClient'
 import { useAuthStore } from '@/store/auth'
 import { useIsDesktop, useIsTablet } from '@/lib/platform'
 import { useUnread } from '@/lib/useUnread'
@@ -93,7 +94,7 @@ export function AppShell({
   /** Offers waiting on me. The shell owns this because the shell owns the
    *  badge; one query however many screens are mounted. */
   const { data: offers = 0 } = useQuery({
-    queryKey: ['barter', 'offers', 'incoming', userId ?? ''],
+    queryKey: keys.barterOffersCount(userId ?? ''),
     queryFn: async () => {
       const { data, error } = await getIncomingOffers(userId!)
       if (error) throw error

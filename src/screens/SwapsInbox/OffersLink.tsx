@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Icon } from '@/components/ui/icon'
 import { useT } from '@/i18n/T'
 import { getIncomingOffers } from '@/lib/barter'
+import { keys } from '@/lib/cache/queryClient'
 import { useAuthStore } from '@/store/auth'
 import { cn } from '@/lib/utils'
 
@@ -24,7 +25,7 @@ export function OffersLink({ className }: { className?: string }) {
   const userId = useAuthStore((s) => s.session?.user?.id)
 
   const { data: count = 0 } = useQuery({
-    queryKey: ['barter', 'offers', 'incoming', userId ?? ''],
+    queryKey: keys.barterOffersCount(userId ?? ''),
     queryFn: async () => {
       const { data, error } = await getIncomingOffers(userId!)
       if (error) throw error

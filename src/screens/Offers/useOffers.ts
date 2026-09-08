@@ -8,6 +8,7 @@ import {
   getSentOffers,
   respondToBarterOffer,
 } from '@/lib/barter'
+import { keys } from '@/lib/cache/queryClient'
 import { useAuthStore } from '@/store/auth'
 
 /** One offer, flattened for rendering.
@@ -86,7 +87,7 @@ export function useOffers() {
   const [busyId, setBusyId] = useState<string | null>(null)
 
   const incoming = useQuery({
-    queryKey: ['barter', 'offers', 'incoming', userId ?? ''],
+    queryKey: keys.barterOffers(userId ?? '', 'incoming'),
     queryFn: async () => {
       const { data, error } = await getIncomingOffers(userId!)
       if (error) throw error
@@ -96,7 +97,7 @@ export function useOffers() {
   })
 
   const sent = useQuery({
-    queryKey: ['barter', 'offers', 'sent', userId ?? ''],
+    queryKey: keys.barterOffers(userId ?? '', 'sent'),
     queryFn: async () => {
       const { data, error } = await getSentOffers(userId!)
       if (error) throw error
