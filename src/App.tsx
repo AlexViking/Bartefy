@@ -21,7 +21,24 @@ export function App() {
   return (
     <PersistQueryClientProvider
       client={queryClient}
-      persistOptions={{ persister: idbPersister, maxAge: 24 * 60 * 60_000 }}
+      /** buster is the build. Anything persisted by a different build is
+       *  discarded on load instead of being restored.
+       *
+       *  Without it the cache outlives deploys, and a shipped fix does not
+       *  reach anyone still holding the old data for up to maxAge. That is not
+       *  theoretical: the Offers badge and the Offers list used to share a
+       *  query key, so the cache stored a NUMBER where the screen expects an
+       *  array. Separating the keys fixed new sessions, but every returning
+       *  browser restored the number from IndexedDB and `rows.map` threw a
+       *  blank page on a build that no longer contained the bug.
+       *
+       *  Keyed on the commit rather than the version so it also busts between
+       *  releases -- two builds of 3.0.1 can still disagree about a shape. */
+      persistOptions={{
+        persister: idbPersister,
+        maxAge: 24 * 60 * 60_000,
+        buster: __APP_COMMIT__,
+      }}
     >
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>

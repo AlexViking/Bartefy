@@ -130,8 +130,13 @@ export function useOffers() {
   return {
     tab,
     setTab,
-    incoming: incoming.data ?? [],
-    sent: sent.data ?? [],
+    // Array.isArray, not `?? []`. A nullish default trusts whatever the cache
+    // restored, and a persisted entry written by an older build can be any
+    // shape at all -- here it was a number, and `rows.map` blanked the screen
+    // on a build that had already fixed the cause. The screen must survive
+    // rubbish in the cache rather than depend on it being clean.
+    incoming: Array.isArray(incoming.data) ? incoming.data : [],
+    sent: Array.isArray(sent.data) ? sent.data : [],
     isLoading: tab === 'incoming' ? incoming.isLoading : sent.isLoading,
     errorKey,
     busyId,
