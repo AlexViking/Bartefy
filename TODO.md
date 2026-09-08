@@ -135,9 +135,10 @@ Per feature: the steps a tester follows, and what they should see. At minimum �
 - **Chat** — send a message, arrange a meet, confirm the handover.
 - **Points** (`/points`) — earn: list 20, offer accepted 60, swap completed 160,
   referral's first swap 400. Spend: Collector 600, Curator 1500, boost 75,
-  eyeing 50, radius 120. **Never verified end to end — no award has been
-  confirmed firing since the database wipe.** Have a tester list a find and
-  check 20 points actually arrive.
+  eyeing 50, radius 120. Awards **do** fire — `points_balance` returned a real
+  balance on 9 Sep, so the ledger is not empty. Still untested deliberately:
+  have a tester list a find and confirm 20 points arrive, and that spending
+  actually deducts.
 - **Report / block** — reachable from the deck and from Item detail.
 - **Version** — the header shows the build. Testers should quote it in every
   report.
@@ -162,16 +163,19 @@ Per feature: the steps a tester follows, and what they should see. At minimum �
 
 ## Parked — server side (not now, client first)
 
-1. **`server/` is not under version control.** Only `client/` is a git repo. The
-   feed fix that restored real owner names exists **only on the Supabase server
-   and in the local working tree**. A redeploy from a fresh checkout brings
-   "Swapper" straight back. This is the riskiest item on the page.
+1. **`server/` and `database/` are their own git repos, with no remote.**
+   Three separate repos in this tree — `client/`, `server/`, `database/` — none
+   nested. `client/` pushes to GitHub; the other two are **local only**, so they
+   exist on this machine and nowhere else. A dead disk loses the Edge Functions
+   and every migration. Giving them a remote is the highest-value item here.
 2. `server/functions/search/index.ts` — same `profiles` → `profiles_public` fix
-   is written but **not deployed**. Search is a deliberate product cut, so this
-   was left alone on purpose.
-3. **Source/CLI split** — functions live in `server/functions/` but the Supabase
-   CLI expects `supabase/functions/`. A copy was staged there to deploy `feed`;
-   those two locations will drift.
+   as feed, **committed (`a8de269`) but NOT deployed**. Search is a deliberate
+   product cut, so it was left alone rather than pushed unasked. Deploy only if
+   search is ever revived.
+3. **Deploying an Edge Function**: the CLI expects `supabase/functions/<name>/`,
+   but the source of truth is `server/functions/<name>/`. Copy the file across,
+   then `supabase functions deploy <name> --project-ref cjsugsbqtwsvdsfpdqmy`.
+   The two locations will drift — `supabase/functions/` holds stale copies.
 4. Known-open from CLAUDE.md: FCM legacy API is dead (needs v1 + OAuth2);
    `MAX_ACTIVE_ITEMS = 3` hardcoded instead of calling `entitlements()`; feed
    pagination uses integer offset; `notify-offer` / `notify-billing` invoked but
