@@ -30,6 +30,42 @@
 
 ---
 
+## DONE 2026-09-09 (deployed)
+
+- ~~**ErrorBoundary**~~ — `0e8c8d7`. There was none anywhere; a render error
+  blanked the whole app. Now one boundary inside `BrowserRouter`, keyed on the
+  pathname so navigating away clears it. Logs error + component stack.
+- ~~**Bare English in atoms**~~ — `ae22642`. `photo-well` "Add photo" and
+  "Remove photo", `stars` "Rating". Found by grepping JSX text and
+  `aria-label`/`placeholder`, which is the check `i18n-audit.mjs` cannot do.
+- ~~**No logging**~~ — `8996770`. `queryCache`/`mutationCache` `onError` on the
+  QueryClient now log every failed read and write with the query key, so a
+  broken request no longer looks identical to an empty list.
+
+---
+
+## NEXT — dead V3 chat code (start here)
+
+**Finding, verified 9 Sep:** `/matches/:swapId` renders `MatchThread`, which
+uses the V5 engine (`barter_matches` / `barter_messages`). The V3 chat —
+`Chat.mobile.tsx`, `Chat.desktop.tsx`, `ChatPane.tsx`, `Thread.tsx`,
+`useChat.ts`, and `Chat/index.tsx` — has **no route at all**. It is dead code
+reading the empty `swaps` / `messages` tables.
+
+Earlier in the session I called this "chat is wired to the dead engine". That
+was wrong: the live chat is on V5. The dead files merely still exist, which is
+what made the greps look alarming. Confirm once more, then delete:
+
+    Chat.mobile.tsx  Chat.desktop.tsx  ChatPane.tsx  Thread.tsx  useChat.ts
+    Chat/index.tsx   store/chat.ts (check first)
+
+Then the V3 functions in `lib/api.ts` they were the only callers of:
+`getMySwaps` `updateSwapStatus` `getMessages` `sendMessage` `markThreadRead`
+— but **check `useUnread.ts`, `useSwapsInbox.ts` and `Arrange.tsx` first**,
+they still call some of these and are live.
+
+---
+
 ## P0 — correctness, do these first
 
 ### 1. `photo-well.tsx` ships a bare English string
