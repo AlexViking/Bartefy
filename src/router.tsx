@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
-import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router'
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router'
 
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { useAuthStore } from './store/auth'
 import { useOnboardingStore } from './store/onboarding'
 
@@ -72,6 +73,7 @@ const guard = (el: React.ReactNode) => <Protected>{el}</Protected>
 export function AppRouter() {
   return (
     <BrowserRouter>
+      <RoutedBoundary>
       <Routes>
         <Route path="/" element={<HomeRoute />} />
         <Route path="/welcome" element={<NeedsSession><Onboarding /></NeedsSession>} />
@@ -136,7 +138,28 @@ export function AppRouter() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </RoutedBoundary>
     </BrowserRouter>
+  )
+}
+
+/** One boundary around the routed tree, keyed on the path.
+ *
+ *  Inside BrowserRouter so it can read the location: keying on the pathname
+ *  means navigating away from a screen that threw clears the error, instead of
+ *  stranding someone on a fallback with no way out. Outside Routes so it
+ *  survives the swap between them.
+ *
+ *  This is the difference between one broken screen and a blank app. Both times
+ *  Offers went black, everything else was fine -- there was simply nothing left
+ *  mounted to show it.
+ */
+function RoutedBoundary({ children }: { children: React.ReactNode }) {
+  const { pathname } = useLocation()
+  return (
+    <ErrorBoundary resetKey={pathname} label={pathname}>
+      {children}
+    </ErrorBoundary>
   )
 }
 

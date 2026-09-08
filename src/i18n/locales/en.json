@@ -479,7 +479,10 @@
     "offlineBody": "We saved what you did. It will send when you are back.",
     "notFoundTitle": "Nothing here",
     "notFoundBody": "This find may have been swapped or taken down.",
-    "goHome": "Back to hunting"
+    "goHome": "Back to hunting",
+    "screenTitle": "This part did not load",
+    "screenBody": "Something went wrong showing this. The rest of the app still works — try again, or head back to your finds.",
+    "retry": "Try again"
   },
   "admin": {
     "title": "Reports",
