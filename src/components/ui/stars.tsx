@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { useT } from '@/i18n/T'
 
 /** Read-only rating display. */
 export function Stars({ value, size = 18, className }: { value: number; size?: number; className?: string }) {
@@ -23,8 +24,9 @@ export function StarsInput({
   onChange: (n: number) => void
   size?: number
 }) {
+  const { t } = useT()
   return (
-    <div className="flex items-center gap-1.5" role="radiogroup" aria-label="Rating">
+    <div className="flex items-center gap-1.5" role="radiogroup" aria-label={t('a11y.ratingStars')}>
       {[1, 2, 3, 4, 5].map((n) => (
         <button
           key={n}

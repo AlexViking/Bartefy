@@ -470,7 +470,8 @@
     "avatarOf": "{{name}}'s avatar",
     "ratingStars": "Rated {{rating}} out of 5",
     "loading": "Loading",
-    "required": "Required field"
+    "required": "Required field",
+    "removePhoto": "Remove photo"
   },
   "error": {
     "genericTitle": "Something went wrong",

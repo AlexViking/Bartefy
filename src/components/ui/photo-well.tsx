@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
 import { Icon } from './icon'
+import { T, useT } from '@/i18n/T'
 
 /** The atom that has to hold reality: phone photos on bad signal.
  *  Every state is designed - empty, uploading, failed, ready - because losing a
@@ -30,6 +31,7 @@ export function PhotoWell({
   onRemove,
   className,
 }: PhotoWellProps) {
+  const { t } = useT()
   const base = 'relative aspect-square w-full overflow-hidden rounded-sm'
 
   if (state === 'empty') {
@@ -44,7 +46,9 @@ export function PhotoWell({
         )}
       >
         <Icon name="Camera" size={20} />
-        <span className="font-body text-xs">Add photo</span>
+        {/* Was a bare English string, which every non-EN user saw untranslated.
+            The key already existed; only this atom was bypassing it. */}
+        <T as="span" k="add.addPhoto" className="font-body text-xs" />
       </button>
     )
   }
@@ -77,7 +81,7 @@ export function PhotoWell({
         <button
           type="button"
           onClick={onRemove}
-          aria-label="Remove photo"
+          aria-label={t('a11y.removePhoto')}
           className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-card/90 text-foreground"
         >
           <Icon name="X" size={14} />
