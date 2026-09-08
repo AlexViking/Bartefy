@@ -111,27 +111,52 @@ rebuild. Worth a pass to decide which are dead.
 
 ---
 
-## Testing guide for the team
+## TODO: write the testing guide for the team
 
-**Needs writing** — you asked for this and it does not exist yet.
+**Not started.** A deliverable in its own right — a document the team follows to
+test the app end to end. Notes below are the raw material, not the guide.
 
-It should cover, per feature, the exact steps a tester follows and what they
-should see. At minimum:
+### What it has to cover
+Per feature: the steps a tester follows, and what they should see. At minimum —
 
-- **Sign in** — request a code, enter it, confirm you land in the app on the
-  first try. (Regression: the code used to be rejected once and work after a
-  refresh.)
-- **Invite** — open an invite link with `?invite=CODE` and confirm the field is
-  prefilled; sign up and confirm the referral is recorded.
-- **Offers** — with pending offers, open Matches → the "N waiting" row → confirm
-  the list renders. (Regression: this blanked twice, from two different causes.)
-- **Deck** — confirm the owner's real name shows, not "Swapper".
-- **Version** — the header shows the build; use it to confirm which build you
-  are testing. **After a deploy the first load may still show the old build —
-  reload once.**
+- **Sign in** — request a code, enter it, land in the app on the **first try**.
+  (Regression: the code used to be rejected once and work after a refresh.)
+- **Sign up** — name + email, and the optional invite field.
+- **Invite** — open a link with `?invite=CODE`, confirm the field is prefilled,
+  sign up, confirm the referral is recorded against the account.
+- **Deck** (`/discover`) — the owner's **real name**, not "Swapper". Pass, undo,
+  offer. Tap left/right thirds of the photo to step through photos. The ⚑ flag
+  reports a listing. Arrow keys work on desktop.
+- **Offers** — with offers pending, Matches → the "N waiting" row → the list
+  renders. (Regression: this blanked twice, from two different causes.)
+  Accept opens a chat; decline removes it.
+- **List a find** (`/add`) — photos, category, condition, wants. Free tier is
+  capped; confirm the limit message rather than a silent failure.
+- **Chat** — send a message, arrange a meet, confirm the handover.
+- **Points** (`/points`) — earn: list 20, offer accepted 60, swap completed 160,
+  referral's first swap 400. Spend: Collector 600, Curator 1500, boost 75,
+  eyeing 50, radius 120. **Never verified end to end — no award has been
+  confirmed firing since the database wipe.** Have a tester list a find and
+  check 20 points actually arrive.
+- **Report / block** — reachable from the deck and from Item detail.
+- **Version** — the header shows the build. Testers should quote it in every
+  report.
 
-Note for testers: the app is a PWA and caches aggressively. When something looks
-stale, reload before reporting.
+### Two things testers must be told
+1. **The app is a PWA and caches hard.** After a deploy the first load can still
+   be the old build. Reload once before reporting anything.
+2. **Quote the version from the header** in every bug report, or a report cannot
+   be matched to a build.
+
+### Practical notes
+- Routes worth listing: `/discover` `/items` `/matches` `/offers` `/add`
+  `/points` `/invite` `/profile` `/settings` `/notifications`.
+  Nav is **Discover · Matches · My Items · ＋**, Profile behind the avatar.
+- Test **both themes** — dark is the default — and both phone and desktop.
+- Search, filters and Browse are **cut from the product**. Not missing. Say so
+  in the guide or it will be reported as a bug every round.
+- Decide the format with the user before writing: a page in the repo, or an
+  artifact the team can open in a browser.
 
 ---
 
