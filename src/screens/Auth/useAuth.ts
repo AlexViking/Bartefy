@@ -42,7 +42,16 @@ export function useAuthScreen(mode: AuthMode) {
     () => (location.state as { email?: string } | null)?.email ?? '',
   )
   const [name, setName] = useState('')
-  const [referral, setReferralRaw] = useState('')
+  /** Prefilled from ?invite=CODE, which is the link the Invite screen hands
+   *  people to share. Without this the parameter was generated, pasted and
+   *  silently dropped: an invited person landed on a blank form, and unless
+   *  they happened to retype the code by hand the referral was never recorded.
+   *  Uppercased on the way in for the same reason typing is -- the field is
+   *  compared case-insensitively, but it should still look like the code that
+   *  was printed. */
+  const [referral, setReferralRaw] = useState(
+    () => new URLSearchParams(location.search).get('invite')?.trim().toUpperCase() ?? '',
+  )
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
