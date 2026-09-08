@@ -164,8 +164,14 @@ export function HuntCard({
         </div>
 
         {/* Where and how long, along the bottom -- the two facts that decide
-            whether this swap can actually happen. */}
-        <div className="mt-auto flex items-center gap-3 font-body text-xs text-muted-foreground">
+            whether this swap can actually happen.
+
+            pe-11 reserves the bottom-right corner for the report flag, which
+            HuntStack absolutely positions over this row at z-20. Without it
+            "30 days left" ran under the shield and was read as "30 day" --
+            the text was never truncated, so nothing in the DOM showed it was
+            covered and only a screenshot caught it. */}
+        <div className="mt-auto flex items-center gap-3 pe-11 font-body text-xs text-muted-foreground">
           {(item.city || item.distance) && (
             <span className="flex min-w-0 items-center gap-1">
               <Icon name="MapPin" size={12} aria-hidden="true" className="shrink-0" />

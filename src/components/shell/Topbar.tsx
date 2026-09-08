@@ -102,11 +102,29 @@ export function Topbar({
       </motion.button>
 
 
+      {/* Which build you are looking at, on every screen rather than buried in
+          Settings. During a pilot the first question about any report is "which
+          version?", and asking someone to go and find it is a question they
+          often cannot answer.
+
+          It is a label, not a control: no tap target, muted, and it sits before
+          the controls so it never competes with the bell or the avatar. The
+          full stamp with the commit stays in Settings -- this is the number a
+          person can read out, not the diagnostic. */}
+      <span
+        // A version string is not translatable copy, so no data-i18n: it is
+        // the same seven characters in every language.
+        className="ml-auto select-none pr-1 font-body text-caption tabular-nums text-muted-foreground/60"
+        title={`${__APP_VERSION__} · ${__APP_COMMIT__}`}
+      >
+        v{__APP_VERSION__}
+      </span>
+
       {/* Only what belongs on a 390px bar: the bell, and the avatar on
           desktop where there is room. Language, theme and signing out moved
           into the menu -- six controls beside a search box overflowed the
           screen, and the avatar was cut in half at the right edge. */}
-      <div className="ml-auto flex items-center gap-0.5">
+      <div className="flex items-center gap-0.5">
         {/* The bell, which had no way in until now: the screen existed and
             nothing linked to it. The dot appears only when something is
             waiting -- a permanent badge trains people to ignore it. */}
