@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Check, Mail } from 'lucide-react'
 
@@ -205,27 +205,15 @@ function CodeStep({ a }: { a: ReturnType<typeof useAuthScreen> }) {
   const { t } = useT()
   const { code, verify, busy } = a
 
-  /** Fire once per attempt, not once per render that happens to see six
-   *  digits. Both `busy` and `verify`'s identity flip false->true->false across
-   *  one attempt, so an effect keyed on either re-runs while the digits are
-   *  still in the boxes and sends the same token twice -- Supabase consumes a
-   *  code on first use, so the second call is answered 403 and the person is
-   *  told their correct code was wrong.
-   *
-   *  The guard is "is an attempt in flight", NOT "have I seen this code
-   *  before". Remembering the code locked people out: a rejected code stayed
-   *  remembered, so retyping the same digits did nothing at all, and a code
-   *  that is valid for an hour became unusable after one bad render. Backing
-   *  out one digit and retyping now works, and so does the same code twice.
+  /** Submit on the sixth digit. The dedupe lives in `verify` itself, keyed on
+   *  the code that was sent, because a guard held here cannot work: this
+   *  component is remounted during the attempt, and a remount gives any local
+   *  ref a fresh `false`. Keeping the claim in the hook -- which survives the
+   *  remount -- is what stops a consumed token being sent twice.
    */
-  const inFlight = useRef(false)
-
   useEffect(() => {
-    if (code.length !== CODE_LENGTH || inFlight.current) return
-    inFlight.current = true
-    void Promise.resolve(verify(code)).finally(() => {
-      inFlight.current = false
-    })
+    if (code.length !== CODE_LENGTH) return
+    void verify(code)
   }, [code, verify])
 
   const clock = `${Math.floor(a.countdown / 60)}:${String(a.countdown % 60).padStart(2, '0')}`

@@ -50,9 +50,21 @@ export function useAuthScreen(mode: AuthMode) {
   /** null = not checked or not checkable. The field stays optional either way;
    *  this only ever softens into a hint, never a block. */
   const [referralValid, setReferralValid] = useState<boolean | null>(null)
-  /** In-flight guard for verify. A ref, not `busy`, because `busy` is state the
-   *  auto-submit effect watches -- see the note on verify below. */
-  const verifying = useRef(false)
+  /** The code this screen has already sent for checking.
+   *
+   *  NOT an in-flight flag. An in-flight flag is released the moment the
+   *  request resolves, which is *before* React commits the render that
+   *  resolution caused -- so the auto-submit effect re-ran with six digits
+   *  still in the boxes and a guard already back to false, and sent the same
+   *  token a second time. Supabase consumes a code on first use, so that second
+   *  call was answered 403 and someone whose login had just SUCCEEDED was told
+   *  their code was wrong. Refreshing then "fixed" it only because the session
+   *  from the first call was already in storage.
+   *
+   *  Remembering the value instead closes that window: the code stays claimed
+   *  after the request ends, and only editing the code or asking for a new one
+   *  releases it. */
+  const attempted = useRef<string | null>(null)
   /** In-flight guard for send, kept apart from verify's. Sharing one flag is
    *  what let a blocked submit fire the moment a verification returned. */
   const sending = useRef(false)
@@ -182,6 +194,9 @@ export function useAuthScreen(mode: AuthMode) {
     }
     setPendingEmail(address)
     setCode('')
+    // A fresh code is a fresh claim: whatever was tried against the old one
+    // must not block the new one, even if the digits happen to repeat.
+    attempted.current = null
     setCountdown(RESEND_SECONDS)
     setStep('code')
   }
@@ -194,23 +209,27 @@ export function useAuthScreen(mode: AuthMode) {
    */
   const verify = useCallback(
     async (value: string) => {
-      // Reading the guard from a ref rather than from `busy` keeps two attempts
-      // from overlapping without putting `busy` in this callback's deps: a
-      // changing identity here re-runs the caller's auto-submit effect, which is
-      // what sent a consumed token a second time and got it answered 403.
-      if (value.length !== CODE_LENGTH || verifying.current) return
-      verifying.current = true
+      // Claimed before the await and deliberately NOT released after it. A code
+      // is spent the moment Supabase sees it, so "have I already sent this
+      // one?" is the honest question -- "is one in flight?" reopens the moment
+      // the request lands and lets the same token go twice.
+      if (value.length !== CODE_LENGTH || attempted.current === value) return
+      attempted.current = value
       setBusy(true)
       setError(null)
       const { error: verifyError } = await verifyOTP(email.trim(), value)
-      verifying.current = false
       setBusy(false)
       if (verifyError) {
         setError(messageFor(verifyError.message, 'verify'))
         // Clear the boxes so the next attempt starts from empty rather than
-        // needing six backspaces first.
+        // needing six backspaces first. changeCode releases the claim, so the
+        // very same digits can be typed again -- which matters when the code
+        // was fine and the network was not.
         setCode('')
       }
+      // On success nothing is cleared: the session lands via onAuthStateChange
+      // and this screen unmounts. Leaving the claim in place stops a late
+      // re-render from spending the consumed token on the way out.
     },
     // messageFor closes over t, which is stable per language.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -220,6 +239,11 @@ export function useAuthScreen(mode: AuthMode) {
   /** Typing again after a rejected code should clear the error, otherwise it
    *  sits under boxes the person is actively fixing. */
   const changeCode = (value: string) => {
+    // Editing the code releases the claim, so the same six digits can be sent
+    // again after a failure. This is what an earlier "remember the code" guard
+    // got wrong: it never released, so a rejected code became untypeable and
+    // people were locked out of a code that was good for another hour.
+    if (value !== attempted.current) attempted.current = null
     setCode(value)
     if (error) setError(null)
   }
@@ -260,6 +284,7 @@ export function useAuthScreen(mode: AuthMode) {
     reset: () => {
       setStep('email')
       setCode('')
+      attempted.current = null
       setError(null)
       setCountdown(0)
     },

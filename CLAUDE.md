@@ -165,9 +165,16 @@ tab that does not exist in the design.
 - **402 means "open the upgrade sheet"**
 - **Three button variants**: primary, accent, ghost. No red buttons. No danger variant.
 - **Guard async on a ref, never on shared `busy` state.** `busy` flips false the
-  instant one operation finishes, letting a blocked second one through. And
-  never guard on "have I seen this value before" — that locked people out of
-  retyping a valid OTP.
+  instant one operation finishes, letting a blocked second one through.
+- **A single-use token is guarded by VALUE, not by "in flight".** An in-flight
+  ref is released when the request resolves, which is *before* React commits the
+  render that resolution caused — so the auto-submit effect re-ran and spent the
+  same OTP twice, and the 403 on the second call told people whose login had
+  just succeeded that their code was wrong (refreshing "fixed" it because the
+  first call's session was already stored). Remember the value that was sent and
+  release it when the user edits the code, resends, or resets. Releasing is what
+  the earlier value-guard got wrong; without it a rejected code became
+  untypeable. Both halves are load-bearing.
 - **A resend is a button, never automatic.** Requesting a new code invalidates
   the one already in the inbox.
 - **Never animate a layout property.** `fontSize` and `height` reflow on every
