@@ -87,7 +87,10 @@ function Live() {
           queryClient.invalidateQueries({ queryKey: ['points'] })
         }
       })
-      .catch(() => {})
+      // Silent to the USER, not to the log. A missed streak point must never
+      // block the app, but swallowing it entirely means a broken points RPC
+      // looks exactly like a day nobody opened the app.
+      .catch((e) => console.warn('[bartefy] daily visit claim failed', e))
   }, [userId])
 
   useEffect(() => {

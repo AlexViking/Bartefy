@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query'
+import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query'
 
 /** One cache for every read in the app. Zustand keeps client state only:
  *  card index, filters, drafts, outbox. Server data lives here.
@@ -14,7 +14,29 @@ export const STALE = {
   realtime: 0,
 } as const
 
+/** Every failed read and write, in one place.
+ *
+ *  Screens handle the errors they can show the user, but most queries have no
+ *  onError at all -- so a failing request simply rendered an empty list and
+ *  looked identical to having no data. That is the difference between "nobody
+ *  has offered yet" and "the offers request is broken", and until now nothing
+ *  in the app could tell them apart.
+ *
+ *  The cache-level callbacks fire for EVERY query and mutation without
+ *  touching 30 call sites. They only log: what the user sees stays each
+ *  screen's decision.
+ */
 export const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error, query) => {
+      console.error('[bartefy] query failed', { key: query.queryKey, error })
+    },
+  }),
+  mutationCache: new MutationCache({
+    onError: (error, _vars, _ctx, mutation) => {
+      console.error('[bartefy] mutation failed', { key: mutation.options.mutationKey, error })
+    },
+  }),
   defaultOptions: {
     queries: {
       staleTime: STALE.item,
