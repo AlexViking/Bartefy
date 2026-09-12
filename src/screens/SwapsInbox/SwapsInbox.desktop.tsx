@@ -4,7 +4,7 @@ import { useTwoPane } from '@/lib/platform'
 import { cn } from '@/lib/utils'
 
 import { AppShell } from '@/components/shell/AppShell'
-import { ChatPane } from '@/screens/Chat/ChatPane'
+import { MatchThreadPane } from '@/screens/Chat/MatchThreadPane'
 import { EmptyState } from '@/components/EmptyState'
 import { NextStep } from '@/components/guidance/NextStep'
 import { T } from '@/i18n/T'
@@ -82,7 +82,7 @@ export default function SwapsInboxDesktop() {
             previous one's state into it. */}
         {showPane && (swapId ? (
           <section className="min-w-0 overflow-hidden">
-            <ChatPane key={swapId} />
+            <MatchThreadPane key={swapId} />
           </section>
         ) : (
           /* The pane is a prompt, not a verdict: telling someone "no swaps yet"

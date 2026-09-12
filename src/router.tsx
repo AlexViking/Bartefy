@@ -23,7 +23,7 @@ import Invite from './screens/Invite'
 import Rewards from './screens/Rewards'
 import PublicProfile from './screens/PublicProfile'
 import Notifications from './screens/Notifications'
-import MatchThread from './screens/Chat/MatchThread'
+import { SwapThread } from './screens/Chat'
 import { ItemDetail } from './screens/ItemDetail'
 import { Arrange } from './screens/Arrange'
 import { Membership } from './screens/Membership'
@@ -104,7 +104,7 @@ export function AppRouter() {
         <Route path="/add" element={guard(<AddItem />)} />
         {/* Desktop renders the inbox here so the swap list stays beside the
             thread; mobile renders Chat full-screen. See SwapThread. */}
-        <Route path="/matches/:swapId" element={guard(<MatchThread />)} />
+        <Route path="/matches/:swapId" element={guard(<SwapThread />)} />
         <Route path="/matches/:swapId/arrange" element={guard(<Arrange />)} />
         {/* Someone else's reviews. Reading them is ALWAYS_FREE. */}
         <Route path="/membership" element={guard(<Membership />)} />
