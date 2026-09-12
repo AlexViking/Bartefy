@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Check, RotateCcw, X } from 'lucide-react'
+import { Check, RotateCcw, Star, X } from 'lucide-react'
 
 import { animate, motion, useMotionValue, useTransform } from 'framer-motion'
 
@@ -26,6 +26,8 @@ export function HuntStack({
   onUndo,
   canUndo = false,
   onUndoBlocked,
+  onSuper,
+  superPrice,
   className,
 }: {
   cards: CardItem[]
@@ -36,6 +38,10 @@ export function HuntStack({
    *  live in that state so the press has somewhere to go -- a disabled button
    *  cannot explain why it is disabled. */
   onUndoBlocked?: () => void
+  /** Send a priority offer for the top card. Omitted where it is unavailable,
+   *  which removes the button rather than showing a dead one. */
+  onSuper?: () => void
+  superPrice?: number
   className?: string
 }) {
   const { t } = useT()
@@ -251,6 +257,26 @@ export function HuntStack({
           </button>
         )}
 
+        {/* The super offer, in the button row rather than buried in the
+            sheet -- this is the row people's thumbs already know, and the
+            tier sheet's whole rule is that a paid action fires at the moment
+            of wanting, not one screen later.
+
+            Brass, and smaller than the two decisions either side of it: it is
+            an upgrade to the offer, not a third verdict. Never disabled for
+            lack of points -- it shows the price and routes to where points
+            are earned, because a dead button explains nothing. */}
+        {onSuper && (
+          <button
+            type="button"
+            aria-label={t('hunt.superOffer', { price: superPrice ?? 0 })}
+            onClick={onSuper}
+            className="flex size-12 items-center justify-center rounded-pill bg-accent text-accent-foreground shadow-float transition-colors duration-fast ease-brand hover:bg-[var(--brass-hover)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45"
+          >
+            <Star className="size-5" aria-hidden="true" />
+          </button>
+        )}
+
         <button
           type="button"
           aria-label={t('hunt.want')}
@@ -260,6 +286,17 @@ export function HuntStack({
           <Check className="size-6" aria-hidden="true" />
         </button>
       </div>
+
+      {/* The price, under the row. On the button it would not fit; omitted
+          entirely, a brass star is a mystery. */}
+      {onSuper && superPrice != null && (
+        <p
+          data-i18n="hunt.superPrice"
+          className="mt-2 text-center font-body text-xs text-muted-foreground"
+        >
+          {t('hunt.superPrice', { price: superPrice })}
+        </p>
+      )}
     </div>
   )
 }

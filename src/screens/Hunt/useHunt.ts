@@ -228,6 +228,11 @@ export function useHunt() {
    *  open and the card is still on the stack: the swipe is not finished until
    *  an item has been chosen, so cancelling has to leave the card there. */
   const [pendingTarget, setPendingTarget] = useState<CardItem | null>(null)
+  /** Whether the sheet was opened by the star rather than the tick. The sheet
+   *  still has to ask WHICH of your finds you are putting up -- a super offer
+   *  is an ordinary offer with priority, not a different action -- so this
+   *  only decides which button the sheet leads with. */
+  const [superIntent, setSuperIntent] = useState(false)
   const [sending, setSending] = useState(false)
   const [offerError, setOfferError] = useState<string | null>(null)
 
@@ -249,6 +254,22 @@ export function useHunt() {
     }
     if (!item.ownerId) return
     setOfferError(null)
+    setSuperIntent(false)
+    setPendingTarget(item)
+  }
+
+  /** The star, in the button row. Opens the same sheet with the super offer
+   *  as its primary action. Too few points routes to where they are earned
+   *  rather than opening a sheet whose main button cannot be pressed. */
+  const superTop = () => {
+    const item = cards[0]
+    if (!item?.ownerId) return
+    if (balance < PERK_PRICES.super) {
+      navigate('/points')
+      return
+    }
+    setOfferError(null)
+    setSuperIntent(true)
     setPendingTarget(item)
   }
 
@@ -354,6 +375,7 @@ export function useHunt() {
    *  same as passing on the find. */
   const cancelOffer = () => {
     setPendingTarget(null)
+    setSuperIntent(false)
     setOfferError(null)
   }
 
@@ -393,6 +415,8 @@ export function useHunt() {
     goPoints: () => navigate('/points'),
     sendOffer,
     cancelOffer,
+    superTop,
+    superIntent,
     sending,
     offerError,
     sentTitle,

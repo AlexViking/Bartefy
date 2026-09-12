@@ -33,6 +33,7 @@ export function OfferSheet({
   points = 0,
   superPrice,
   onNeedPoints,
+  superFirst = false,
 }: {
   open: boolean
   /** Title of the find being offered on, for the prompt. */
@@ -47,6 +48,11 @@ export function OfferSheet({
   /** Tapping super with too few points. Routes to where points are earned
    *  rather than leaving a dead button. */
   onNeedPoints?: () => void
+  /** Opened by the star rather than the tick: the super offer leads and the
+   *  ordinary one becomes the quieter alternative. Same sheet either way --
+   *  a super offer IS an ordinary offer with priority, so it still has to ask
+   *  which of your finds you are putting up. */
+  superFirst?: boolean
   sending: boolean
   /** i18n key from barterErrorKey, or null. */
   errorKey: string | null
@@ -108,16 +114,8 @@ export function OfferSheet({
               {t(errorKey)}
             </p>
           )}
-          <Button
-            fullWidth
-            size="lg"
-            disabled={!picked || sending}
-            onClick={() => picked && onConfirm(picked, note.trim() || undefined)}
-            data-i18n="barter.offerSend"
-          >
-            {t('barter.offerSend')}
-          </Button>
-
+          {superFirst ? (
+            <>
           {/* The super offer, at the moment of wanting.
           
               The tier sheet's rule: "Never show these on a settings page.
@@ -148,6 +146,61 @@ export function OfferSheet({
             k="barter.offerSuperBody"
             className="text-center font-body text-xs text-muted-foreground"
           />
+          <Button
+            fullWidth
+            size="lg"
+            variant={superFirst ? 'ghost' : 'primary'}
+            disabled={!picked || sending}
+            onClick={() => picked && onConfirm(picked, note.trim() || undefined)}
+            data-i18n="barter.offerSend"
+          >
+            {t('barter.offerSend')}
+          </Button>
+            </>
+          ) : (
+            <>
+          <Button
+            fullWidth
+            size="lg"
+            variant={superFirst ? 'ghost' : 'primary'}
+            disabled={!picked || sending}
+            onClick={() => picked && onConfirm(picked, note.trim() || undefined)}
+            data-i18n="barter.offerSend"
+          >
+            {t('barter.offerSend')}
+          </Button>
+          {/* The super offer, at the moment of wanting.
+          
+              The tier sheet's rule: "Never show these on a settings page.
+              Each prompt appears in-context, the moment the user wants the
+              thing." Until now every paid action was buyable only on Rewards,
+              which is exactly the page it warns about.
+          
+              Never disabled for lack of points -- a dead button explains
+              nothing. It says the price, and tapping it with too few points
+              routes to where points are earned. */}
+          {superPrice != null && (
+            <Button
+              variant="accent"
+              fullWidth
+              size="lg"
+              disabled={!picked || sending}
+              onClick={() => {
+                if (points < superPrice) return onNeedPoints?.()
+                if (picked) onConfirm(picked, note.trim() || undefined, true)
+              }}
+              data-i18n="barter.offerSuper"
+            >
+              {t('barter.offerSuper', { price: superPrice })}
+            </Button>
+          )}
+          <T
+            as="p"
+            k="barter.offerSuperBody"
+            className="text-center font-body text-xs text-muted-foreground"
+          />
+            </>
+          )}
           <Button variant="ghost" fullWidth onClick={onCancel} data-i18n="barter.offerCancel">
             {t('barter.offerCancel')}
           </Button>

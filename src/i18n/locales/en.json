@@ -122,7 +122,9 @@
     "keepHunting": "Keep hunting",
     "reachFurther": "Hunt further out",
     "offerSent": "Offer sent for {{title}}",
-    "superSent": "Super offer sent for {{title}} — top of their list"
+    "superSent": "Super offer sent for {{title}} — top of their list",
+    "superOffer": "Super offer, {{price}} points",
+    "superPrice": "★ Super offer · {{price}} pts"
   },
   "item": {
     "condition": "Condition",

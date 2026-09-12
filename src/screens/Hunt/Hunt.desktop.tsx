@@ -55,7 +55,7 @@ export default function HuntDesktop() {
               <T as="p" k="hunt.loading" className="font-body text-sm text-muted-foreground" />
             ) : h.top ? (
               <>
-                <HuntStack cards={h.cards} onDecide={h.decide} onUndo={h.rewind} canUndo={h.canRewind} onUndoBlocked={h.rewindBlocked} className="max-w-[340px]" />
+                <HuntStack cards={h.cards} onDecide={h.decide} onUndo={h.rewind} canUndo={h.canRewind} onUndoBlocked={h.rewindBlocked} onSuper={h.superTop} superPrice={h.superPrice} className="max-w-[340px]" />
                 <T as="p" k="hunt.hintKeys" className="font-body text-[13px] text-muted-foreground" />
               </>
             ) : (
@@ -123,6 +123,7 @@ export default function HuntDesktop() {
         points={h.points}
         superPrice={h.superPrice}
         onNeedPoints={h.goPoints}
+        superFirst={h.superIntent}
       />
 
       <Dialog open={!!h.matched} onOpenChange={(o) => !o && h.dismissMatch()}>
