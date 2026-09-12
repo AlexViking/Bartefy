@@ -9,6 +9,7 @@ import { Icon } from '@/components/ui/icon'
 import { T, useT } from '@/i18n/T'
 import { useIsDesktop } from '@/lib/platform'
 import { cn } from '@/lib/utils'
+import { Input } from '@/components/ui/input'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { useReportQueue, type HeldItem, type QueueStatus } from './useReportQueue'
 
@@ -327,33 +328,9 @@ function ItemPane({ item, q }: { item: HeldItem; q: ReturnType<typeof useReportQ
         </p>
       )}
 
-      {/* The uploader. A queue that cannot name who listed something cannot
-          answer the question it exists for. */}
-      <div className="flex items-center gap-3 rounded-card bg-secondary/60 p-3">
-        <UserAvatar name={item.owner?.name || '?'} size="md" tone="accent" />
-        <span className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate font-body text-sm text-foreground">
-            {item.owner?.name || t('swaps.someone')}
-          </span>
-          <span
-            data-i18n="barter.trustScore"
-            className="font-body text-xs text-muted-foreground"
-          >
-            {t('barter.trustScore', { count: item.owner?.trades ?? 0 })}
-            {item.owner?.city ? ' · ' + item.owner.city : ''}
-          </span>
-        </span>
-        {item.owner?.id && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => q.openProfile(item.owner!.id)}
-            data-i18n="admin.viewProfile"
-          >
-            {t('admin.viewProfile')}
-          </Button>
-        )}
-      </div>
+      {/* The uploader, and the signals that decide whether this is one bad
+          listing or a bad account. */}
+      {item.owner && <UploaderPane owner={item.owner} q={q} />}
 
       <div className="flex flex-wrap items-center gap-2 border-t border-border/[0.14] pt-4">
         <Button variant="ghost" size="sm" onClick={() => q.openItem(item.publicId)} data-i18n="admin.view">
@@ -376,6 +353,122 @@ function ItemPane({ item, q }: { item: HeldItem; q: ReturnType<typeof useReportQ
           </Button>
         )}
       </div>
+    </div>
+  )
+}
+
+/** Who listed it, and everything that says whether they are a problem.
+ *
+ *  The name falls back to the email: profiles.name is optional at signup, so
+ *  "Someone" was accurate data and useless to a moderator.
+ */
+function UploaderPane({
+  owner,
+  q,
+}: {
+  owner: NonNullable<HeldItem['owner']>
+  q: ReturnType<typeof useReportQueue>
+}) {
+  const { t } = useT()
+  const [confirm, setConfirm] = useState(false)
+  const [reason, setReason] = useState('')
+  const suspended = !!owner.suspendedAt
+  const label = owner.name || owner.email || t('swaps.someone')
+
+  return (
+    <div className="flex flex-col gap-3 rounded-card bg-secondary/60 p-3">
+      <div className="flex items-center gap-3">
+        <UserAvatar name={label} size="md" tone={suspended ? 'quiet' : 'accent'} />
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="flex min-w-0 items-center gap-2">
+            {/* A person's name or address: user data, never a key. */}
+            <span className="min-w-0 truncate font-body text-sm text-foreground">{label}</span>
+            {suspended && <ToneBadge tone="brass">{t('admin.suspended')}</ToneBadge>}
+          </span>
+          {owner.name && owner.email && (
+            <span className="truncate font-body text-xs text-muted-foreground">{owner.email}</span>
+          )}
+          <span data-i18n="barter.trustScore" className="font-body text-xs text-muted-foreground">
+            {t('barter.trustScore', { count: owner.trades })}
+            {owner.city ? ' \u00b7 ' + owner.city : ''}
+          </span>
+        </span>
+        <Button variant="ghost" size="sm" onClick={() => q.openProfile(owner.id)} data-i18n="admin.viewProfile">
+          {t('admin.viewProfile')}
+        </Button>
+      </div>
+
+      {/* The pattern, in one row: a count is what separates a mistake from a
+          habit, and none of it was visible before. */}
+      <div className="flex flex-wrap gap-x-4 gap-y-1 border-t border-border/[0.14] pt-2">
+        <span data-i18n="admin.statItems" className="font-body text-xs text-muted-foreground">
+          {t('admin.statItems', { count: owner.itemsTotal })}
+        </span>
+        {owner.signedUpAt && (
+          <span data-i18n="admin.statJoined" className="font-body text-xs text-muted-foreground">
+            {t('admin.statJoined', { date: new Date(owner.signedUpAt).toLocaleDateString() })}
+          </span>
+        )}
+        {owner.itemsHidden > 0 && (
+          <span data-i18n="admin.statHidden" className="font-body text-xs text-accent-foreground">
+            {t('admin.statHidden', { count: owner.itemsHidden })}
+          </span>
+        )}
+        {owner.blockedBy > 0 && (
+          <span data-i18n="admin.statBlocked" className="font-body text-xs text-destructive">
+            {t('admin.statBlocked', { count: owner.blockedBy })}
+          </span>
+        )}
+        {owner.reportsAbout > 0 && (
+          <span data-i18n="admin.statReports" className="font-body text-xs text-destructive">
+            {t('admin.statReports', { count: owner.reportsAbout })}
+          </span>
+        )}
+      </div>
+
+      {suspended ? (
+        <Button size="sm" disabled={q.suspending} onClick={() => q.reinstateUser(owner.id)} data-i18n="admin.reinstate">
+          {t('admin.reinstate')}
+        </Button>
+      ) : confirm ? (
+        <div className="flex flex-col gap-2">
+          <Input
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder={t('admin.suspendReason')}
+            maxLength={200}
+          />
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-destructive"
+              disabled={q.suspending}
+              onClick={() => {
+                q.suspendUser(owner.id, reason)
+                setConfirm(false)
+                setReason('')
+              }}
+              data-i18n="admin.suspendConfirm"
+            >
+              {t('admin.suspendConfirm')}
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setConfirm(false)} data-i18n="common.cancel">
+              {t('common.cancel')}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <Button
+          size="sm"
+          variant="ghost"
+          className="self-start text-destructive"
+          onClick={() => setConfirm(true)}
+          data-i18n="admin.suspend"
+        >
+          {t('admin.suspend')}
+        </Button>
+      )}
     </div>
   )
 }

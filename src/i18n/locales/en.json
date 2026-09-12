@@ -26,7 +26,9 @@
     "youAreHere": "You are here",
     "stepOf": "Step {{current}} of {{total}}",
     "notYet": "Not yet",
-    "previous": "Previous"
+    "previous": "Previous",
+    "more": "Read more",
+    "less": "Show less"
   },
   "nav": {
     "profile": "Profile",
@@ -117,7 +119,8 @@
     "matchBody": "You both want what the other has.",
     "sayHello": "Say hello",
     "keepHunting": "Keep hunting",
-    "reachFurther": "Hunt further out"
+    "reachFurther": "Hunt further out",
+    "offerSent": "Offer sent for {{title}}"
   },
   "item": {
     "condition": "Condition",
@@ -522,7 +525,21 @@
     "restore": "Restore",
     "pickTitle": "Pick an upload",
     "pickBody": "Choose one from the list to see its photos, its details and who listed it.",
-    "viewProfile": "Profile"
+    "viewProfile": "Profile",
+    "suspended": "Suspended",
+    "suspend": "Suspend account",
+    "suspendConfirm": "Suspend",
+    "suspendReason": "Why (optional, for the record)",
+    "reinstate": "Reinstate account",
+    "statItems_one": "{{count}} listing",
+    "statItems_other": "{{count}} listings",
+    "statHidden_one": "{{count}} hidden",
+    "statHidden_other": "{{count}} hidden",
+    "statBlocked_one": "blocked by {{count}} person",
+    "statBlocked_other": "blocked by {{count}} people",
+    "statReports_one": "{{count}} report",
+    "statReports_other": "{{count}} reports",
+    "statJoined": "joined {{date}}"
   },
   "category": {
     "electronics": "Electronics",

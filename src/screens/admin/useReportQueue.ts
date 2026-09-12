@@ -34,7 +34,25 @@ export type HeldItem = {
   images: string[]
   /** Who listed it. Null only if the profile row is missing, which should not
    *  happen -- items.user_id is a foreign key. */
-  owner: { id: string; name: string; city: string; trades: number } | null
+  owner: {
+    id: string
+    /** Empty when the account never typed one -- name is optional at signup. */
+    name: string
+    /** Always present. The fallback identity when there is no name. */
+    email: string
+    city: string
+    trades: number
+    suspendedAt: string | null
+    /** When the account was created (auth.users.created_at). "40 listings on
+     *  a day-old account" is a signal nothing else carries. */
+    signedUpAt: string
+    /** How many people have blocked them. The strongest signal that is not a
+     *  report: people block quietly, long before they fill in a form. */
+    blockedBy: number
+    itemsTotal: number
+    itemsHidden: number
+    reportsAbout: number
+  } | null
   /** 'ok' -- live and visible; 'held' -- a moderator hid it. */
   moderationStatus: string
   /** The listing's own lifecycle: active, traded, removed, expired. A traded
@@ -150,9 +168,16 @@ export function useReportQueue() {
       const ownerIds = [...new Set(rows.map((r) => String(r.user_id ?? '')).filter(Boolean))]
       const owners: Record<string, Record<string, unknown>> = {}
       if (ownerIds.length) {
+        // profiles_moderation (030), not profiles_public: it carries the
+        // email, the block counts and the suspension flag. "Someone" on every
+        // row was accurate -- profiles.name is optional at signup -- but a
+        // moderator still has to be able to identify the account.
         const { data: profiles, error: pErr } = await supabase
-          .from('profiles_public')
-          .select('id, name, home_city, swap_count')
+          .from('profiles_moderation')
+          .select(
+            `id, name, email, home_city, swap_count, suspended_at, signed_up_at,
+             blocked_by_count, items_total, items_hidden, reports_about`,
+          )
           .in('id', ownerIds)
         // A missing name is not worth failing the queue over, but it IS worth
         // logging: silence is how a screen ends up showing "Unknown" for
@@ -180,8 +205,15 @@ export function useReportQueue() {
               ? {
                   id: String(o.id ?? ''),
                   name: o.name ? String(o.name) : '',
+                  email: o.email ? String(o.email) : '',
                   city: o.home_city ? String(o.home_city) : '',
                   trades: Number(o.swap_count ?? 0),
+                  suspendedAt: o.suspended_at ? String(o.suspended_at) : null,
+                  signedUpAt: o.signed_up_at ? String(o.signed_up_at) : '',
+                  blockedBy: Number(o.blocked_by_count ?? 0),
+                  itemsTotal: Number(o.items_total ?? 0),
+                  itemsHidden: Number(o.items_hidden ?? 0),
+                  reportsAbout: Number(o.reports_about ?? 0),
                 }
               : null
           })(),
@@ -228,6 +260,21 @@ export function useReportQueue() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin'] }),
   })
 
+  /** Suspend or reinstate an account.
+   *
+   *  Through an RPC, never a direct UPDATE: profiles' own-row update policy
+   *  would otherwise let anyone clear their own suspension. set_suspended
+   *  checks is_staff server-side and refuses self-suspension. */
+  const suspend = useMutation({
+    mutationFn: async ({ userId: target, reason, on }: { userId: string; reason?: string; on: boolean }) => {
+      const { error } = on
+        ? await supabase.rpc('set_suspended', { p_user: target, p_reason: reason ?? null })
+        : await supabase.rpc('clear_suspended', { p_user: target })
+      if (error) throw error
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin'] }),
+  })
+
   const rows = reports.data ?? []
 
   return {
@@ -248,6 +295,13 @@ export function useReportQueue() {
      *  thumbnail and a title is how a good listing gets removed. */
     openItem: (publicId: string) => navigate('/item/' + publicId),
     openProfile: (userId: string) => navigate('/u/' + userId),
+    /** Stop an account listing and pull its finds from every deck. Reversible:
+     *  existing matches stay readable, because someone mid-swap still needs
+     *  the thread to arrange or cancel. */
+    suspendUser: (target: string, reason?: string) =>
+      suspend.mutate({ userId: target, reason, on: true }),
+    reinstateUser: (target: string) => suspend.mutate({ userId: target, on: false }),
+    suspending: suspend.isPending,
     /** Put a hidden listing back in the decks. */
     restoreItem: (id: number) => decideItem.mutate({ id, publish: true }),
     /** Take a listing out of every deck. Reversible. */
