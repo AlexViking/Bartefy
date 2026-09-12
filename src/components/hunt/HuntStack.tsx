@@ -95,14 +95,30 @@ export function HuntStack({
         tabIndex={0}
         role="group"
         aria-label={`${t('hunt.hintSwipe')}. ${t('hunt.hintKeys')}`}
-        className="relative select-none outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45 rounded-hero"
+        className="relative select-none rounded-hero outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45"
         onKeyDown={(e) => {
           if (e.key === 'ArrowLeft') fly(false)
           if (e.key === 'ArrowRight') fly(true)
         }}
       >
+        {/* The real next card, not a blank rectangle.
+            
+            This used to be an empty `bg-card` div, so dragging the top card
+            aside revealed a featureless panel -- the deck looked like it had
+            run out at every single swipe. The card behind is already in the
+            queue and its photo is already decoded by the time it shows (see
+            warmAhead in useHunt), so there is nothing to wait for.
+
+            aria-hidden and pointer-events-none: it is scenery until it is the
+            top card, and a screen reader announcing two listings at once
+            would be worse than showing none. */}
         {behind && (
-          <div className="absolute -bottom-2 left-3 right-3 top-2 rounded-hero bg-card opacity-60 shadow-card" />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 origin-center scale-[0.94] overflow-hidden rounded-hero opacity-70 shadow-card"
+          >
+            <HuntCard item={behind} />
+          </div>
         )}
         {/* Physics ported from V5, in the order they matter:
              1. rotation derives from x, so the card pivots around a point

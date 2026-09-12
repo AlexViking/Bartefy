@@ -43,6 +43,10 @@ interface HuntState {
    *  offered on reappears, and offering again raises P0004. */
   decided: string[]
   setCardQueue: (queue: CardItem[]) => void
+  /** Add the next window to the end of the deck, keeping what is already
+   *  there. setCardQueue REPLACES, which is right for a fresh feed and wrong
+   *  for a refill -- using it here would throw away the cards being looked at. */
+  appendToQueue: (queue: CardItem[]) => void
   removeTopCard: () => void
   /** Pass, remembering the card so `unpass` can restore it. */
   passTopCard: (card: CardItem) => void
@@ -67,6 +71,19 @@ export const useHuntStore = create<HuntState>()(
           cardQueue: cardQueue.filter((c) => !state.decided.includes(c.id)),
           lastPassed: null,
         })),
+      appendToQueue: (incoming) =>
+        set((state) => {
+          // Two filters, both load-bearing: `decided` keeps a card that was
+          // swiped this session from coming back, and the id check keeps a
+          // window that overlaps the previous one from showing duplicates --
+          // the cursor is an offset, so a listing expiring between two
+          // requests shifts every row after it.
+          const have = new Set(state.cardQueue.map((c) => c.id))
+          const fresh = incoming.filter(
+            (c) => !have.has(c.id) && !state.decided.includes(c.id),
+          )
+          return fresh.length ? { cardQueue: [...state.cardQueue, ...fresh] } : state
+        }),
       removeTopCard: () =>
         set((state) => {
           const top = state.cardQueue[0]

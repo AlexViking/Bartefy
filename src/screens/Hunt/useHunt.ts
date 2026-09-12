@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CATEGORIES } from '@/lib/taxonomy'
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { fetchFeed, getMyItems, recordSwipe } from '@/lib/api'
 import { barterErrorKey, makeOffer } from '@/lib/barter'
 import { keys, STALE } from '@/lib/cache/queryClient'
+import { warmAhead } from '@/lib/feed/warm'
 import { useAuthStore } from '@/store/auth'
 import { useHuntStore, type CardItem } from '@/store/hunt'
 import { useOnboardingStore } from '@/store/onboarding'
@@ -13,6 +14,10 @@ import { DEFAULT_CITY } from '@/screens/Onboarding/useOnboarding'
 
 /** One taxonomy for the whole app — see lib/taxonomy.ts. Hunt, AddItem and
  *  onboarding all used to keep their own drifting copies. */
+
+/** Swipes left before the next window is fetched. Three, not zero: a window
+ *  takes a round trip, and the deck must never visibly run out. */
+const REFILL_AT = 3
 
 /** One of my finds, as offered in the hunt picker. */
 export interface OfferOption {
@@ -40,6 +45,7 @@ export function useHunt() {
   const unpass = useHuntStore((s) => s.unpass)
   const lastPassed = useHuntStore((s) => s.lastPassed)
   const addToLikeHistory = useHuntStore((s) => s.addToLikeHistory)
+  const appendToQueue = useHuntStore((s) => s.appendToQueue)
 
   /** Onboarding's taste picker still seeds what the deck prefers, but there is
    *  no filter UI any more: the app does not filter, and the chips only ever
@@ -84,39 +90,55 @@ export function useHunt() {
     }
   }, [offerIds, selectedOfferId, setSelectedOfferId])
 
+  /** One feed row into a card. Extracted because the refill below shapes the
+   *  same rows, and two copies of this drift the moment a field is added. */
+  const shapeCard = (it: Record<string, unknown>): CardItem => ({
+    id: String(it.id),
+    title: String(it.title ?? ''),
+    category: String(it.category ?? ''),
+    condition: String(it.condition ?? ''),
+    distance: String(it.location_city ?? city),
+    owner: it.owner ? String(it.owner) : '',
+    wants: Array.isArray(it.wants) ? (it.wants as string[]) : [],
+    photoColor: 'hsl(var(--illo-terracotta))',
+    photoUrl:
+      Array.isArray(it.photo_urls) && (it.photo_urls as string[]).length > 0
+        ? String((it.photo_urls as string[])[0])
+        : undefined,
+    city: it.location_city ? String(it.location_city) : undefined,
+    photos: Array.isArray(it.photo_urls)
+      ? (it.photo_urls as string[]).map(String)
+      : Array.isArray(it.images)
+        ? (it.images as string[]).map(String)
+        : [],
+    description: it.description ? String(it.description) : undefined,
+    daysLeft: it.expires_at
+      ? Math.max(0, Math.ceil((new Date(String(it.expires_at)).getTime() - Date.now()) / 86_400_000))
+      : undefined,
+    ownerId: String(it.user_id ?? ''),
+    rating: it.rating != null ? Number(it.rating) : undefined,
+    swapCount: it.swaps != null ? Number(it.swaps) : 0,
+  })
+
+  /** Where the next window starts. null once the server says there is no more.
+   *
+   *  A ref, not state: it is read inside the refill effect and written by both
+   *  the first load and the refill, and as state each write would re-render the
+   *  deck mid-swipe for a value nothing renders. */
+  const cursorRef = useRef<number | null>(0)
+  const refillingRef = useRef(false)
+
   const { isLoading, error } = useQuery({
     queryKey: keys.feed(tasteIds, radiusKm),
     queryFn: async () => {
       const { data, error: feedError } = await fetchFeed({ city, radiusKm, userId: userId! })
       if (feedError) throw feedError
       const items = (data?.items ?? []) as Record<string, unknown>[]
-      const shaped: CardItem[] = items.map((it) => ({
-        id: String(it.id),
-        title: String(it.title ?? ''),
-        category: String(it.category ?? ''),
-        condition: String(it.condition ?? ''),
-        distance: String(it.location_city ?? city),
-        owner: it.owner ? String(it.owner) : '',
-        wants: Array.isArray(it.wants) ? (it.wants as string[]) : [],
-        photoColor: 'hsl(var(--illo-terracotta))',
-        photoUrl:
-          Array.isArray(it.photo_urls) && (it.photo_urls as string[]).length > 0
-            ? String((it.photo_urls as string[])[0])
-            : undefined,
-        city: it.location_city ? String(it.location_city) : undefined,
-        photos: Array.isArray(it.photo_urls)
-          ? (it.photo_urls as string[]).map(String)
-          : Array.isArray(it.images)
-            ? (it.images as string[]).map(String)
-            : [],
-        description: it.description ? String(it.description) : undefined,
-        daysLeft: it.expires_at
-          ? Math.max(0, Math.ceil((new Date(String(it.expires_at)).getTime() - Date.now()) / 86_400_000))
-          : undefined,
-        ownerId: String(it.user_id ?? ''),
-        rating: it.rating != null ? Number(it.rating) : undefined,
-        swapCount: it.swaps != null ? Number(it.swaps) : 0,
-      }))
+      const shaped: CardItem[] = items.map(shapeCard)
+      // A fresh feed restarts pagination. Widening the radius refetches from
+      // cursor 0, so carrying the old offset forward would skip the first
+      // window of everything the wider search just found.
+      cursorRef.current = (data?.nextCursor ?? null) as number | null
       setCardQueue(shaped)
       return shaped
     },
@@ -124,7 +146,62 @@ export function useHunt() {
     staleTime: STALE.feed,
   })
 
+  /** Fetch the next window before the deck runs dry.
+   *
+   *  The feed returns ten items and a nextCursor, and the client used to drop
+   *  the cursor on the floor -- so the deck was ten cards long, once, and then
+   *  showed the empty state however much was actually nearby.
+   *
+   *  Three remaining rather than zero: a window takes a round trip to arrive,
+   *  and someone swiping quickly should never catch up with it. Guarded on a
+   *  ref rather than on `isLoading` -- that flips false the instant the first
+   *  query settles, which would let a second refill through for the same
+   *  cursor. */
+  useEffect(() => {
+    if (cards.length > REFILL_AT) return
+    if (cursorRef.current === null || refillingRef.current || !userId) return
+
+    refillingRef.current = true
+    const from = cursorRef.current
+    void (async () => {
+      try {
+        const { data, error: feedError } = await fetchFeed({
+          city,
+          radiusKm,
+          userId,
+          cursor: from,
+        })
+        if (feedError) throw feedError
+        const items = (data?.items ?? []) as Record<string, unknown>[]
+        cursorRef.current = (data?.nextCursor ?? null) as number | null
+        if (items.length) appendToQueue(items.map(shapeCard))
+      } catch {
+        // A failed refill is a shorter deck, not a broken screen. The cursor is
+        // left where it was so the next swipe tries again.
+      } finally {
+        refillingRef.current = false
+      }
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cards.length, userId, city, radiusKm])
+
   const top = cards[0]
+
+  /** Decode the next few photos while the current card is being looked at.
+   *
+   *  The whole window of items arrives in one request, so the data for the
+   *  cards behind is already here -- only their images were missing, and an
+   *  <img> does not start fetching until it mounts. That made every swipe wait
+   *  on a round trip, showing the card's placeholder colour until it landed.
+   *
+   *  Keyed on the ids rather than `cards` so this re-runs when the queue
+   *  actually changes, not on every render. */
+  const aheadKey = cards.slice(1, 4).map((c) => c.id).join(',')
+  useEffect(() => {
+    if (cards.length < 2) return
+    return warmAhead(cards.slice(1, 4).map((c) => c.photoUrl))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aheadKey])
 
   /** The card a right swipe is asking about. Non-null means the offer sheet is
    *  open and the card is still on the stack: the swipe is not finished until
