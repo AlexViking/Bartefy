@@ -1,10 +1,12 @@
 import { AppShell } from '@/components/shell/AppShell'
+import { PAGE_PX } from '@/components/shell/PageBody'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { UpgradeSheet } from '@/components/membership/UpgradeSheet'
 import { T, useT } from '@/i18n/T'
 import { DetailsSection, PhotosSection, WantsSection , PublishedSection } from './sections'
 import { useAddItem } from './useAddItem'
+import { cn } from '@/lib/utils'
 
 /** Listing a find, desktop shape: photos left, everything else right, all
  *  visible at once. A wide screen has room for the whole form, and stepping
@@ -29,7 +31,9 @@ export default function AddItemDesktop() {
   return (
     <AppShell>
       <div className="grid h-[calc(100dvh-68px)] grid-cols-[520px_1fr]">
-        <section className="overflow-y-auto border-r border-border/[0.14] p-8">
+        {/* Same padding scale as every other page -- this screen builds its
+            own two-column shell, so it does not get PageBody's for free. */}
+        <section className={cn('overflow-y-auto border-r border-border/[0.14] py-6', PAGE_PX)}>
           <T as="h1" k="add.title" className="mb-5 font-display text-h2 text-foreground" />
           <PhotosSection a={a} columns={2} />
         </section>
@@ -42,7 +46,7 @@ export default function AddItemDesktop() {
             the whole time the form is being filled in -- min-h-0 on the
             scroller and a shrink-0 bar below it is what pins it. */}
         <section className="flex min-h-0 flex-col">
-          <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-8">
+          <div className={cn('min-h-0 flex-1 space-y-6 overflow-y-auto py-6', PAGE_PX)}>
             <DetailsSection a={a} />
             <Separator />
             <WantsSection a={a} />
@@ -52,11 +56,11 @@ export default function AddItemDesktop() {
             <T
               as="p"
               k="add.publishFailed"
-              className="shrink-0 px-8 pt-3 text-center font-body text-sm text-destructive"
+              className={cn('shrink-0 pt-3 text-center font-body text-sm text-destructive', PAGE_PX)}
               role="alert"
             />
           )}
-          <div className="flex shrink-0 items-center gap-3 border-t border-border/[0.14] bg-background px-8 py-5">
+          <div className={cn('flex shrink-0 items-center gap-3 border-t border-border/[0.14] bg-background py-5', PAGE_PX)}>
             <Button
               size="lg"
               onClick={a.publish}

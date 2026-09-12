@@ -4,6 +4,7 @@ import { useTwoPane } from '@/lib/platform'
 import { cn } from '@/lib/utils'
 
 import { AppShell } from '@/components/shell/AppShell'
+import { PAGE_PX } from '@/components/shell/PageBody'
 import { PageHeader } from '@/components/shell/PageHeader'
 import { MatchThreadPane } from '@/screens/Chat/MatchThreadPane'
 import { EmptyState } from '@/components/EmptyState'
@@ -55,7 +56,10 @@ export default function SwapsInboxDesktop() {
         {showList && (
         <section
           className={cn(
-            'flex min-h-0 flex-col overflow-y-auto px-4 pb-5 pt-4 sm:px-5',
+            // Same padding scale as PageBody. This column is the page's left
+            // edge, so it has to breathe like one.
+            'flex min-h-0 flex-col overflow-y-auto pb-5 pt-4',
+            PAGE_PX,
             twoPane && 'border-r border-border/[0.14]',
           )}
         >

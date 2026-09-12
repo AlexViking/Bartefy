@@ -20,6 +20,16 @@ import { cn } from '@/lib/utils'
  *  Mobile is one column at every width -- `columns` only ever applies from
  *  the large breakpoint up.
  */
+/** The page's side padding, as one string.
+ *
+ *  Exported because a screen that builds its own shell -- the two-pane inbox,
+ *  which cannot use PageBody -- still has to breathe like every other page.
+ *  Matches was left on the old `px-4 sm:px-5` when PageBody moved to this
+ *  scale, so its list sat 21px from the rail while My items sat 59px from it:
+ *  the same app with two different margins depending on which tab you were on.
+ */
+export const PAGE_PX = 'px-6 lg:px-10 xl:px-14'
+
 export function PageBody({
   // Both variants share one width now, so this no longer changes the output.
   // It is kept because it still says what a page IS at every call site, and
@@ -47,7 +57,8 @@ export function PageBody({
         //
         // A reading column still needs a measure -- that is what `prose-col`
         // on the section inside does -- but the PAGE should own its pane.
-        'w-full px-6 pb-10 pt-4 lg:px-10 xl:px-14',
+        'w-full pb-10 pt-4',
+        PAGE_PX,
         className,
       )}
     >
