@@ -21,7 +21,11 @@ import { cn } from '@/lib/utils'
  *  the large breakpoint up.
  */
 export function PageBody({
-  variant = 'reading',
+  // Both variants share one width now, so this no longer changes the output.
+  // It is kept because it still says what a page IS at every call site, and
+  // because the two will diverge again the moment a reading page needs a
+  // narrower measure than a card grid.
+  variant: _variant = 'reading',
   className,
   children,
 }: {
@@ -32,8 +36,14 @@ export function PageBody({
   return (
     <div
       className={cn(
-        'mx-auto w-full px-4 pb-10 pt-4 sm:px-5',
-        variant === 'wide' ? 'max-w-[1160px]' : 'max-w-[1100px]',
+        // One width for both variants, so the title starts at the same x on
+        // every screen. They were 1160 and 1100, which centred to a 30px
+        // difference -- invisible on any one page, and a visible jog the
+        // moment you moved between destinations.
+        //
+        // `wide` still differs in what it CONTAINS (a card grid rather than a
+        // reading column); it no longer differs in where the page begins.
+        'mx-auto w-full max-w-[1160px] px-4 pb-10 pt-4 sm:px-5',
         className,
       )}
     >

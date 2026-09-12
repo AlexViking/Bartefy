@@ -34,8 +34,15 @@ export default function AddItemDesktop() {
           <PhotosSection a={a} columns={2} />
         </section>
 
-        <section className="flex flex-col overflow-y-auto p-8">
-          <div className="flex-1 space-y-6">
+        {/* The form scrolls; the publish bar does not.
+            
+            It used to sit at the END of this scrolling column, so on a laptop
+            the only way to reach the button that finishes the job was to
+            scroll past every category chip. A primary action must be visible
+            the whole time the form is being filled in -- min-h-0 on the
+            scroller and a shrink-0 bar below it is what pins it. */}
+        <section className="flex min-h-0 flex-col">
+          <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-8">
             <DetailsSection a={a} />
             <Separator />
             <WantsSection a={a} />
@@ -45,11 +52,11 @@ export default function AddItemDesktop() {
             <T
               as="p"
               k="add.publishFailed"
-              className="text-center font-body text-sm text-destructive"
+              className="shrink-0 px-8 pt-3 text-center font-body text-sm text-destructive"
               role="alert"
             />
           )}
-          <div className="mt-8 flex items-center gap-3 border-t border-border/[0.14] pt-5">
+          <div className="flex shrink-0 items-center gap-3 border-t border-border/[0.14] bg-background px-8 py-5">
             <Button
               size="lg"
               onClick={a.publish}

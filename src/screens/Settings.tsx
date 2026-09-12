@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { ArrowLeft, ChevronRight } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 
 import { AppShell } from '@/components/shell/AppShell'
 import { PageBody, PageColumns } from '@/components/shell/PageBody'
+import { PageHeader } from '@/components/shell/PageHeader'
 import { CityPicker } from '@/components/CityPicker'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { InfoHint } from '@/components/guidance/InfoHint'
@@ -117,17 +118,9 @@ export function Settings() {
   return (
     <AppShell>
       <PageBody>
-        <header className="mb-6 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            aria-label={t('common.back')}
-            className="flex size-11 items-center justify-center rounded-pill text-foreground hover:bg-foreground/[0.06]"
-          >
-            <ArrowLeft className="size-5" aria-hidden="true" />
-          </button>
-          <T as="h1" k="settings.title" className="font-display text-h2 text-foreground" />
-        </header>
+        {/* No back arrow: Settings is a destination in the rail, not a page
+            you were pushed onto, so there is nowhere to go back TO. */}
+        <PageHeader title="settings.title" />
 
         <PageColumns>
         <Section title="settings.account">

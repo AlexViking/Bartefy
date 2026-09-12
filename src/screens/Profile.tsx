@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { AppShell } from '@/components/shell/AppShell'
 import { PageBody } from '@/components/shell/PageBody'
+import { PageHeader } from '@/components/shell/PageHeader'
 import { T, useT } from '@/i18n/T'
 import { useIsDesktop } from '@/lib/platform'
 import { UserAvatar } from '@/components/ui/user-avatar'
@@ -107,6 +108,8 @@ export function Profile() {
   return (
     <AppShell>
       <PageBody variant="wide">
+        <PageHeader title="nav.profile" />
+
         {/* Identity */}
         <div className={cn(
             'flex flex-col gap-4 rounded border border-border/[0.14] bg-card p-5 shadow-card',
@@ -115,7 +118,9 @@ export function Profile() {
           <UserAvatar name={profileName} size="xl" tone="accent" verified={verified} />
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <div className="flex items-center gap-2.5">
-              <h1 className="font-display text-h2 text-foreground">{profileName}</h1>
+              {/* h2, not h1: the page's heading is the PageHeader above. A
+                  name is what this card is ABOUT, not what the page is. */}
+              <h2 className="font-display text-h3 text-foreground">{profileName}</h2>
               {verified && <ToneBadge tone="green">{t('profile.verified')}</ToneBadge>}
             </div>
             {/* No stars. Trust is the count of finished swaps, shown in the

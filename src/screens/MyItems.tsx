@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 
 import { AppShell } from '@/components/shell/AppShell'
 import { PageBody } from '@/components/shell/PageBody'
+import { PageHeader, PageTabs } from '@/components/shell/PageHeader'
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
 import { Masonry, MasonryPhoto } from '@/components/ui/masonry'
@@ -112,35 +113,12 @@ export default function MyItems() {
   return (
     <AppShell>
       <PageBody variant="wide">
-        <div className="flex items-center gap-3">
-          <T as="h1" k="items.title" className="font-display text-h2 text-foreground" />
-          <Button size="sm" className="ml-auto" onClick={() => navigate('/add')} data-i18n="nav.add">
-            {t('nav.add')}
-          </Button>
-        </div>
+        <PageHeader
+          title="items.title"
+          tabs={<PageTabs tabs={TABS} value={tab} onChange={setTab} />}
+        />
 
-        <div className="mt-5 flex gap-1 border-b border-border/[0.14]">
-          {/* The map parameter is `item`, not `t`: on Profile this loop bound
-              `t` and shadowed the translator, so no label inside it could be
-              translated even by accident -- which is how the raw state value
-              ended up on screen behind a `capitalize` class. */}
-          {TABS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setTab(item.id)}
-              aria-current={tab === item.id ? 'page' : undefined}
-              data-i18n={item.label}
-              className={cn(
-                'min-h-hit border-b-[2.5px] px-3 font-display text-[15px] font-semibold transition-colors duration-fast ease-brand',
-                tab === item.id
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {t(item.label)}
-            </button>
-          ))}
+        <div className="mb-4 flex">
           {tab === 'paused' && paused.length > 0 && (
             <Button
               variant="ghost"
