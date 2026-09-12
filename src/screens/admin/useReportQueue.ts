@@ -25,6 +25,9 @@ export type HeldItem = {
   image?: string
   ownerId: string
   createdAt: string
+  /** The URL token. The row's own id stays the bigint for the hide/restore
+   *  update, which keys on the primary key. */
+  publicId: string
   /** 'ok' -- live and visible; 'held' -- a moderator hid it. */
   moderationStatus: string
   /** The listing's own lifecycle: active, traded, removed, expired. A traded
@@ -118,7 +121,7 @@ export function useReportQueue() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('items')
-        .select('id, title, images, user_id, created_at, moderation_status, status')
+        .select('id, public_id, title, images, user_id, created_at, moderation_status, status')
         .order('created_at', { ascending: false })
         .limit(100)
       if (error) throw error
@@ -130,6 +133,7 @@ export function useReportQueue() {
           image: images[0],
           ownerId: String(r.user_id ?? ''),
           createdAt: String(r.created_at ?? ''),
+          publicId: String(r.public_id ?? ''),
           moderationStatus: String(r.moderation_status ?? 'ok'),
           itemStatus: String(r.status ?? 'active'),
         }
@@ -191,7 +195,7 @@ export function useReportQueue() {
     resolve: (id: string) => resolveReport.mutate({ id, next: 'resolved' }),
     /** Open the listing itself. Hiding something on the strength of a
      *  thumbnail and a title is how a good listing gets removed. */
-    openItem: (id: number) => navigate('/item/' + id),
+    openItem: (publicId: string) => navigate('/item/' + publicId),
     /** Put a hidden listing back in the decks. */
     restoreItem: (id: number) => decideItem.mutate({ id, publish: true }),
     /** Take a listing out of every deck. Reversible. */

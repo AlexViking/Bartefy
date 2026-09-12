@@ -2,7 +2,11 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 export interface CardItem {
+  /** The bigint, for offers and swipes -- every FK references it. */
   id: string
+  /** The URL token (migration 029). Never the bigint: that is sequential, so
+   *  it both enumerates the catalogue and counts it. */
+  publicId: string
   title: string
   category: string
   condition: string

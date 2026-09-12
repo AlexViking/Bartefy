@@ -22,10 +22,11 @@ export type OfferRow = {
   note: string | null
   createdAt: string
   status: string
-  /** What they want from me. */
-  wanted: { id: number; title: string; image?: string } | null
+  /** What they want from me. `id` is the bigint the RPC keys on; `publicId`
+   *  is the token that goes in a URL. */
+  wanted: { id: number; publicId: string; title: string; image?: string } | null
   /** What they are putting up. */
-  offered: { id: number; title: string; image?: string } | null
+  offered: { id: number; publicId: string; title: string; image?: string } | null
   /** Who is asking. Absent on the sent list -- that is me. */
   sender?: { id: string; name: string | null; completedTrades: number } | null
 }
@@ -46,6 +47,9 @@ function item(v: unknown) {
   const images = Array.isArray(r.images) ? (r.images as string[]) : []
   return {
     id: Number(r.id),
+    // The URL token. id stays a number because respond_to_offer keys on the
+    // bigint; only the link uses this.
+    publicId: String(r.public_id ?? ''),
     title: String(r.title ?? ''),
     image: images[0],
   }
@@ -142,7 +146,8 @@ export function useOffers() {
     busyId,
     accept: (offerId: string) => respond.mutate({ offerId, accept: true }),
     decline: (offerId: string) => respond.mutate({ offerId, accept: false }),
-    openItem: (id: number) => navigate('/item/' + id),
+    /** Takes the PUBLIC id, never the bigint. */
+    openItem: (publicId: string) => navigate('/item/' + publicId),
     goHunt: () => navigate('/discover'),
   }
 }

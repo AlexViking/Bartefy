@@ -101,7 +101,7 @@ export default function HuntDesktop() {
                 action={t('nav.profile')}
               />
               <WantsRow wants={h.top.wants} matchCount={0} />
-              <Button fullWidth onClick={() => h.openItem(h.top!.id)} data-i18n="hunt.seeEverything">
+              <Button fullWidth onClick={() => h.openItem(h.top!.publicId)} data-i18n="hunt.seeEverything">
                 {t('hunt.seeEverything')}
               </Button>
             </>

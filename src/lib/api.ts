@@ -340,8 +340,16 @@ export async function submitRating({
  *  more besides — eyeing_count, saved_by_me, and how many of your own finds
  *  match what they are asking for.
  */
-export async function getItem(itemId: string) {
-  return supabase.rpc('get_item_detail', { p_item_id: Number(itemId) })
+/** One find, by its PUBLIC id.
+ *
+ *  Not the bigint. items.id is sequential, so it was both an enumeration path
+ *  (/item/1../item/N walks the whole catalogue) and a running count of how
+ *  many listings exist. Migration 029 added items.public_id -- an 11-char
+ *  token -- and re-keyed this RPC onto it.
+ *
+ *  No Number() coercion any more: that turned a token into NaN. */
+export async function getItem(publicId: string) {
+  return supabase.rpc('get_item_detail', { p_public_id: publicId })
 }
 
 export async function searchItems(params: {

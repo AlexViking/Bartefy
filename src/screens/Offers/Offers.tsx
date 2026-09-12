@@ -34,7 +34,8 @@ function OfferCard({
   busy: boolean
   onAccept?: () => void
   onDecline?: () => void
-  onOpenItem: (id: number) => void
+  /** Takes the PUBLIC id -- the token in URLs, never items.id. */
+  onOpenItem: (publicId: string) => void
 }) {
   const { t } = useT()
   const trades = offer.sender?.completedTrades ?? 0
@@ -61,7 +62,7 @@ function OfferCard({
       <div className="flex items-center gap-3">
         <button
           type="button"
-          onClick={() => offer.wanted && onOpenItem(offer.wanted.id)}
+          onClick={() => offer.wanted && onOpenItem(offer.wanted.publicId)}
           className="flex min-w-0 flex-1 flex-col items-center gap-1.5 text-center"
         >
           <Thumb src={offer.wanted?.image} alt={offer.wanted?.title ?? ''} />
@@ -75,7 +76,7 @@ function OfferCard({
 
         <button
           type="button"
-          onClick={() => offer.offered && onOpenItem(offer.offered.id)}
+          onClick={() => offer.offered && onOpenItem(offer.offered.publicId)}
           className="flex min-w-0 flex-1 flex-col items-center gap-1.5 text-center"
         >
           <Thumb src={offer.offered?.image} alt={offer.offered?.title ?? ''} />

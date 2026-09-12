@@ -21,7 +21,8 @@ const PLACEHOLDERS = [
 
 /** The find, its owner and the offer state — with no layout in it. */
 export function useItemDetail() {
-  const { itemId } = useParams()
+  // The route param is the PUBLIC token now (migration 029), not items.id.
+  const { itemId: publicId } = useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [offerOpen, setOfferOpen] = useState(false)
@@ -33,13 +34,13 @@ export function useItemDetail() {
   const [photo, setPhoto] = useState(0)
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: keys.item(itemId ?? ''),
+    queryKey: keys.item(publicId ?? ''),
     queryFn: async () => {
-      const { data: row, error } = await getItem(itemId!)
+      const { data: row, error } = await getItem(publicId!)
       if (error) throw error
       return row as Record<string, unknown>
     },
-    enabled: !!itemId,
+    enabled: !!publicId,
     staleTime: STALE.item,
   })
 
@@ -59,7 +60,11 @@ export function useItemDetail() {
   // get_item_detail returns eyeing_count as a scalar, not an embedded row.
 
   const item = {
+    /** The bigint. Offers and saves key on it. */
     id: String(data.id),
+    /** The URL token. Falls back to the route param, which IS the token --
+     *  so a link still works even if the RPC ever stops returning it. */
+    publicId: String(data.public_id ?? publicId ?? ''),
     title: String(data.title ?? ''),
     // Stored values normalise through the taxonomy: v2 rows hold categories
     // this build never defined, and they still have to render.
@@ -154,33 +159,37 @@ export function useItemDetail() {
    *  ever called them, which is also why Profile's Eyeing tab could only ever
    *  render empty. */
   const { data: saved = false } = useQuery({
-    queryKey: ['saved', userId ?? '', itemId ?? ''],
+    // Keyed on the BIGINT, not the token: saves.item_id is a foreign key to
+    // items.id. The token is for URLs only -- it appears in no FK anywhere.
+    queryKey: ['saved', userId ?? '', String(data.id)],
     queryFn: async () => {
       const { data: rows, error } = await supabase
         .from('saves')
         .select('item_id')
         .eq('user_id', userId!)
-        .eq('item_id', itemId!)
+        .eq('item_id', Number(data.id))
         .maybeSingle()
       if (error) return false
       return !!rows
     },
-    enabled: !!userId && !!itemId,
+    enabled: !!userId && data.id != null,
     staleTime: STALE.mine,
   })
 
   const canSeeEyeing = useMembershipStore.getState().can('see_eyeing')
 
   const toggleSave = async () => {
-    if (!userId || !itemId) return
+    // The bigint throughout: saves.item_id is a foreign key to items.id.
+    const itemPk = data.id == null ? null : String(data.id)
+    if (!userId || !itemPk) return
     const next = !saved
     // Optimistic: a heart that waits for a round trip feels broken.
-    queryClient.setQueryData(['saved', userId, itemId], next)
+    queryClient.setQueryData(['saved', userId, itemPk], next)
     const { error } = next
-      ? await saveItem(userId, itemId)
-      : await unsaveItem(userId, itemId)
+      ? await saveItem(userId, itemPk)
+      : await unsaveItem(userId, itemPk)
     if (error) {
-      queryClient.setQueryData(['saved', userId, itemId], !next)
+      queryClient.setQueryData(['saved', userId, itemPk], !next)
       return
     }
     // The Eyeing tab reads this list.
@@ -216,7 +225,10 @@ export function useItemDetail() {
     goAdd: () => navigate('/add'),
     goBack: () => navigate(-1),
     goOwner: () => navigate('/u/' + owner.id),
-    goEdit: () => navigate('/add?edit=' + item.id),
+    // The token, not the bigint. NOTE: AddItem never reads ?edit, so this
+    // opens a blank form -- editing a listing is genuinely unbuilt (AUDIT.md).
+    // Left as-is here; this change is only about what the URL exposes.
+    goEdit: () => navigate('/add?edit=' + item.publicId),
     removing,
     setRemoving,
     /** Pausing takes a find out of the deck without losing it -- for someone

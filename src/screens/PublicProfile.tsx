@@ -64,7 +64,7 @@ export default function PublicProfile() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('items')
-        .select('id, title, images, category, condition')
+        .select('id, public_id, title, images, category, condition')
         .eq('user_id', userId!)
         .eq('status', 'active')
         .eq('moderation_status', 'ok')
@@ -140,7 +140,7 @@ export default function PublicProfile() {
                 <li key={String(it.id)}>
                   <button
                     type="button"
-                    onClick={() => navigate('/item/' + it.id)}
+                    onClick={() => navigate('/item/' + it.public_id)}
                     className="w-full overflow-hidden rounded-card border-[1.5px] border-border/[0.14] bg-card text-left transition-colors hover:border-primary/40"
                   >
                     {images[0] ? (

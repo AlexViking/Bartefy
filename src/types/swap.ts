@@ -4,7 +4,11 @@
  */
 
 export interface ItemRef {
+  /** The bigint. Every FK references it -- offers, swipes, matches. */
   id: string
+  /** The URL token (migration 029). Optional because a swap pair's item
+   *  reference does not always carry one; a row that links out must. */
+  publicId?: string
   title: string
   /** Placeholder fill until real photography lands. */
   photoColor?: string

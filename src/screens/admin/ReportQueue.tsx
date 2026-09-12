@@ -140,7 +140,7 @@ export function ReportQueue() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => q.openItem(item.id)}
+                        onClick={() => q.openItem(item.publicId)}
                         data-i18n="admin.view"
                       >
                         {t('admin.view')}

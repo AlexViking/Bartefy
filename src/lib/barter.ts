@@ -98,8 +98,8 @@ export async function getIncomingOffers(userId: string) {
     .from('barter_offers')
     .select(
       `id, from_user, to_user, offered_item_id, wanted_item_id, note, status, created_at,
-       offered:items!barter_offers_offered_item_id_fkey (id, title, images, category, condition, user_id),
-       wanted:items!barter_offers_wanted_item_id_fkey (id, title, images, category, condition, user_id),
+       offered:items!barter_offers_offered_item_id_fkey (id, public_id, title, images, category, condition, user_id),
+       wanted:items!barter_offers_wanted_item_id_fkey (id, public_id, title, images, category, condition, user_id),
        sender:profiles!barter_offers_from_user_fkey (id, name, completed_trades)`,
     )
     .eq('to_user', userId)
@@ -113,8 +113,8 @@ export async function getSentOffers(userId: string) {
     .from('barter_offers')
     .select(
       `id, from_user, to_user, offered_item_id, wanted_item_id, note, status, created_at, responded_at,
-       offered:items!barter_offers_offered_item_id_fkey (id, title, images, category, condition, user_id),
-       wanted:items!barter_offers_wanted_item_id_fkey (id, title, images, category, condition, user_id)`,
+       offered:items!barter_offers_offered_item_id_fkey (id, public_id, title, images, category, condition, user_id),
+       wanted:items!barter_offers_wanted_item_id_fkey (id, public_id, title, images, category, condition, user_id)`,
     )
     .eq('from_user', userId)
     .order('created_at', { ascending: false })
@@ -135,8 +135,8 @@ export async function getMyMatches(userId: string) {
       `id, offer_id, user_a, user_b, item_a, item_b, status,
        a_confirmed, b_confirmed, a_archived, b_archived,
        cancel_reason, created_at, completed_at,
-       itemA:items!barter_matches_item_a_fkey (id, title, images, category, condition, user_id),
-       itemB:items!barter_matches_item_b_fkey (id, title, images, category, condition, user_id),
+       itemA:items!barter_matches_item_a_fkey (id, public_id, title, images, category, condition, user_id),
+       itemB:items!barter_matches_item_b_fkey (id, public_id, title, images, category, condition, user_id),
        userA:profiles!barter_matches_user_a_fkey (id, name, completed_trades),
        userB:profiles!barter_matches_user_b_fkey (id, name, completed_trades)`,
     )

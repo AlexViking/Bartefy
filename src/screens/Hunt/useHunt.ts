@@ -94,6 +94,7 @@ export function useHunt() {
    *  same rows, and two copies of this drift the moment a field is added. */
   const shapeCard = (it: Record<string, unknown>): CardItem => ({
     id: String(it.id),
+    publicId: String(it.public_id ?? ''),
     title: String(it.title ?? ''),
     category: String(it.category ?? ''),
     condition: String(it.condition ?? ''),
@@ -346,7 +347,9 @@ export function useHunt() {
     offerError,
     sentTitle,
     dismissSent: () => setSentTitle(null),
-    openItem: (id: string) => navigate('/item/' + id),
+    /** Takes the PUBLIC id. Passing the bigint here is what put a countable
+     *  number in the address bar. */
+    openItem: (publicId: string) => navigate('/item/' + publicId),
     openSwap: (id: string) => navigate('/matches/' + id),
     goAdd: () => navigate('/add'),
   }

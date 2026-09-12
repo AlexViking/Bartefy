@@ -61,6 +61,7 @@ export default function MyItems() {
     const photos = it.images as string[] | undefined
     return {
       id: String(it.id),
+      publicId: String(it.public_id ?? ''),
       title: String(it.title ?? ''),
       photoUrl: photos?.[0],
       photoColor: 'hsl(var(--illo-terracotta))',
@@ -168,7 +169,7 @@ export default function MyItems() {
               <button
                 key={it.id}
                 type="button"
-                onClick={() => navigate('/item/' + it.id)}
+                onClick={() => navigate('/item/' + it.publicId)}
                 className={cn(
                   'flex flex-col gap-2 rounded-lg border border-border/[0.14] bg-card p-3 text-left shadow-card transition-shadow duration-med ease-brand hover:shadow-float',
                   tab === 'paused' && 'opacity-70',
