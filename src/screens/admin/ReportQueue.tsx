@@ -9,7 +9,8 @@ import { Icon } from '@/components/ui/icon'
 import { T, useT } from '@/i18n/T'
 import { useIsDesktop } from '@/lib/platform'
 import { cn } from '@/lib/utils'
-import { useReportQueue, type QueueStatus } from './useReportQueue'
+import { UserAvatar } from '@/components/ui/user-avatar'
+import { useReportQueue, type HeldItem, type QueueStatus } from './useReportQueue'
 
 const STATUSES: QueueStatus[] = ['open', 'reviewing', 'resolved']
 
@@ -32,6 +33,11 @@ type Pane = 'items' | 'reports'
 export function ReportQueue() {
   const q = useReportQueue()
   const [pane, setPane] = useState<Pane>('items')
+  /** Which upload is open in the right-hand pane. Defaults to the newest,
+   *  because an empty pane beside a full list reads as broken. */
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const selected =
+    q.uploads.find((u) => u.id === selectedId) ?? q.uploads[0] ?? null
   const { t } = useT()
   const isDesktop = useIsDesktop()
 
@@ -92,86 +98,70 @@ export function ReportQueue() {
         />
 
         {pane === 'items' && (
-          <section className="mb-6">
-            {q.uploads.length === 0 ? (
-              <EmptyState title="admin.itemsEmptyTitle" body="admin.itemsEmptyBody" />
-            ) : (
-              <ul className="flex flex-col gap-2">
+          q.uploads.length === 0 ? (
+            <EmptyState title="admin.itemsEmptyTitle" body="admin.itemsEmptyBody" />
+          ) : (
+            /* Two panes, like the swaps inbox: the queue stays put on the left
+               while the find being judged opens on the right. A single-column
+               list left ~900px of empty row per item and still did not say who
+               uploaded anything -- which is the one question a moderator has. */
+            <div className={cn('grid gap-5', isDesktop && 'grid-cols-[minmax(320px,420px)_1fr]')}>
+              <ul className="flex min-w-0 flex-col gap-2">
                 {q.uploads.map((item) => {
                   const hidden = item.moderationStatus === 'held'
+                  const active = selected?.id === item.id
                   return (
-                    <li
-                      key={item.id}
-                      className={cn(
-                        'flex items-center gap-3 rounded-card border-[1.5px] border-border/[0.14] bg-card p-3',
-                        // A hidden listing is dimmed rather than removed from
-                        // the list: a moderator needs to see what they hid in
-                        // order to put it back.
-                        hidden && 'opacity-60',
-                      )}
-                    >
-                      {item.image ? (
-                        <img src={item.image} alt="" className="size-14 rounded-card-sm object-cover" />
-                      ) : (
-                        <span className="flex size-14 items-center justify-center rounded-card-sm bg-secondary">
-                          <Icon name="Package" size={18} className="text-muted-foreground" />
-                        </span>
-                      )}
-                      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                        <span className="flex items-center gap-2">
-                          {/* A listing title is user data: no data-i18n. */}
-                          <span className="min-w-0 truncate font-body text-body text-foreground">
-                            {item.title}
-                          </span>
-                          {hidden && (
-                            <ToneBadge tone="brass">{t('admin.heldBadge')}</ToneBadge>
-                          )}
-                        </span>
-                        {/* When it was uploaded. The whole reason this feed is
-                            newest-first is that recency is what a moderator is
-                            acting on. */}
-                        <time
-                          dateTime={item.createdAt}
-                          className="font-body text-xs text-muted-foreground"
-                        >
-                          {new Date(item.createdAt).toLocaleString()}
-                        </time>
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => q.openItem(item.publicId)}
-                        data-i18n="admin.view"
+                    <li key={item.id}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedId(item.id)}
+                        className={cn(
+                          'flex w-full min-w-0 items-center gap-3 rounded-card border-[1.5px] bg-card p-3 text-left transition-colors',
+                          active ? 'border-primary' : 'border-border/[0.14] hover:border-primary/40',
+                          hidden && 'opacity-60',
+                        )}
                       >
-                        {t('admin.view')}
-                      </Button>
-                      {hidden ? (
-                        <Button
-                          size="sm"
-                          disabled={q.busy}
-                          onClick={() => q.restoreItem(item.id)}
-                          data-i18n="admin.restore"
-                        >
-                          {t('admin.restore')}
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          disabled={q.busy}
-                          onClick={() => q.hideItem(item.id)}
-                          className="text-destructive"
-                          data-i18n="admin.hide"
-                        >
-                          {t('admin.hide')}
-                        </Button>
-                      )}
+                        {item.image ? (
+                          <img src={item.image} alt="" className="size-14 shrink-0 rounded-card-sm object-cover" />
+                        ) : (
+                          <span className="flex size-14 shrink-0 items-center justify-center rounded-card-sm bg-secondary">
+                            <Icon name="Package" size={18} className="text-muted-foreground" />
+                          </span>
+                        )}
+                        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                          <span className="flex min-w-0 items-center gap-2">
+                            {/* A listing title is user data: no data-i18n. */}
+                            <span className="min-w-0 truncate font-body text-body text-foreground">
+                              {item.title}
+                            </span>
+                            {hidden && <ToneBadge tone="brass">{t('admin.heldBadge')}</ToneBadge>}
+                          </span>
+                          {/* Who listed it, on the row itself -- the question
+                              this screen exists to answer. */}
+                          <span className="truncate font-body text-xs text-muted-foreground">
+                            {item.owner?.name || t('swaps.someone')} ·{' '}
+                            {new Date(item.createdAt).toLocaleString()}
+                          </span>
+                        </span>
+                      </button>
                     </li>
                   )
                 })}
               </ul>
-            )}
-          </section>
+
+              {isDesktop && (
+                <section className="min-w-0">
+                  {selected ? (
+                    <ItemPane item={selected} q={q} />
+                  ) : (
+                    <div className="flex h-full items-center justify-center p-8">
+                      <EmptyState title="admin.pickTitle" body="admin.pickBody" />
+                    </div>
+                  )}
+                </section>
+              )}
+            </div>
+          )
         )}
 
         {pane === 'reports' && (
@@ -288,5 +278,104 @@ export function ReportQueue() {
         )}
       </PageBody>
     </AppShell>
+  )
+}
+
+/** One upload, judged.
+ *
+ *  Everything a moderator needs to decide, in the order they need it: the
+ *  photos, what it claims to be, and WHO listed it -- with a way through to
+ *  that person's other finds. One bad listing is a mistake; the same account
+ *  three times is a pattern, and the queue could not show that before.
+ */
+function ItemPane({ item, q }: { item: HeldItem; q: ReturnType<typeof useReportQueue> }) {
+  const { t } = useT()
+  const hidden = item.moderationStatus === 'held'
+
+  return (
+    <div className="flex flex-col gap-4 rounded-card border-[1.5px] border-border/[0.14] bg-card p-5">
+      {item.images.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto">
+          {item.images.map((src, i) => (
+            <img
+              key={src + i}
+              src={src}
+              alt=""
+              className="h-48 shrink-0 rounded-card-sm object-cover"
+            />
+          ))}
+        </div>
+      )}
+
+      <div className="flex min-w-0 flex-col gap-1">
+        <div className="flex min-w-0 items-center gap-2">
+          {/* User data: no data-i18n. */}
+          <h2 className="min-w-0 truncate font-display text-h3 text-foreground">{item.title}</h2>
+          {hidden && <ToneBadge tone="brass">{t('admin.heldBadge')}</ToneBadge>}
+        </div>
+        <time
+          dateTime={item.createdAt}
+          className="font-body text-xs text-muted-foreground"
+        >
+          {new Date(item.createdAt).toLocaleString()}
+        </time>
+      </div>
+
+      {item.description && (
+        <p className="whitespace-pre-wrap font-body text-sm text-muted-foreground">
+          {item.description}
+        </p>
+      )}
+
+      {/* The uploader. A queue that cannot name who listed something cannot
+          answer the question it exists for. */}
+      <div className="flex items-center gap-3 rounded-card bg-secondary/60 p-3">
+        <UserAvatar name={item.owner?.name || '?'} size="md" tone="accent" />
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate font-body text-sm text-foreground">
+            {item.owner?.name || t('swaps.someone')}
+          </span>
+          <span
+            data-i18n="barter.trustScore"
+            className="font-body text-xs text-muted-foreground"
+          >
+            {t('barter.trustScore', { count: item.owner?.trades ?? 0 })}
+            {item.owner?.city ? ' · ' + item.owner.city : ''}
+          </span>
+        </span>
+        {item.owner?.id && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => q.openProfile(item.owner!.id)}
+            data-i18n="admin.viewProfile"
+          >
+            {t('admin.viewProfile')}
+          </Button>
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 border-t border-border/[0.14] pt-4">
+        <Button variant="ghost" size="sm" onClick={() => q.openItem(item.publicId)} data-i18n="admin.view">
+          {t('admin.view')}
+        </Button>
+        {hidden ? (
+          <Button size="sm" disabled={q.busy} onClick={() => q.restoreItem(item.id)} data-i18n="admin.restore">
+            {t('admin.restore')}
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={q.busy}
+            onClick={() => q.hideItem(item.id)}
+            className="text-destructive"
+            data-i18n="admin.hide"
+          >
+            {t('admin.hide')}
+          </Button>
+        )}
+      </div>
+    </div>
   )
 }

@@ -28,6 +28,13 @@ export type HeldItem = {
   /** The URL token. The row's own id stays the bigint for the hide/restore
    *  update, which keys on the primary key. */
   publicId: string
+  description: string
+  category: string
+  city: string
+  images: string[]
+  /** Who listed it. Null only if the profile row is missing, which should not
+   *  happen -- items.user_id is a foreign key. */
+  owner: { id: string; name: string; city: string; trades: number } | null
   /** 'ok' -- live and visible; 'held' -- a moderator hid it. */
   moderationStatus: string
   /** The listing's own lifecycle: active, traded, removed, expired. A traded
@@ -121,11 +128,40 @@ export function useReportQueue() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('items')
-        .select('id, public_id, title, images, user_id, created_at, moderation_status, status')
+        .select(
+          `id, public_id, title, description, images, user_id, created_at,
+           moderation_status, status, category, location_city`,
+        )
         .order('created_at', { ascending: false })
         .limit(100)
       if (error) throw error
-      return (data ?? []).map((r: Row): HeldItem => {
+
+      /** Who listed each find, in one batched lookup.
+       *
+       *  Not a PostgREST embed: items.user_id references auth.users, not
+       *  profiles, so there is no constraint to embed across -- and a bad
+       *  embed returns an empty array rather than an error, which would have
+       *  shown every upload with no owner and looked like missing data.
+       *
+       *  profiles_public, not profiles: name, city and trade count are what a
+       *  moderation decision needs. Email and push tokens are not, and the
+       *  public view is what keeps them out of the bundle. */
+      const rows = (data ?? []) as Row[]
+      const ownerIds = [...new Set(rows.map((r) => String(r.user_id ?? '')).filter(Boolean))]
+      const owners: Record<string, Record<string, unknown>> = {}
+      if (ownerIds.length) {
+        const { data: profiles, error: pErr } = await supabase
+          .from('profiles_public')
+          .select('id, name, home_city, swap_count')
+          .in('id', ownerIds)
+        // A missing name is not worth failing the queue over, but it IS worth
+        // logging: silence is how a screen ends up showing "Unknown" for
+        // everyone and nobody finds out why.
+        if (pErr) console.error('[admin] uploader lookup failed', pErr.message)
+        for (const p of profiles ?? []) owners[String((p as Record<string, unknown>).id)] = p as Record<string, unknown>
+      }
+
+      return rows.map((r: Row): HeldItem => {
         const images = Array.isArray(r.images) ? (r.images as string[]) : []
         return {
           id: Number(r.id),
@@ -134,6 +170,21 @@ export function useReportQueue() {
           ownerId: String(r.user_id ?? ''),
           createdAt: String(r.created_at ?? ''),
           publicId: String(r.public_id ?? ''),
+          description: r.description ? String(r.description) : '',
+          category: r.category ? String(r.category) : '',
+          city: r.location_city ? String(r.location_city) : '',
+          images,
+          owner: (() => {
+            const o = owners[String(r.user_id ?? '')]
+            return o
+              ? {
+                  id: String(o.id ?? ''),
+                  name: o.name ? String(o.name) : '',
+                  city: o.home_city ? String(o.home_city) : '',
+                  trades: Number(o.swap_count ?? 0),
+                }
+              : null
+          })(),
           moderationStatus: String(r.moderation_status ?? 'ok'),
           itemStatus: String(r.status ?? 'active'),
         }
@@ -196,6 +247,7 @@ export function useReportQueue() {
     /** Open the listing itself. Hiding something on the strength of a
      *  thumbnail and a title is how a good listing gets removed. */
     openItem: (publicId: string) => navigate('/item/' + publicId),
+    openProfile: (userId: string) => navigate('/u/' + userId),
     /** Put a hidden listing back in the decks. */
     restoreItem: (id: number) => decideItem.mutate({ id, publish: true }),
     /** Take a listing out of every deck. Reversible. */

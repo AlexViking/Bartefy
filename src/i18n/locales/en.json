@@ -519,7 +519,10 @@
     "heldBadge": "Hidden",
     "view": "View",
     "hide": "Hide",
-    "restore": "Restore"
+    "restore": "Restore",
+    "pickTitle": "Pick an upload",
+    "pickBody": "Choose one from the list to see its photos, its details and who listed it.",
+    "viewProfile": "Profile"
   },
   "category": {
     "electronics": "Electronics",
