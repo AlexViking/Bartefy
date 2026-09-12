@@ -76,14 +76,47 @@ export function HuntStack({
   const top = cards[0]
   const behind = cards[1]
 
-  /** Send the card off screen, then report the decision. Declared before the
-   *  early return so the hook order above it never changes. */
+  /** Send the card off screen, THEN report the decision.
+   *
+   *  This used to start the animation and call x.set(0) on the very next
+   *  line, so the reset raced the 280ms flight: whichever won was a matter
+   *  of timing, which is why a card could freeze halfway out with its PASS
+   *  stamp showing and never leave.
+   *
+   *  Sequenced now -- the animation's promise resolves, then the decision is
+   *  reported and x is reset for the card mounting into this same element.
+   *  A ref guards re-entry: two taps, or a tap landing on a keypress, would
+   *  otherwise decide two cards from one gesture.
+   */
+  const flying = useRef(false)
   const fly = (want: boolean) => {
-    if (!top) return
-    animate(x, want ? 600 : -600, { duration: 0.28, ease: [0.3, 0, 0.6, 1] })
-    onDecide(top, want)
-    // Reset for the next card, which mounts into this same element.
-    x.set(0)
+    if (!top || flying.current) return
+    flying.current = true
+    const card = top
+
+    // A pass removes the card, so it flies off and never comes back.
+    //
+    // A want does NOT: under the locked rule a like IS an offer, so the swipe
+    // is not finished until the person has chosen what to put up -- the card
+    // has to stay while the offer sheet is open, and come back if they
+    // cancel. So it springs back to centre and the sheet takes over.
+    //
+    // Flying it out on a want is what left a card stranded at +600 with its
+    // SWAP stamp showing: nothing removed it, and nothing told this component
+    // the sheet had closed, so it simply stayed there.
+    if (want) {
+      onDecide(card, true)
+      animate(x, 0, settleSpring).then(() => {
+        flying.current = false
+      })
+      return
+    }
+
+    animate(x, -600, { duration: 0.28, ease: [0.3, 0, 0.6, 1] }).then(() => {
+      onDecide(card, false)
+      x.set(0)
+      flying.current = false
+    })
   }
 
   if (!top) return null
