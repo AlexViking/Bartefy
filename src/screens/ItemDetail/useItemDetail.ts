@@ -44,6 +44,59 @@ export function useItemDetail() {
     staleTime: STALE.item,
   })
 
+  /* Every hook below runs on EVERY render, before the early returns.
+   *
+   * They used to sit after them, which is the bug behind "This part did not
+   * load": the first render of a navigation is isLoading, returns early and
+   * runs two hooks; the render after the data lands falls through and runs
+   * four. React sees the hook count change and throws, and the ErrorBoundary
+   * catches it. A refresh "fixed" it because the persisted cache made the
+   * very first render a loaded one, so the count never changed.
+   *
+   * eslint had been reporting this as react-hooks/rules-of-hooks the whole
+   * time. It is the one lint rule that is never cosmetic.
+   */
+
+  /** The bigint, once the row is here. saves.item_id is a foreign key to
+   *  items.id, so this half of the screen keys on the number, not the token. */
+  const itemPk = data && data.id != null ? String(data.id) : null
+
+  /** Whether the find is mine. Read from the row, never from which screen
+   *  navigated here -- it swaps the entire action set. */
+  const ownedByMe = !!userId && !!data && (data.owner as Record<string, unknown> | null)?.id === userId
+
+  /** My own listings, for the offer sheet. Fetched here rather than passed in,
+   *  because the sheet is opened from this screen and nothing above it knows
+   *  what I have to trade. */
+  const { data: mineRaw = [] } = useQuery({
+    queryKey: keys.myItems(userId ?? ''),
+    queryFn: async () => {
+      const { data: rows, error: err } = await getMyItems(userId!)
+      if (err) throw err
+      return (rows ?? []) as Record<string, unknown>[]
+    },
+    enabled: !!userId && !ownedByMe,
+  })
+
+  /** Have I saved this find? The `saves` table and its API have been there
+   *  since migration 005 and nothing ever called them, which is also why
+   *  Profile's Eyeing tab could only ever render empty. */
+  const { data: saved = false } = useQuery({
+    queryKey: ['saved', userId ?? '', itemPk ?? ''],
+    queryFn: async () => {
+      const { data: rows, error } = await supabase
+        .from('saves')
+        .select('item_id')
+        .eq('user_id', userId!)
+        .eq('item_id', Number(itemPk))
+        .maybeSingle()
+      if (error) return false
+      return !!rows
+    },
+    enabled: !!userId && !!itemPk,
+    staleTime: STALE.mine,
+  })
+
   // A find that failed to load, was deleted, or never existed must say so.
   // Returning "not ready" for an error left the screen on "Just a moment…"
   // forever, which is indistinguishable from a hang.
@@ -108,20 +161,11 @@ export function useItemDetail() {
   /** Ownership comes from the server's row, never from which screen navigated
    *  here. It swaps the entire action set: you manage your own listing, and
    *  you cannot offer a swap to yourself. */
-  const owned = !!userId && owner.id === userId
+  // Same value as ownedByMe above, which had to be computed before the early
+  // returns so the offer-sheet query could be enabled from it. Aliased rather
+  // than recomputed so the two can never disagree.
+  const owned = ownedByMe
 
-  /** My own listings, for the offer sheet. Fetched here rather than passed in,
-   *  because the sheet is opened from this screen and nothing above it knows
-   *  what I have to trade. */
-  const { data: mineRaw = [] } = useQuery({
-    queryKey: keys.myItems(userId ?? ''),
-    queryFn: async () => {
-      const { data: rows, error: err } = await getMyItems(userId!)
-      if (err) throw err
-      return (rows ?? []) as Record<string, unknown>[]
-    },
-    enabled: !!userId && !owned,
-  })
 
   const myOfferables: OfferOption[] = mineRaw
     // Only an available find can be put on the table. A reserved one is
@@ -158,29 +202,11 @@ export function useItemDetail() {
    *  `saves` table and its API have been there since migration 005 and nothing
    *  ever called them, which is also why Profile's Eyeing tab could only ever
    *  render empty. */
-  const { data: saved = false } = useQuery({
-    // Keyed on the BIGINT, not the token: saves.item_id is a foreign key to
-    // items.id. The token is for URLs only -- it appears in no FK anywhere.
-    queryKey: ['saved', userId ?? '', String(data.id)],
-    queryFn: async () => {
-      const { data: rows, error } = await supabase
-        .from('saves')
-        .select('item_id')
-        .eq('user_id', userId!)
-        .eq('item_id', Number(data.id))
-        .maybeSingle()
-      if (error) return false
-      return !!rows
-    },
-    enabled: !!userId && data.id != null,
-    staleTime: STALE.mine,
-  })
 
   const canSeeEyeing = useMembershipStore.getState().can('see_eyeing')
 
   const toggleSave = async () => {
-    // The bigint throughout: saves.item_id is a foreign key to items.id.
-    const itemPk = data.id == null ? null : String(data.id)
+    // itemPk is the bigint, hoisted above the early returns with the query.
     if (!userId || !itemPk) return
     const next = !saved
     // Optimistic: a heart that waits for a round trip feels broken.
