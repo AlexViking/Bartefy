@@ -234,6 +234,9 @@ export const BARTER_ERROR_KEYS: Record<string, string> = {
   P0003: 'barter.errorOwnItem',
   P0004: 'barter.errorAlreadyOffered',
   P0005: 'barter.errorNotFound',
+  // 030 added suspension; 033 moved it off P0005, which already meant "not
+  // found" -- a suspended account was being told the ITEM did not exist.
+  P0013: 'barter.errorSuspended',
   P0006: 'barter.errorAlreadyAnswered',
   P0007: 'barter.errorClosed',
   '42501': 'barter.errorNotYours',

@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
 
 import type { PhotoState } from '@/components/ui/photo-well'
@@ -55,6 +55,9 @@ interface PhotoSlot {
  */
 export function useAddItem() {
   const navigate = useNavigate()
+  /** Set when Hunt sent us here from the offer sheet: the public id of the
+   *  find they wanted to offer on. */
+  const offerOn = new URLSearchParams(useLocation().search).get('offerOn') || ''
   const queryClient = useQueryClient()
   const can = useMembershipStore((s) => s.can)
   const userId = useAuthStore((s) => s.session?.user?.id)
@@ -360,7 +363,14 @@ export function useAddItem() {
     publishError,
     publish,
     published,
-    goToItems: () => navigate('/profile'),
+    /** Where "done" goes.
+     *
+     *  Straight back to the find you were trying to offer on, when you got
+     *  here from the offer sheet with nothing to trade. Landing on Profile
+     *  instead meant the item you wanted was simply gone, and the deck may
+     *  never show it again -- so the whole reason you listed something was
+     *  lost at the last step. */
+    goToItems: () => navigate(offerOn ? '/item/' + offerOn : '/profile'),
     listAnother: () => window.location.reload(),
     cancel: () => navigate(-1),
   }

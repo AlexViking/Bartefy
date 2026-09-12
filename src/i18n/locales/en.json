@@ -633,7 +633,8 @@
     "errorNotYours": "That is not yours to answer.",
     "inboxLink": "Offers",
     "inboxCount": "{{count}} waiting",
-    "cancelConfirmBody": "Both finds go back on the table. You can always offer again."
+    "cancelConfirmBody": "Both finds go back on the table. You can always offer again.",
+    "errorSuspended": "Your account is on hold. Get in touch and we will sort it out."
   },
   "report": {
     "itemTitle": "What's wrong with this find?",

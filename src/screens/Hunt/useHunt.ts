@@ -361,6 +361,13 @@ export function useHunt() {
      *  number in the address bar. */
     openItem: (publicId: string) => navigate('/item/' + publicId),
     openSwap: (id: string) => navigate('/matches/' + id),
-    goAdd: () => navigate('/add'),
+    /** List a first find, from inside the offer sheet.
+     *
+     *  Carries the find being offered on in the URL so publishing can come
+     *  straight back to it. Without this the round trip was: swipe right ->
+     *  "you have nothing to trade" -> list an item -> land on Profile, with
+     *  the card you wanted gone and no way back to it except finding it in
+     *  the deck again, which may never resurface. */
+    goAdd: () => navigate('/add?offerOn=' + (pendingTarget?.publicId ?? '')),
   }
 }
