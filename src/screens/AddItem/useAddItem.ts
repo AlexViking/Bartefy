@@ -4,6 +4,9 @@ import { useQueryClient } from '@tanstack/react-query'
 
 import type { PhotoState } from '@/components/ui/photo-well'
 import { getR2UploadUrls, insertItem } from '@/lib/api'
+import { PERK_PRICES, pointsErrorKey, spendOnPerk } from '@/lib/points'
+import { useT } from '@/i18n/T'
+import { toast } from 'sonner'
 import { toWebP } from '@/lib/images'
 import { DEFAULT_CONDITION, WANT_NOTE_PREFIX } from '@/lib/taxonomy'
 import { useAuthStore } from '@/store/auth'
@@ -55,6 +58,7 @@ interface PhotoSlot {
  */
 export function useAddItem() {
   const navigate = useNavigate()
+  const { t } = useT()
   /** Set when Hunt sent us here from the offer sheet: the public id of the
    *  find they wanted to offer on. */
   const offerOn = new URLSearchParams(useLocation().search).get('offerOn') || ''
@@ -84,6 +88,9 @@ export function useAddItem() {
   /** null while composing; 'ok' or 'held' once the listing exists. Drives the
    *  outcome screen rather than navigating away silently. */
   const [published, setPublished] = useState<'ok' | 'held' | null>(null)
+  /** The find that was just listed, for the boost prompt. */
+  const [publishedId, setPublishedId] = useState<string | null>(null)
+  const [boosting, setBoosting] = useState(false)
   const [publishError, setPublishError] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -311,6 +318,14 @@ export function useAddItem() {
     // check ships some listings will come back 'held' instead. Showing it
     // now means that day changes nothing in this file.
     const row = Array.isArray(inserted) ? inserted[0] : inserted
+    // Kept so the boost prompt below knows WHICH find to boost. The bigint,
+    // because spend_points_on_perk('boost', subject) checks ownership against
+    // items.id.
+    setPublishedId(
+      (row as Record<string, unknown> | null)?.id != null
+        ? String((row as Record<string, unknown>).id)
+        : null,
+    )
     setPublished(
       String((row as Record<string, unknown> | null)?.moderation_status ?? 'ok') === 'held'
         ? 'held'
@@ -363,6 +378,23 @@ export function useAddItem() {
     publishError,
     publish,
     published,
+    /** Boost the find just listed -- the tier sheet's "Get seen 10x faster",
+     *  fired at the one moment a seller most wants it. Spends points through
+     *  the same RPC the Rewards screen uses, so there is one spend path. */
+    boostPrice: PERK_PRICES.boost,
+    onBoost: publishedId
+      ? async () => {
+          if (boosting) return
+          setBoosting(true)
+          const { error: e } = await spendOnPerk('boost', publishedId)
+          setBoosting(false)
+          if (e) {
+            toast.error(t(pointsErrorKey(e)))
+            return
+          }
+          toast.success(t('add.boostDone'))
+        }
+      : undefined,
     /** Where "done" goes.
      *
      *  Straight back to the find you were trying to offer on, when you got

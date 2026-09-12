@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { CATEGORIES } from '@/lib/taxonomy'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { fetchFeed, getMyItems, recordSwipe } from '@/lib/api'
-import { barterErrorKey, makeOffer } from '@/lib/barter'
+import { barterErrorKey, makeOffer, makeSuperOffer } from '@/lib/barter'
+import { getBalance, PERK_PRICES } from '@/lib/points'
 import { keys, STALE } from '@/lib/cache/queryClient'
 import { warmAhead } from '@/lib/feed/warm'
 import { useT } from '@/i18n/T'
@@ -35,6 +36,7 @@ export interface OfferOption {
 export function useHunt() {
   const navigate = useNavigate()
   const { t } = useT()
+  const queryClient = useQueryClient()
   const userId = useAuthStore((s) => s.session?.user?.id)
   const city = useAuthStore((s) => s.selectedCity) || DEFAULT_CITY
   const tastes = useOnboardingStore((s) => s.tastes)
@@ -131,6 +133,21 @@ export function useHunt() {
    *  deck mid-swipe for a value nothing renders. */
   const cursorRef = useRef<number | null>(0)
   const refillingRef = useRef(false)
+
+  /** What a super offer costs, and whether it can be afforded.
+   *
+   *  Same query key as Rewards, so spending here refreshes the balance there
+   *  and the two can never disagree about what someone has. */
+  const { data: balance = 0 } = useQuery({
+    queryKey: ['points', 'balance', userId ?? ''],
+    queryFn: async () => {
+      const { data, error: e } = await getBalance(userId!)
+      if (e) throw e
+      return Number(data ?? 0)
+    },
+    enabled: !!userId,
+    staleTime: STALE.counts,
+  })
 
   const { isLoading, error } = useQuery({
     queryKey: keys.feed(tasteIds, radiusKm),
@@ -236,17 +253,31 @@ export function useHunt() {
   }
 
   /** The sheet's confirm. This is the actual offer. */
-  const sendOffer = async (offeredItemId: string, note?: string) => {
+  const sendOffer = async (offeredItemId: string, note?: string, asSuper = false) => {
     const target = pendingTarget
     if (!target || sending) return
+    // Guarded here as well as server-side. The RPC is the authority -- it
+    // locks the profile row and re-reads the balance -- but refusing early
+    // means someone never watches an offer fail for points they can see they
+    // do not have.
+    if (asSuper && balance < PERK_PRICES.super) {
+      setOfferError('barter.errorNoPoints')
+      return
+    }
     setSending(true)
     setOfferError(null)
 
-    const { error: rpcError } = await makeOffer({
-      offeredItemId: Number(offeredItemId),
-      wantedItemId: Number(target.id),
-      note,
-    })
+    const { error: rpcError } = asSuper
+      ? await makeSuperOffer({
+          offeredItemId: Number(offeredItemId),
+          wantedItemId: Number(target.id),
+          note,
+        })
+      : await makeOffer({
+          offeredItemId: Number(offeredItemId),
+          wantedItemId: Number(target.id),
+          note,
+        })
 
     setSending(false)
     if (rpcError) {
@@ -271,7 +302,9 @@ export function useHunt() {
     // there, so anything modal would stand between the person and the swipe
     // they were in the middle of. sentTitle was set here before and rendered
     // by neither layout -- so sending an offer looked like nothing happened.
-    toast.success(t('hunt.offerSent', { title: target.title }))
+    toast.success(t(asSuper ? 'hunt.superSent' : 'hunt.offerSent', { title: target.title }))
+    // The balance changed, and Rewards shares this key.
+    if (asSuper) void queryClient.invalidateQueries({ queryKey: ['points'] })
   }
 
   /** Whether a free undo has been spent this session. The pitch below is gated
@@ -351,6 +384,13 @@ export function useHunt() {
     decide,
     /** Offer sheet state. */
     pendingTarget,
+    /** Points on hand, and what a super offer costs -- the sheet greys its
+     *  button and says the price rather than failing on send. */
+    points: balance,
+    superPrice: PERK_PRICES.super,
+    /** Where too-few-points goes. Not a dead end: the Rewards screen is where
+     *  points are earned and what they buy is listed. */
+    goPoints: () => navigate('/points'),
     sendOffer,
     cancelOffer,
     sending,

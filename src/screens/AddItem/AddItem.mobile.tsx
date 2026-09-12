@@ -20,7 +20,13 @@ export default function AddItemMobile() {
     return (
       <AppShell hideNav>
         <div className="mx-auto w-full max-w-[560px] px-5 py-6">
-          <PublishedSection state={a.published} onDone={a.goToItems} onAnother={a.listAnother} />
+          <PublishedSection
+            state={a.published}
+            onDone={a.goToItems}
+            onAnother={a.listAnother}
+            onBoost={a.onBoost}
+            boostPrice={a.boostPrice}
+          />
         </div>
       </AppShell>
     )

@@ -77,6 +77,29 @@ export async function makeOffer(input: {
   })
 }
 
+/** The same offer, but at the top of the owner's list. Paid in points.
+ *
+ *  One RPC, not "spend then offer": charging the points and writing the
+ *  priority onto the offer have to be the same transaction, or a failure
+ *  between them takes the points and delivers nothing, and the client has no
+ *  way to make that right.
+ *
+ *  make_super_offer calls make_offer internally rather than duplicating it, so
+ *  every rule that governs an ordinary offer governs this one too. It buys
+ *  ATTENTION, never the trade -- accepting stays entirely the owner's choice.
+ */
+export async function makeSuperOffer(input: {
+  offeredItemId: number
+  wantedItemId: number
+  note?: string
+}) {
+  return supabase.rpc('make_super_offer', {
+    p_offered_item_id: input.offeredItemId,
+    p_wanted_item_id: input.wantedItemId,
+    p_note: input.note ?? null,
+  })
+}
+
 /** Accept or decline. Accepting creates the match, reserves both items and
  *  opens the chat, all in one transaction. Returns the match on accept and
  *  null on decline. */
@@ -237,6 +260,9 @@ export const BARTER_ERROR_KEYS: Record<string, string> = {
   // 030 added suspension; 033 moved it off P0005, which already meant "not
   // found" -- a suspended account was being told the ITEM did not exist.
   P0013: 'barter.errorSuspended',
+  // Not enough points for a super offer. The sheet offers the ordinary one
+  // instead rather than dead-ending.
+  P0011: 'barter.errorNoPoints',
   P0006: 'barter.errorAlreadyAnswered',
   P0007: 'barter.errorClosed',
   '42501': 'barter.errorNotYours',

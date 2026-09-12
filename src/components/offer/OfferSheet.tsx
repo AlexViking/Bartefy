@@ -30,6 +30,9 @@ export function OfferSheet({
   sending,
   errorKey,
   onAdd,
+  points = 0,
+  superPrice,
+  onNeedPoints,
 }: {
   open: boolean
   /** Title of the find being offered on, for the prompt. */
@@ -37,7 +40,13 @@ export function OfferSheet({
   /** My own listings. Only available ones are offerable. */
   mine: OfferOption[]
   onCancel: () => void
-  onConfirm: (offeredItemId: string, note?: string) => void
+  onConfirm: (offeredItemId: string, note?: string, asSuper?: boolean) => void
+  /** Points on hand, and what a super offer costs. */
+  points?: number
+  superPrice?: number
+  /** Tapping super with too few points. Routes to where points are earned
+   *  rather than leaving a dead button. */
+  onNeedPoints?: () => void
   sending: boolean
   /** i18n key from barterErrorKey, or null. */
   errorKey: string | null
@@ -108,6 +117,37 @@ export function OfferSheet({
           >
             {t('barter.offerSend')}
           </Button>
+
+          {/* The super offer, at the moment of wanting.
+          
+              The tier sheet's rule: "Never show these on a settings page.
+              Each prompt appears in-context, the moment the user wants the
+              thing." Until now every paid action was buyable only on Rewards,
+              which is exactly the page it warns about.
+          
+              Never disabled for lack of points -- a dead button explains
+              nothing. It says the price, and tapping it with too few points
+              routes to where points are earned. */}
+          {superPrice != null && (
+            <Button
+              variant="accent"
+              fullWidth
+              size="lg"
+              disabled={!picked || sending}
+              onClick={() => {
+                if (points < superPrice) return onNeedPoints?.()
+                if (picked) onConfirm(picked, note.trim() || undefined, true)
+              }}
+              data-i18n="barter.offerSuper"
+            >
+              {t('barter.offerSuper', { price: superPrice })}
+            </Button>
+          )}
+          <T
+            as="p"
+            k="barter.offerSuperBody"
+            className="text-center font-body text-xs text-muted-foreground"
+          />
           <Button variant="ghost" fullWidth onClick={onCancel} data-i18n="barter.offerCancel">
             {t('barter.offerCancel')}
           </Button>

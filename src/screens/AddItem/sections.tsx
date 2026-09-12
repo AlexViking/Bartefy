@@ -196,10 +196,16 @@ export function PublishedSection({
   state,
   onDone,
   onAnother,
+  onBoost,
+  boostPrice,
 }: {
   state: 'ok' | 'held'
   onDone: () => void
   onAnother: () => void
+  /** Boost the find that was just listed. Omitted where boosting is not
+   *  available, which removes the prompt rather than showing a dead one. */
+  onBoost?: () => void
+  boostPrice?: number
 }) {
   const { t } = useT()
   const held = state === 'held'
@@ -229,6 +235,30 @@ export function PublishedSection({
         k={held ? 'add.heldBody' : 'add.publishedBody'}
         className="max-w-[36ch] font-body text-body text-muted-foreground"
       />
+
+      {/* Trigger 3 from the tier sheet: "You list a new item -> Get seen 10x
+          faster". It fires HERE and nowhere else, because this is the one
+          moment the seller's anxiety to offload is at its peak -- they have
+          just done the work and nothing has happened yet.
+          
+          Not shown on a held listing: offering to boost something a moderator
+          has not cleared would be selling reach that does not exist. */}
+      {!held && onBoost && (
+        <div className="mt-2 w-full max-w-[280px] rounded-card border border-border/[0.14] bg-accent/[0.12] p-3">
+          <T as="p" k="add.boostTitle" className="font-display text-sm font-semibold text-foreground" />
+          <T as="p" k="add.boostBody" className="mt-0.5 font-body text-xs text-muted-foreground" />
+          <Button
+            variant="accent"
+            fullWidth
+            size="sm"
+            className="mt-2"
+            onClick={onBoost}
+            data-i18n="add.boostAction"
+          >
+            {t('add.boostAction', { price: boostPrice ?? 0 })}
+          </Button>
+        </div>
+      )}
 
       <div className="mt-2 flex w-full max-w-[280px] flex-col gap-2">
         <Button fullWidth size="lg" onClick={onAnother} data-i18n="add.listAnother">

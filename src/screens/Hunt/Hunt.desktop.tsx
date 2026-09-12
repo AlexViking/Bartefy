@@ -120,6 +120,9 @@ export default function HuntDesktop() {
         sending={h.sending}
         errorKey={h.offerError}
         onAdd={h.goAdd}
+        points={h.points}
+        superPrice={h.superPrice}
+        onNeedPoints={h.goPoints}
       />
 
       <Dialog open={!!h.matched} onOpenChange={(o) => !o && h.dismissMatch()}>

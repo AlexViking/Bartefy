@@ -17,7 +17,13 @@ export type EarnReason =
   | 'daily_visit'
   | 'backfill'
 
-export type SpendReason = 'buy_tier' | 'buy_boost' | 'buy_eyeing' | 'buy_radius'
+export type SpendReason =
+  | 'buy_tier'
+  | 'buy_boost'
+  | 'buy_eyeing'
+  | 'buy_radius'
+  /** A super offer -- points spent to reach the top of one owner's list. */
+  | 'buy_super'
 
 export type PointReason = EarnReason | SpendReason
 
@@ -56,8 +62,12 @@ export const MAX_VISIT_VALUE = 7
  *  the commitment. Expressed in earned points rather than purchased credits,
  *  because there is no card payment yet. */
 export const TIER_PRICES = { collector: 600, curator: 1500 } as const
-export const PERK_PRICES = { boost: 75, eyeing: 50, radius: 120 } as const
-export const PERK_DAYS = { boost: 1, eyeing: 7, radius: 7 } as const
+export const PERK_PRICES = { boost: 75, eyeing: 50, radius: 120, super: 50 } as const
+/** How long each perk lasts. `super` is 0: it is spent on ONE offer rather
+ *  than opening a window, so it writes no point_grants row at all -- the
+ *  priority lives on the offer itself. Listed here so a lookup cannot return
+ *  undefined. */
+export const PERK_DAYS = { boost: 1, eyeing: 7, radius: 7, super: 0 } as const
 
 export type Perk = keyof typeof PERK_PRICES
 

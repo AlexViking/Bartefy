@@ -121,7 +121,8 @@
     "sayHello": "Say hello",
     "keepHunting": "Keep hunting",
     "reachFurther": "Hunt further out",
-    "offerSent": "Offer sent for {{title}}"
+    "offerSent": "Offer sent for {{title}}",
+    "superSent": "Super offer sent for {{title}} — top of their list"
   },
   "item": {
     "condition": "Condition",
@@ -197,7 +198,11 @@
     "heldTitle": "Held for a quick look",
     "heldBody": "A person checks the photo before this one goes live. It usually takes a few hours.",
     "listAnother": "List another find",
-    "seeMyItems": "See my finds"
+    "seeMyItems": "See my finds",
+    "boostTitle": "Get seen 10× faster",
+    "boostBody": "Put this find at the top of every nearby deck for a day.",
+    "boostAction": "Boost · {{price}} pts",
+    "boostDone": "Boosted — top of the deck for 24 hours."
   },
   "swaps": {
     "title": "Matches",
@@ -634,7 +639,10 @@
     "inboxLink": "Offers",
     "inboxCount": "{{count}} waiting",
     "cancelConfirmBody": "Both finds go back on the table. You can always offer again.",
-    "errorSuspended": "Your account is on hold. Get in touch and we will sort it out."
+    "errorSuspended": "Your account is on hold. Get in touch and we will sort it out.",
+    "offerSuper": "Super offer · {{price}} pts",
+    "offerSuperBody": "Goes to the top of their list. Buys attention, never the trade.",
+    "errorNoPoints": "Not enough points for that yet."
   },
   "report": {
     "itemTitle": "What's wrong with this find?",
