@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { CATEGORIES } from '@/lib/taxonomy'
 import { useNavigate } from 'react-router'
+import { toast } from 'sonner'
 import { useQuery } from '@tanstack/react-query'
 
 import { fetchFeed, getMyItems, recordSwipe } from '@/lib/api'
 import { barterErrorKey, makeOffer } from '@/lib/barter'
 import { keys, STALE } from '@/lib/cache/queryClient'
 import { warmAhead } from '@/lib/feed/warm'
+import { useT } from '@/i18n/T'
 import { useAuthStore } from '@/store/auth'
 import { useHuntStore, type CardItem } from '@/store/hunt'
 import { useOnboardingStore } from '@/store/onboarding'
@@ -32,6 +34,7 @@ export interface OfferOption {
  */
 export function useHunt() {
   const navigate = useNavigate()
+  const { t } = useT()
   const userId = useAuthStore((s) => s.session?.user?.id)
   const city = useAuthStore((s) => s.selectedCity) || DEFAULT_CITY
   const tastes = useOnboardingStore((s) => s.tastes)
@@ -40,7 +43,7 @@ export function useHunt() {
   const selectedOfferId = useHuntStore((s) => s.selectedOfferId)
   const setSelectedOfferId = useHuntStore((s) => s.setSelectedOfferId)
   const setCardQueue = useHuntStore((s) => s.setCardQueue)
-  const removeTopCard = useHuntStore((s) => s.removeTopCard)
+  const removeCard = useHuntStore((s) => s.removeCard)
   const passTopCard = useHuntStore((s) => s.passTopCard)
   const unpass = useHuntStore((s) => s.unpass)
   const lastPassed = useHuntStore((s) => s.lastPassed)
@@ -253,15 +256,22 @@ export function useHunt() {
       setOfferError(key)
       if (key === 'barter.errorItemGone') {
         setPendingTarget(null)
-        removeTopCard()
+        // By id: the sheet is async, so this card may no longer be at index 0
+        // -- a refill can land while it is open.
+        removeCard(target.id)
       }
       return
     }
 
     addToLikeHistory(target.id)
     setPendingTarget(null)
-    removeTopCard()
+    removeCard(target.id)
     setSentTitle(target.title)
+    // A toast, not a sheet: the offer is sent and the next card is already
+    // there, so anything modal would stand between the person and the swipe
+    // they were in the middle of. sentTitle was set here before and rendered
+    // by neither layout -- so sending an offer looked like nothing happened.
+    toast.success(t('hunt.offerSent', { title: target.title }))
   }
 
   /** Whether a free undo has been spent this session. The pitch below is gated

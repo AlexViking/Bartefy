@@ -38,10 +38,28 @@ export function HuntCard({
   // stack opens on whatever index the previous one was left at.
   useEffect(() => setIndex(0), [item.id])
 
+  // Does the description actually overflow two lines? scrollHeight exceeds
+  // clientHeight only while the clamp is on, so this is measured in the
+  // clamped state and re-measured per card.
+  useEffect(() => {
+    setDescOpen(false)
+    const el = descRef.current
+    if (!el) return setDescClamped(false)
+    setDescClamped(el.scrollHeight > el.clientHeight + 1)
+  }, [item.id, item.description])
+
   /** Whether the photo currently on screen has painted. Reset per photo, so
    *  stepping to a second image shows its own skeleton rather than holding
    *  the previous one's pixels. warmAhead means the NEXT card's photo is
    *  already decoded, so in the deck this is usually true immediately. */
+  /** Whether the description is expanded, and whether it has anything to
+   *  expand. Measured rather than guessed from length: two lines is a pixel
+   *  question -- it depends on the card width and the script, and Georgian
+   *  wraps differently from Latin at the same character count. */
+  const [descOpen, setDescOpen] = useState(false)
+  const [descClamped, setDescClamped] = useState(false)
+  const descRef = useRef<HTMLSpanElement>(null)
+
   const [photoLoaded, setPhotoLoaded] = useState(false)
   const imgRef = useRef<HTMLImageElement>(null)
   useEffect(() => {
@@ -169,9 +187,40 @@ export function HuntCard({
         {/* The description, which the card never showed -- the only place
             someone says what is actually right or wrong with the thing. */}
         {item.description && (
-          <p className="line-clamp-2 font-body text-sm text-muted-foreground">
-            {item.description}
-          </p>
+          <button
+            type="button"
+            // stopPropagation so reading the description never starts a drag.
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation()
+              setDescOpen((v) => !v)
+            }}
+            aria-expanded={descOpen}
+            className="w-full text-left"
+          >
+            <span
+              ref={descRef}
+              className={cn(
+                'block font-body text-sm text-muted-foreground',
+                // Two lines by default, all of it once asked. line-clamp cut
+                // mid-word with no way to read the rest -- and the description
+                // is the only place a seller can say "the zip is broken".
+                !descOpen && 'line-clamp-2',
+              )}
+            >
+              {item.description}
+            </span>
+            {/* Only offered when there is more to see: a "read more" that
+                expands nothing is worse than none. */}
+            {descClamped && (
+              <span
+                data-i18n={descOpen ? 'common.less' : 'common.more'}
+                className="mt-0.5 inline-block font-display text-xs font-semibold text-primary"
+              >
+                {t(descOpen ? 'common.less' : 'common.more')}
+              </span>
+            )}
+          </button>
         )}
 
         <div className="flex items-center gap-2 pt-0.5">

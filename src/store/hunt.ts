@@ -51,7 +51,14 @@ interface HuntState {
    *  there. setCardQueue REPLACES, which is right for a fresh feed and wrong
    *  for a refill -- using it here would throw away the cards being looked at. */
   appendToQueue: (queue: CardItem[]) => void
-  removeTopCard: () => void
+  /** Remove a specific card, by id.
+   *
+   *  By id rather than "the top one": the offer sheet is asynchronous, and the
+   *  card it was opened for is not guaranteed to still be at index 0 when the
+   *  RPC returns -- a refill can land in between. Dropping index 0 blindly
+   *  removed the WRONG card and marked it decided, which left the real target
+   *  sitting at the top of the deck looking stuck. */
+  removeCard: (id: string) => void
   /** Pass, remembering the card so `unpass` can restore it. */
   passTopCard: (card: CardItem) => void
   /** Put the last passed card back on top. No-op if there is nothing to undo. */
@@ -88,14 +95,11 @@ export const useHuntStore = create<HuntState>()(
           )
           return fresh.length ? { cardQueue: [...state.cardQueue, ...fresh] } : state
         }),
-      removeTopCard: () =>
-        set((state) => {
-          const top = state.cardQueue[0]
-          return {
-            cardQueue: state.cardQueue.slice(1),
-            decided: top ? [...state.decided, top.id] : state.decided,
-          }
-        }),
+      removeCard: (id) =>
+        set((state) => ({
+          cardQueue: state.cardQueue.filter((c) => c.id !== id),
+          decided: state.decided.includes(id) ? state.decided : [...state.decided, id],
+        })),
       passTopCard: (card) =>
         set((state) => ({
           cardQueue: state.cardQueue.slice(1),
