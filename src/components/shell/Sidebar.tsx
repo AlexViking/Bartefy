@@ -1,13 +1,12 @@
 import { motion } from 'framer-motion'
 import { useLocation, useNavigate } from 'react-router'
 
-import { Wordmark } from '@/components/Wordmark'
 import { Icon } from '@/components/ui/icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useT } from '@/i18n/T'
 import { spring, tween } from '@/lib/motion'
 import { cn } from '@/lib/utils'
-import { ADD_DESTINATION, DESTINATIONS } from '@/navigation/destinations'
+import { DESTINATIONS } from '@/navigation/destinations'
 
 /** The desktop navigation: a collapsible left rail, replacing the horizontal
  *  top nav.
@@ -70,11 +69,11 @@ export function Sidebar({
       style={{ width: collapsed ? 68 : 224 }}
       className="sticky top-0 hidden h-dvh shrink-0 flex-col gap-1 border-r border-border/[0.14] bg-card/40 p-3 [transition:width_240ms_var(--ease-out)] md:flex"
     >
-      <div className={cn('mb-2 flex h-11 items-center gap-2', collapsed ? 'justify-center' : 'px-1')}>
-        {/* The lockup, not type. It disappears when collapsed rather than
-            shrinking to an illegible smudge -- the rail is 68px there and the
-            mark is nearly 2:1. */}
-        {!collapsed && <Wordmark className="w-[112px]" />}
+      {/* No lockup here any more -- the topbar carries it at every width.
+          The rail's copy vanished the moment the rail collapsed, which is
+          exactly when a 68px strip of unlabelled icons most needs the app to
+          still say its name. */}
+      <div className={cn('mb-2 flex h-11 items-center', collapsed ? 'justify-center' : 'justify-end px-1')}>
         {/* No chevron when there is nothing to toggle (tablet): a control that
             does nothing is worse than an absent one. */}
         {onToggleCollapse && (
@@ -83,10 +82,13 @@ export function Sidebar({
           onClick={onToggleCollapse}
           aria-label={t(collapsed ? 'nav.expand' : 'nav.collapse')}
           className={cn(
-            'grid size-8 place-items-center rounded-card-sm text-muted-foreground transition-colors duration-fast hover:bg-secondary hover:text-foreground',
-            // ml-auto only makes sense with the wordmark beside it; alone in a
-            // 68px rail it pinned the chevron to the right edge.
-            !collapsed && 'ml-auto',
+            // A filled control, not a hairline outline. Collapsed, this was a
+            // 1px ring around a 16px chevron on a near-identical background --
+            // the one control that un-collapses the rail was the hardest thing
+            // on the screen to see.
+            'grid size-9 place-items-center rounded-card-sm bg-secondary text-foreground',
+            'transition-colors duration-fast hover:bg-primary hover:text-primary-foreground',
+            'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45',
           )}
         >
           <motion.span
@@ -209,47 +211,10 @@ export function Sidebar({
         </div>
       ))}
 
-      {/* Listing a find, pinned to the foot as the desktop wireframe draws it.
-          Until now ADD_DESTINATION was consumed only by TabBar, which is not
-          mounted at this width -- so the app's primary creative action had no
-          entry point on desktop at all. */}
-      {(() => {
-        const addBtn = (
-          <button
-            type="button"
-            onClick={() => navigate(ADD_DESTINATION.path)}
-            aria-label={t('nav.add')}
-            className={cn(
-              'mt-auto flex h-11 shrink-0 items-center rounded-pill bg-accent',
-              'font-display text-[15px] font-semibold text-accent-foreground shadow-card outline-none',
-              'transition-colors duration-fast ease-brand hover:bg-accent/90',
-              'focus-visible:ring-2 focus-visible:ring-ring',
-              // Collapsed the rail is 68px with 12px of padding each side, so
-              // a full-width button was wider than the space and the glyph got
-              // clipped at the edge. Square and self-centred instead.
-              collapsed ? 'size-11 justify-center self-center' : 'gap-3 px-3',
-            )}
-          >
-            <Icon name="Plus" size={20} strokeWidth={2.4} />
-            {/* Unmounted rather than faded to zero: an invisible label still
-                claims width, which is what pushed the glyph out of a 44px
-                button. */}
-            {!collapsed && (
-              <span data-i18n="nav.add" className="truncate">
-                {t('nav.add')}
-              </span>
-            )}
-          </button>
-        )
-        return collapsed ? (
-          <Tooltip>
-            <TooltipTrigger asChild>{addBtn}</TooltipTrigger>
-            <TooltipContent side="right">{t('nav.add')}</TooltipContent>
-          </Tooltip>
-        ) : (
-          addBtn
-        )
-      })()}
+      {/* The brass Add lives on the topbar now, where it is visible at both
+          rail widths and close to where people are actually looking. It used
+          to be pinned here at the foot -- the furthest corner of the screen
+          from the content, and a bare '+' whenever the rail was collapsed. */}
     </nav>
   )
 }

@@ -4,10 +4,10 @@ import { useTwoPane } from '@/lib/platform'
 import { cn } from '@/lib/utils'
 
 import { AppShell } from '@/components/shell/AppShell'
+import { PageHeader } from '@/components/shell/PageHeader'
 import { MatchThreadPane } from '@/screens/Chat/MatchThreadPane'
 import { EmptyState } from '@/components/EmptyState'
 import { NextStep } from '@/components/guidance/NextStep'
-import { T } from '@/i18n/T'
 import { InboxTabs } from './Tabs'
 import { OffersLink } from './OffersLink'
 import { SwapList } from './SwapList'
@@ -38,22 +38,40 @@ export default function SwapsInboxDesktop() {
 
   return (
     <AppShell>
-      <div
-        className={cn(
-          'grid h-[calc(100dvh-68px)]',
-          twoPane ? 'grid-cols-[minmax(300px,360px)_1fr]' : 'grid-cols-1',
+      <div className="flex h-[calc(100dvh-68px)] flex-col">
+        {/* The header sits ABOVE the two panes, not inside the list column.
+        
+            It used to be drawn inside that 360px column, so "Matches" started
+            ~270px left of where "My items" starts -- the two were never on the
+            same line however consistent the PageHeader screens were among
+            themselves. Same component, same padding as PageBody, so the title
+            now lands at the same x as every other destination. */}
+        {showList && (
+          // mx-auto max-w-[1160px] as well as the padding: PageBody CENTRES
+          // its column, so a header that only matched px-4 sm:px-5 still sat
+          // 28px left of every other screen's.
+          <div className="mx-auto w-full max-w-[1160px] shrink-0 px-4 pt-4 sm:px-5">
+            <PageHeader
+              title="swaps.title"
+              tabs={<InboxTabs tab={s.tab} onChange={s.setTab} />}
+            />
+          </div>
         )}
-      >
+
+        <div
+          className={cn(
+            'grid min-h-0 flex-1',
+            twoPane ? 'grid-cols-[minmax(300px,360px)_1fr]' : 'grid-cols-1',
+          )}
+        >
         {showList && (
         <section
           className={cn(
-            'flex flex-col overflow-y-auto p-5',
+            'flex min-h-0 flex-col overflow-y-auto px-4 pb-5 sm:px-5',
             twoPane && 'border-r border-border/[0.14]',
           )}
         >
-          <T as="h1" k="swaps.title" className="mb-4 font-display text-h2 text-foreground" />
-        <OffersLink className="mb-4" />
-          <InboxTabs tab={s.tab} onChange={s.setTab} className="mb-4" />
+          <OffersLink className="mb-4" />
 
           <SwapList
             rows={s.rows}
@@ -100,6 +118,7 @@ export default function SwapsInboxDesktop() {
             )}
           </section>
         ))}
+        </div>
       </div>
     </AppShell>
   )

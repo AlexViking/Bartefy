@@ -9,6 +9,7 @@ import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { Wordmark } from '@/components/Wordmark'
 import { ThemeToggle } from './ThemeToggle'
 import { useT } from '@/i18n/T'
+import { ADD_DESTINATION } from '@/navigation/destinations'
 import { spring } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
@@ -96,7 +97,12 @@ export function Topbar({
         transition={spring.gentle}
         style={{ transformOrigin: 'left center' }}
         aria-label={t('brand.name')}
-        className="shrink-0 md:hidden"
+        // Shown at every width now. It used to be md:hidden because the rail
+        // carried the lockup -- but the rail collapses to 68px and the logo
+        // went with it, so the app lost its name entirely at the width where
+        // the topbar had 1400px of nothing in it. The brand belongs on the bar
+        // that is always the same height, not on the one that folds away.
+        className="shrink-0"
       >
         <Wordmark className="w-[124px]" />
       </motion.button>
@@ -125,6 +131,30 @@ export function Topbar({
           into the menu -- six controls beside a search box overflowed the
           screen, and the avatar was cut in half at the right edge. */}
       <div className="flex items-center gap-0.5">
+        {/* Listing a find, on the bar at desktop widths.
+        
+            It lived only at the foot of the rail, which put the app's primary
+            creative action in the furthest corner of the screen from where
+            anyone is looking -- and reduced it to a bare '+' the moment the
+            rail collapsed. Brass, because it is the one action on this bar
+            that makes something rather than navigating somewhere.
+
+            md:flex: on a phone the tab bar already carries the brass Add, and
+            two of them on one screen is one too many. */}
+        <button
+          type="button"
+          onClick={() => navigate(ADD_DESTINATION.path)}
+          className={cn(
+            'mr-2 hidden h-10 items-center gap-2 rounded-pill bg-accent px-4 md:flex',
+            'font-display text-[15px] font-semibold text-accent-foreground shadow-card',
+            'transition-colors duration-fast ease-brand hover:bg-[var(--brass-hover)]',
+            'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45',
+          )}
+        >
+          <Icon name="Plus" size={18} strokeWidth={2.4} />
+          <span data-i18n="nav.add">{t('nav.add')}</span>
+        </button>
+
         {/* The bell, which had no way in until now: the screen existed and
             nothing linked to it. The dot appears only when something is
             waiting -- a permanent badge trains people to ignore it. */}
