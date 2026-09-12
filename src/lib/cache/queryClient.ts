@@ -43,7 +43,24 @@ export const queryClient = new QueryClient({
       gcTime: 24 * 60 * 60_000,
       // The cache is the first paint. Never flash a spinner over good data.
       placeholderData: (prev: unknown) => prev,
-      refetchOnWindowFocus: false,
+      /* Revalidate when the app comes back.
+       *
+       * This was false, which on a phone means never: people do not reload a
+       * PWA, they switch apps and come back. The feed is persisted to
+       * IndexedDB for up to 24h, so a deck fetched before you listed
+       * something kept showing your own finds -- they were legitimately in it
+       * when it was fetched, and nothing ever asked again. get_feed excludes
+       * your own items server-side, so one request fixes it; the bug was that
+       * no request happened.
+       *
+       * `true`, not 'always': a query still inside its staleTime (2min for
+       * the feed, 10min for my items) serves from cache untouched, so this
+       * costs nothing for someone flicking between apps. Only genuinely stale
+       * data is re-fetched, and placeholderData keeps the old rows on screen
+       * while it arrives -- no spinner, no flash.
+       */
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
       refetchOnMount: 'always',
       retry: (count, err: unknown) => {
         const e = err as { status?: number; code?: string }
