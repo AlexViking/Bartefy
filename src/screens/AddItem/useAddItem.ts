@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
 
 import type { PhotoState } from '@/components/ui/photo-well'
-import { keys } from '@/lib/cache/queryClient'
 import { getR2UploadUrls, insertItem } from '@/lib/api'
 import { toWebP } from '@/lib/images'
 import { DEFAULT_CONDITION, WANT_NOTE_PREFIX } from '@/lib/taxonomy'
@@ -280,7 +279,11 @@ export function useAddItem() {
 
     // Profile reads the listing straight back, and the feed excludes your own
     // items — refetch both rather than showing a stale "nothing here yet".
-    await queryClient.invalidateQueries({ queryKey: keys.myItems(userId) })
+    // The PREFIX, deliberately: keys.myItems now ends in a scope ('active'
+    // or 'all'), and a new listing has to refresh both -- the offer pickers
+    // and the My Items grid. invalidateQueries matches by prefix, so dropping
+    // the scope catches every variant.
+    await queryClient.invalidateQueries({ queryKey: ['my-items', userId] })
 
     // The wireframe shows the moderation outcome rather than dropping the
     // person back on Profile to guess. Read the status the row actually

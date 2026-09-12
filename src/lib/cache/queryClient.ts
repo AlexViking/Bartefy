@@ -66,7 +66,13 @@ export const queryClient = new QueryClient({
 export const keys = {
   feed: (filters: string[], radiusKm: number) => ['feed', { filters, radiusKm }] as const,
   item: (id: string) => ['item', id] as const,
-  myItems: (userId: string) => ['my-items', userId] as const,
+  /** My listings. `scope` is part of the key because the two callers hold
+   *  DIFFERENT ROWS under it: the offer pickers fetch active finds only,
+   *  My Items fetches paused and expired ones too. Sharing one key meant
+   *  whichever screen loaded first won, so arriving at My Items from Hunt
+   *  showed Hunt's active-only list and an empty Paused tab. */
+  myItems: (userId: string, scope: 'active' | 'all' = 'active') =>
+    ['my-items', userId, scope] as const,
   swaps: (userId: string) => ['swaps', userId] as const,
   unread: (userId: string) => ['unread', userId] as const,
   // Deliberately nested under the same 'unread' prefix, so the single

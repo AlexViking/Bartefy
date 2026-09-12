@@ -39,7 +39,7 @@ export function useRealtime(userId: string | undefined) {
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'swaps' },
-        ({ new: row }: { new: { id: string } }) => {
+        ({ new: row }: { new: { id: string; public_id?: string } }) => {
           qc.setQueryData(keys.swaps(userId), (prev: unknown) => patchById(prev, row))
           qc.invalidateQueries({ queryKey: keys.thread(row.id) })
         },
@@ -58,9 +58,17 @@ export function useRealtime(userId: string | undefined) {
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'items', filter: 'user_id=eq.' + userId },
-        ({ new: row }: { new: { id: string } }) => {
-          qc.setQueryData(keys.myItems(userId), (prev: unknown) => patchById(prev, row))
-          qc.invalidateQueries({ queryKey: keys.item(row.id) })
+        ({ new: row }: { new: { id: string; public_id?: string } }) => {
+          // setQueryData needs an EXACT key, unlike invalidateQueries, so
+          // both scopes are patched by name. Patching only the default one
+          // left My Items showing a find as live seconds after it was
+          // paused -- the row it renders lives under the 'all' entry.
+          qc.setQueryData(keys.myItems(userId, 'active'), (prev: unknown) => patchById(prev, row))
+          qc.setQueryData(keys.myItems(userId, 'all'), (prev: unknown) => patchById(prev, row))
+          // The detail cache is keyed by the PUBLIC token since migration 029.
+          // Postgres sends the bigint in `id`, so the token has to come from
+          // the row's own public_id -- passing row.id here invalidated nothing.
+          if (row.public_id) qc.invalidateQueries({ queryKey: keys.item(row.public_id) })
         },
       )
 

@@ -263,13 +263,27 @@ export function useItemDetail() {
       const next = data.status === 'paused' ? 'active' : 'paused'
       const { error: e } = await setItemStatus(String(item.id), next)
       if (e) return setOfferError('barter.errorGeneric')
-      await queryClient.invalidateQueries({ queryKey: keys.item(String(item.id)) })
+      // keys.item is keyed by the PUBLIC token since migration 029 -- passing
+      // the bigint here invalidated a cache entry that does not exist, so the
+      // screen kept rendering the pre-change row.
+      await queryClient.invalidateQueries({ queryKey: keys.item(item.publicId) })
+      // And My Items, which owns the Paused tab. Prefix form so both scopes
+      // refresh: without this a paused find stayed in the Live tab until a
+      // hard refresh.
+      await queryClient.invalidateQueries({ queryKey: ['my-items', userId] })
     },
     paused: data.status === 'paused',
     renew: async () => {
       const { error: e } = await renewItem(String(item.id))
       if (e) return setOfferError(barterErrorKey(e))
-      await queryClient.invalidateQueries({ queryKey: keys.item(String(item.id)) })
+      // keys.item is keyed by the PUBLIC token since migration 029 -- passing
+      // the bigint here invalidated a cache entry that does not exist, so the
+      // screen kept rendering the pre-change row.
+      await queryClient.invalidateQueries({ queryKey: keys.item(item.publicId) })
+      // And My Items, which owns the Paused tab. Prefix form so both scopes
+      // refresh: without this a paused find stayed in the Live tab until a
+      // hard refresh.
+      await queryClient.invalidateQueries({ queryKey: ['my-items', userId] })
     },
     /** Soft delete, never a hard one: status goes to 'removed' and the row
      *  stays. The scope contract makes hard-delete an admin-only action, and

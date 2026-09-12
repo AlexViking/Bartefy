@@ -47,9 +47,11 @@ export default function MyItems() {
   const [pausedOpen, setPausedOpen] = useState(false)
 
   const { data: allItems = [], isLoading } = useQuery({
-    queryKey: keys.myItems(userId ?? ''),
+    queryKey: keys.myItems(userId ?? '', 'all'),
     queryFn: async () => {
-      const { data, error } = await getMyItems(userId!)
+      // includeAll: this screen owns the Paused tab, so it needs the rows
+      // the other callers deliberately exclude.
+      const { data, error } = await getMyItems(userId!, true)
       if (error) throw error
       return (data ?? []) as Record<string, unknown>[]
     },

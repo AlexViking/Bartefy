@@ -95,13 +95,32 @@ export async function updateProfile(userId: string, patch: Record<string, unknow
 
 // ── Items ───────────────────────────────────────────────────────────────────
 
-export async function getMyItems(userId: string) {
-  return supabase
+/** My listings.
+ *
+ *  Active only by default, because three of the four callers mean "finds I
+ *  could put on the table" -- Hunt's offer picker, ItemDetail's offer sheet
+ *  and Profile's live count. A paused find cannot be offered.
+ *
+ *  My Items passes `includeAll` because it owns the Paused tab. Filtering to
+ *  active in the query and then filtering again for status === 'paused' in
+ *  the screen is how that tab came to be permanently empty: pausing a find
+ *  removed it from the only list the screen could see, so there was no way
+ *  back to un-pause it.
+ */
+export async function getMyItems(userId: string, includeAll = false) {
+  const q = supabase
     .from('items')
     .select('*')
     .eq('user_id', userId)
-    .eq('status', 'active')
-    .order('created_at', { ascending: false })
+
+  // Never 'deleted': a soft-deleted row is gone as far as its owner is
+  // concerned, and showing it in a Paused tab would offer to un-pause
+  // something that no longer exists.
+  const scoped = includeAll
+    ? q.in('status', ['active', 'paused', 'reserved', 'expired'])
+    : q.eq('status', 'active')
+
+  return scoped.order('created_at', { ascending: false })
 }
 
 export async function insertItem(item: {
