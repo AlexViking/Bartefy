@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { AppShell } from '@/components/shell/AppShell'
+import { PageBody } from '@/components/shell/PageBody'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { ToneBadge } from '@/components/ui/tone-badge'
@@ -128,7 +129,7 @@ export default function Rewards() {
 
   return (
     <AppShell>
-      <div className="mx-auto w-full max-w-[720px] px-4 py-5">
+      <PageBody>
         <div className="mb-5 flex items-center gap-3">
           <Button
             variant="ghost"
@@ -371,7 +372,7 @@ export default function Rewards() {
           k="points.footnote"
           className="mt-6 text-center font-body text-sm text-muted-foreground"
         />
-      </div>
+      </PageBody>
     </AppShell>
   )
 }

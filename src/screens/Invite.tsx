@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 
 import { AppShell } from '@/components/shell/AppShell'
+import { PageBody } from '@/components/shell/PageBody'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { T, useT } from '@/i18n/T'
@@ -88,7 +89,7 @@ export default function Invite() {
 
   return (
     <AppShell>
-      <div className="mx-auto w-full max-w-[560px] px-4 py-5">
+      <PageBody>
         <div className="mb-4 flex items-center gap-2">
           <Button variant="ghost" size="icon" pill onClick={() => navigate('/profile')} aria-label={t('common.back')}>
             <Icon name="ArrowLeft" size={20} />
@@ -154,7 +155,7 @@ export default function Invite() {
             className="mt-3 font-body text-sm text-muted-foreground"
           />
         </section>
-      </div>
+      </PageBody>
     </AppShell>
   )
 }

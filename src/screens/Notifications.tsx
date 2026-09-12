@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 
 import { AppShell } from '@/components/shell/AppShell'
+import { PageBody } from '@/components/shell/PageBody'
 import { EmptyState } from '@/components/EmptyState'
 import { Icon, type IconName } from '@/components/ui/icon'
 import { T, useT } from '@/i18n/T'
@@ -109,7 +110,7 @@ export default function Notifications() {
 
   return (
     <AppShell>
-      <div className="mx-auto w-full max-w-[720px] px-4 py-5">
+      <PageBody>
         <T as="h1" k="notif.title" className="mb-4 font-display text-h2 text-foreground" />
 
         {isLoading ? (
@@ -158,7 +159,7 @@ export default function Notifications() {
             ))}
           </ul>
         )}
-      </div>
+      </PageBody>
     </AppShell>
   )
 }

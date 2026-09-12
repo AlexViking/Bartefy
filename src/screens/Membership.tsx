@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { AppShell } from '@/components/shell/AppShell'
+import { PageBody } from '@/components/shell/PageBody'
 import { ToneBadge } from '@/components/ui/tone-badge'
 import { Button } from '@/components/ui/button'
 import { InfoHint } from '@/components/guidance/InfoHint'
@@ -21,7 +22,7 @@ export function Membership() {
 
   return (
     <AppShell>
-      <div className="mx-auto w-full max-w-[1160px] px-4 py-6">
+      <PageBody variant="wide">
         <div className="mb-6 flex flex-col gap-2">
           <T
             as="span"
@@ -121,7 +122,7 @@ export function Membership() {
             />
           </div>
         </div>
-      </div>
+      </PageBody>
     </AppShell>
   )
 }

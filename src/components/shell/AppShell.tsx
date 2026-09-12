@@ -135,7 +135,17 @@ export function AppShell({
 
   if (isDesktop) {
     return (
-      <div className="flex min-h-dvh bg-background">
+      // h-dvh and overflow-hidden, exactly as the mobile branch below.
+      //
+      // This was min-h-dvh with no overflow control, so the DOCUMENT scrolled:
+      // on any page taller than the viewport the rail and the topbar slid up
+      // and off with the content, which on Settings meant scrolling to the
+      // bottom left a third of the window empty where the navigation used to
+      // be. A rail is furniture -- it does not move.
+      //
+      // The fix is the same one the phone already had: the shell IS the
+      // viewport, and only <main> scrolls inside it.
+      <div className="flex h-dvh overflow-hidden bg-background">
         <Sidebar
           collapsed={collapsed}
           onToggleCollapse={toggleCollapse}
@@ -144,7 +154,11 @@ export function AppShell({
         />
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar onMenu={toggleCollapse} name={email} waiting={offers + unread} />
-          <main className="flex-1">{children}</main>
+          {/* min-h-0 is load-bearing: a flex child defaults to
+              min-height:auto, so without it <main> grows to its content
+              instead of scrolling, and the overflow-hidden above simply clips
+              the page. */}
+          <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
         </div>
       </div>
     )

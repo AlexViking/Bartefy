@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 
 import { AppShell } from '@/components/shell/AppShell'
+import { PageBody } from '@/components/shell/PageBody'
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
 import { Masonry, MasonryPhoto } from '@/components/ui/masonry'
@@ -110,7 +111,7 @@ export default function MyItems() {
 
   return (
     <AppShell>
-      <div className="mx-auto w-full max-w-[1160px] px-4 py-5">
+      <PageBody variant="wide">
         <div className="flex items-center gap-3">
           <T as="h1" k="items.title" className="font-display text-h2 text-foreground" />
           <Button size="sm" className="ml-auto" onClick={() => navigate('/add')} data-i18n="nav.add">
@@ -217,7 +218,7 @@ export default function MyItems() {
             ))}
           </Masonry>
         )}
-      </div>
+      </PageBody>
 
       <PausedFindsSheet
         open={pausedOpen}

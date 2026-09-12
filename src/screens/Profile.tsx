@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { AppShell } from '@/components/shell/AppShell'
+import { PageBody } from '@/components/shell/PageBody'
 import { T, useT } from '@/i18n/T'
 import { useIsDesktop } from '@/lib/platform'
 import { UserAvatar } from '@/components/ui/user-avatar'
@@ -105,7 +106,7 @@ export function Profile() {
 
   return (
     <AppShell>
-      <div className="mx-auto w-full max-w-[1160px] px-4 py-5">
+      <PageBody variant="wide">
         {/* Identity */}
         <div className={cn(
             'flex flex-col gap-4 rounded border border-border/[0.14] bg-card p-5 shadow-card',
@@ -235,7 +236,7 @@ export function Profile() {
         >
           {t('settings.signOut')}
         </button>
-      </div>
+      </PageBody>
     </AppShell>
   )
 }

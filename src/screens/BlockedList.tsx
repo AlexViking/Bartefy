@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { ArrowLeft, ShieldOff } from 'lucide-react'
 
 import { AppShell } from '@/components/shell/AppShell'
+import { PageBody } from '@/components/shell/PageBody'
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -112,7 +113,7 @@ export function BlockedList() {
 
   return (
     <AppShell>
-      <div className="mx-auto w-full max-w-[640px] px-5 pb-10 pt-4">
+      <PageBody>
         <header className="mb-4 flex items-center gap-2">
           <button
             type="button"
@@ -190,7 +191,7 @@ export function BlockedList() {
             })}
           </Card>
         )}
-      </div>
+      </PageBody>
 
       <AlertDialog
         open={pending !== null}

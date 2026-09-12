@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
 
 import { AppShell } from '@/components/shell/AppShell'
+import { PageBody, PageColumns } from '@/components/shell/PageBody'
 import { CityPicker } from '@/components/CityPicker'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { InfoHint } from '@/components/guidance/InfoHint'
@@ -115,7 +116,7 @@ export function Settings() {
 
   return (
     <AppShell>
-      <div className="mx-auto w-full max-w-[640px] px-5 pb-10 pt-4">
+      <PageBody>
         <header className="mb-6 flex items-center gap-2">
           <button
             type="button"
@@ -128,6 +129,7 @@ export function Settings() {
           <T as="h1" k="settings.title" className="font-display text-h2 text-foreground" />
         </header>
 
+        <PageColumns>
         <Section title="settings.account">
           <Row label={email} literal />
           <Separator />
@@ -264,7 +266,11 @@ export function Settings() {
             }
           />
         </Section>
+        </PageColumns>
 
+        {/* Sign out and delete stay full width below the columns: they end the
+            page, and a destructive action balanced in a second column reads as
+            just another setting. */}
         <div className="mt-6 flex flex-col gap-2">
           <Button variant="ghost" fullWidth onClick={handleSignOut} data-i18n="settings.signOut">
             {t('settings.signOut')}
@@ -281,7 +287,7 @@ export function Settings() {
         </div>
 
         <BuildStamp />
-      </div>
+      </PageBody>
 
       <ResponsiveSheet open={cityOpen} onOpenChange={setCityOpen} title="onboarding.cityTitle">
         <CityPicker value={homeCity} onSelect={chooseCity} />
