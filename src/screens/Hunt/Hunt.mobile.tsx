@@ -1,5 +1,6 @@
 import { AppShell } from '@/components/shell/AppShell'
 import { EmptyState } from '@/components/EmptyState'
+import { WatchPrompt } from '@/components/hunt/WatchPrompt'
 import { OfferSheet } from '@/components/offer/OfferSheet'
 import { HuntStack } from '@/components/hunt/HuntStack'
 import { UpgradeSheet } from '@/components/membership/UpgradeSheet'
@@ -52,16 +53,21 @@ export default function HuntMobile() {
               />
             </>
           ) : (
-            <EmptyState
-              title="hunt.emptyTitle"
-              body="hunt.emptyBody"
-              bodyValues={{ radius: h.radiusKm }}
-              actionLabel="hunt.widen"
-              actionValues={{ radius: Math.round(h.radiusKm * 2.5) }}
-              onAction={h.widen}
-              secondaryLabel="hunt.reachFurther"
-              onSecondary={h.openReachPitch}
-            />
+            <>
+              <EmptyState
+                title="hunt.emptyTitle"
+                body="hunt.emptyBody"
+                bodyValues={{ radius: h.radiusKm }}
+                actionLabel="hunt.widen"
+                actionValues={{ radius: Math.round(h.radiusKm * 2.5) }}
+                onAction={h.widen}
+                secondaryLabel="hunt.reachFurther"
+                onSecondary={h.openReachPitch}
+              />
+              {/* Below the deck's own actions, not among them: widening gets
+                  you cards now, this is for when that did not work either. */}
+              <WatchPrompt />
+            </>
           )}
         </section>
 

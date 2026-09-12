@@ -564,5 +564,43 @@ export async function saveSearch(input: {
     categories: input.categories,
     radius_km: input.radiusKm,
     cadence: input.cadence,
-  })
+  }).select()
+}
+
+/** My wishlists. */
+export async function listSavedSearches(userId: string) {
+  return supabase
+    .from('saved_searches')
+    .select('id, query, categories, cadence, created_at')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+}
+
+export async function deleteSavedSearch(id: string) {
+  return supabase.from('saved_searches').delete().eq('id', id).select()
+}
+
+/** Finds that matched a wishlist (migration 034).
+ *
+ *  Written by a trigger on new listings, never by the client -- there is no
+ *  INSERT policy on wishlist_hits at all, so nobody can forge an alert. */
+export async function getWishlistHits(userId: string) {
+  return supabase
+    .from('wishlist_hits')
+    .select(
+      `id, created_at, read_at,
+       item:items!wishlist_hits_item_id_fkey (id, public_id, title, images, location_city)`,
+    )
+    .eq('user_id', userId)
+    .is('read_at', null)
+    .order('created_at', { ascending: false })
+    .limit(30)
+}
+
+export async function markWishlistHitRead(id: string) {
+  return supabase
+    .from('wishlist_hits')
+    .update({ read_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
 }

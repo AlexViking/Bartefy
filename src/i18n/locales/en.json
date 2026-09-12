@@ -29,7 +29,8 @@
     "previous": "Previous",
     "more": "Read more",
     "less": "Show less",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "errorGeneric": "That did not go through. Try again."
   },
   "nav": {
     "profile": "Profile",
@@ -227,7 +228,8 @@
     "archive": "Archive",
     "offersWaiting": "{{count}} offers waiting",
     "offersWaiting_one": "{{count}} offer waiting",
-    "yourSide": "Yours"
+    "yourSide": "Yours",
+    "pairLine": "Your {{mine}} ↔ their {{theirs}}"
   },
   "chat": {
     "placeholder": "Write a message",
@@ -703,7 +705,8 @@
     "matchTitle": "It's a swap — say hello",
     "completedTitle": "Swap finished",
     "cancelledTitle": "A swap was called off",
-    "goneTitle": "That find went elsewhere"
+    "goneTitle": "That find went elsewhere",
+    "wishlistTitle": "One you were waiting for"
   },
   "items": {
     "title": "My items",
@@ -771,5 +774,12 @@
     "title": "A new version is ready",
     "body": "Reload to get the latest Bartefy.",
     "reload": "Reload"
+  },
+  "wishlist": {
+    "saveTitle": "Tell me when one turns up",
+    "saveBody": "We will let you know the moment something like this is listed nearby.",
+    "saveAction": "Watch for this",
+    "saved": "Watching — we will tell you when one turns up.",
+    "placeholder": "What are you after? e.g. film camera"
   }
 }

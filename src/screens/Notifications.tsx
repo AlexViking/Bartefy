@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/EmptyState'
 import { Icon, type IconName } from '@/components/ui/icon'
 import { T, useT } from '@/i18n/T'
 import { getIncomingOffers, getMyMatches } from '@/lib/barter'
+import { getWishlistHits } from '@/lib/api'
 import { useAuthStore } from '@/store/auth'
 import { cn } from '@/lib/utils'
 
@@ -15,7 +16,7 @@ type Row = Record<string, unknown>
 
 type Feed = {
   id: string
-  kind: 'offer' | 'match' | 'cancelled' | 'completed'
+  kind: 'offer' | 'match' | 'cancelled' | 'completed' | 'wishlist'
   /** Title key, and the line under it. The line carries user data, so it is
    *  passed as a value rather than being part of the key. */
   titleKey: string
@@ -29,6 +30,9 @@ const ICONS: Record<Feed['kind'], IconName> = {
   match: 'Sparkles',
   cancelled: 'ShieldAlert',
   completed: 'Check',
+  /** A wishlist find. Not a heart -- that is an offer -- and not Sparkles,
+   *  which already means a match. */
+  wishlist: 'Bell',
 }
 
 const one = (v: unknown) => (Array.isArray(v) ? v[0] : v) as Row | null
@@ -53,11 +57,30 @@ export default function Notifications() {
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ['notifications', userId ?? ''],
     queryFn: async () => {
-      const [offers, matches] = await Promise.all([
+      const [offers, matches, hits] = await Promise.all([
         getIncomingOffers(userId!),
         getMyMatches(userId!),
+        getWishlistHits(userId!),
       ])
       const feed: Feed[] = []
+
+      /* Wishlist alerts (034). The tier sheet's strongest urgency trigger:
+         "a PS5 just showed up 3 km away -- be first to offer". Scarcity is
+         the point, so these are in the feed with everything else and sort by
+         time like everything else -- a new find IS the news. */
+      for (const h of (hits.data ?? []) as Row[]) {
+        const it = one(h.item)
+        if (!it) continue
+        feed.push({
+          id: 'w' + String(h.id),
+          kind: 'wishlist',
+          titleKey: 'notif.wishlistTitle',
+          // A listing title is user data: no key on this line.
+          detail: `${String(it.title ?? '')} · ${String(it.location_city ?? '')}`,
+          when: String(h.created_at ?? ''),
+          path: '/item/' + String(it.public_id ?? ''),
+        })
+      }
 
       for (const o of (offers.data ?? []) as Row[]) {
         feed.push({
