@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import { AppShell } from '@/components/shell/AppShell'
+import { PageBody } from '@/components/shell/PageBody'
+import { PageHeader, PageTabs } from '@/components/shell/PageHeader'
 import { EmptyState } from '@/components/EmptyState'
 import { Chip, ToneBadge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -9,6 +12,11 @@ import { cn } from '@/lib/utils'
 import { useReportQueue, type QueueStatus } from './useReportQueue'
 
 const STATUSES: QueueStatus[] = ['open', 'reviewing', 'resolved']
+
+/** Which queue is open. Items first: since migration 028 no listing reaches a
+ *  deck until someone approves it here, so that is the job this screen exists
+ *  for. Reports are the older, rarer half. */
+type Pane = 'items' | 'reports'
 
 /** Back-office. Two queues: reports a person filed, and items the AI check
  *  held before publishing.
@@ -23,6 +31,7 @@ const STATUSES: QueueStatus[] = ['open', 'reviewing', 'resolved']
  */
 export function ReportQueue() {
   const q = useReportQueue()
+  const [pane, setPane] = useState<Pane>('items')
   const { t } = useT()
   const isDesktop = useIsDesktop()
 
@@ -62,26 +71,31 @@ export function ReportQueue() {
 
   return (
     <AppShell>
-      <div className="mx-auto w-full max-w-[1160px] px-4 py-5">
-        {/* A back control, which this screen did not have. hideNav plus no
-            back is a room with no door. */}
-        <div className="mb-4 flex items-center gap-2">
-          <Button variant="ghost" size="icon" pill onClick={q.goBack} aria-label={t('common.back')}>
-            <Icon name="ArrowLeft" size={20} />
-          </Button>
-          <T as="h1" k="admin.title" className="font-display text-h2 text-foreground" />
-        </div>
-        <T as="p" k="admin.subtitle" className="mb-4 font-body text-sm text-muted-foreground" />
-
-        {/* Held items first: an item sitting here is invisible to its owner
-            and to everyone else, so it is the more urgent of the two lists. */}
-        {q.held.length > 0 && (
-          <section className="mb-6">
-            <T
-              as="h2"
-              k="admin.heldTitle"
-              className="mb-2 font-display text-h3 text-foreground"
+      <PageBody variant="wide">
+        {/* No back arrow: Moderation is a rail destination like every other
+            screen, and the two lists are tabs rather than one page stacked on
+            another. Items first -- since migration 028 nothing reaches a deck
+            until someone here approves it, so that queue is the job. */}
+        <PageHeader
+          title="admin.title"
+          subtitle="admin.subtitle"
+          tabs={
+            <PageTabs
+              tabs={[
+                { id: 'items' as const, label: 'admin.tabItems', count: q.held.length },
+                { id: 'reports' as const, label: 'admin.tabReports' },
+              ]}
+              value={pane}
+              onChange={setPane}
             />
+          }
+        />
+
+        {pane === 'items' && (
+          <section className="mb-6">
+            {q.held.length === 0 ? (
+              <EmptyState title="admin.itemsEmptyTitle" body="admin.itemsEmptyBody" />
+            ) : (
             <ul className="flex flex-col gap-2">
               {q.held.map((item) => (
                 <li
@@ -95,9 +109,16 @@ export function ReportQueue() {
                       <Icon name="Package" size={18} className="text-muted-foreground" />
                     </span>
                   )}
-                  {/* A listing title is user data: no data-i18n. */}
-                  <span className="min-w-0 flex-1 truncate font-body text-body text-foreground">
-                    {item.title}
+                  <span className="flex min-w-0 flex-1 items-center gap-2">
+                    {/* A listing title is user data: no data-i18n. */}
+                    <span className="min-w-0 truncate font-body text-body text-foreground">
+                      {item.title}
+                    </span>
+                    {/* Which kind of waiting this is. 'New' has never been
+                        looked at; 'Held' was pulled back by a moderator. */}
+                    <ToneBadge tone={item.moderationStatus === 'held' ? 'brass' : 'green'}>
+                      {t(item.moderationStatus === 'held' ? 'admin.heldBadge' : 'admin.pendingBadge')}
+                    </ToneBadge>
                   </span>
                   <Button
                     size="sm"
@@ -119,9 +140,12 @@ export function ReportQueue() {
                 </li>
               ))}
             </ul>
+            )}
           </section>
         )}
 
+        {pane === 'reports' && (
+        <>
         <div className="mb-4 flex gap-2">
           {STATUSES.map((s) => (
             <Chip key={s} active={q.status === s} onClick={() => q.setStatus(s)}>
@@ -230,7 +254,9 @@ export function ReportQueue() {
             )}
           </div>
         )}
-      </div>
+        </>
+        )}
+      </PageBody>
     </AppShell>
   )
 }

@@ -25,6 +25,9 @@ export type HeldItem = {
   image?: string
   ownerId: string
   createdAt: string
+  /** 'pending' -- never reviewed; 'held' -- a moderator pulled it back. The
+   *  actions are the same either way, but the queue says which it is. */
+  moderationStatus: string
 }
 
 type Row = Record<string, unknown>
@@ -102,8 +105,12 @@ export function useReportQueue() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('items')
-        .select('id, title, images, user_id, created_at')
-        .eq('moderation_status', 'held')
+        .select('id, title, images, user_id, created_at, moderation_status')
+        // Both states a human still has to act on. 'pending' is a new
+        // listing nobody has looked at yet -- since migration 028 that is
+        // every listing -- and 'held' is one a moderator pulled back. The
+        // screen shows them in one queue because the decision is the same.
+        .in('moderation_status', ['pending', 'held'])
         .order('created_at', { ascending: true })
         .limit(100)
       if (error) throw error
@@ -115,6 +122,7 @@ export function useReportQueue() {
           image: images[0],
           ownerId: String(r.user_id ?? ''),
           createdAt: String(r.created_at ?? ''),
+          moderationStatus: String(r.moderation_status ?? 'pending'),
         }
       })
     },

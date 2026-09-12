@@ -486,7 +486,7 @@
     "retry": "Try again"
   },
   "admin": {
-    "title": "Reports",
+    "title": "Moderation",
     "emptyTitle": "Nothing waiting",
     "emptyBody": "Every report in this state has been dealt with.",
     "internalNote": "Internal note",
@@ -495,7 +495,7 @@
     "cancelRelist": "Cancel the swap, relist both",
     "tabOpen": "Open",
     "tabClosed": "Closed",
-    "subtitle": "Internal. Freeze first, decide slowly, tell both sides plainly.",
+    "subtitle": "Nothing reaches a deck until it is approved here. Freeze first, decide slowly, tell both sides plainly.",
     "noAccessTitle": "Staff only",
     "noAccessBody": "This queue is for moderators. If you should have access, ask an admin to grant it.",
     "heldTitle": "Waiting on a photo check",
@@ -511,7 +511,13 @@
     "reason_no_show": "Did not show up",
     "reason_not_as_described": "Not as described",
     "reason_unsafe": "Felt unsafe",
-    "reason_asked_for_money": "Asked for money"
+    "reason_asked_for_money": "Asked for money",
+    "tabItems": "Items",
+    "tabReports": "Reports",
+    "itemsEmptyTitle": "Nothing waiting",
+    "itemsEmptyBody": "Every listing has been looked at. New ones arrive here before anyone can swipe on them.",
+    "pendingBadge": "New",
+    "heldBadge": "Held"
   },
   "category": {
     "electronics": "Electronics",
