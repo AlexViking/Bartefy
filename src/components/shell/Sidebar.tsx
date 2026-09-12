@@ -70,10 +70,10 @@ export function Sidebar({
       className="sticky top-0 hidden h-dvh shrink-0 flex-col gap-1 border-r border-border/[0.14] bg-card/40 p-3 [transition:width_240ms_var(--ease-out)] md:flex"
     >
       {/* No lockup here any more -- the topbar carries it at every width.
-          The rail's copy vanished the moment the rail collapsed, which is
-          exactly when a 68px strip of unlabelled icons most needs the app to
-          still say its name. */}
-      <div className={cn('mb-2 flex h-11 items-center', collapsed ? 'justify-center' : 'justify-end px-1')}>
+          What is left is just the collapse control, so this row is sized to
+          the button rather than keeping the 44px the wordmark needed: an
+          empty block above the first nav row read as a missing element. */}
+      <div className={cn('mb-1 flex items-center', collapsed ? 'justify-center' : 'justify-end px-1')}>
         {/* No chevron when there is nothing to toggle (tablet): a control that
             does nothing is worse than an absent one. */}
         {onToggleCollapse && (

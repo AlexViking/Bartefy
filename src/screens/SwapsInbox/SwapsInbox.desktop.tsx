@@ -46,31 +46,34 @@ export default function SwapsInboxDesktop() {
             same line however consistent the PageHeader screens were among
             themselves. Same component, same padding as PageBody, so the title
             now lands at the same x as every other destination. */}
-        {showList && (
-          // mx-auto max-w-[1160px] as well as the padding: PageBody CENTRES
-          // its column, so a header that only matched px-4 sm:px-5 still sat
-          // 28px left of every other screen's.
-          <div className="mx-auto w-full max-w-[1160px] shrink-0 px-4 pt-4 sm:px-5">
-            <PageHeader
-              title="swaps.title"
-              tabs={<InboxTabs tab={s.tab} onChange={s.setTab} />}
-            />
-          </div>
-        )}
-
         <div
           className={cn(
             'grid min-h-0 flex-1',
-            twoPane ? 'grid-cols-[minmax(300px,360px)_1fr]' : 'grid-cols-1',
+            twoPane ? 'grid-cols-[minmax(320px,380px)_1fr]' : 'grid-cols-1',
           )}
         >
         {showList && (
         <section
           className={cn(
-            'flex min-h-0 flex-col overflow-y-auto px-4 pb-5 sm:px-5',
+            'flex min-h-0 flex-col overflow-y-auto px-4 pb-5 pt-4 sm:px-5',
             twoPane && 'border-r border-border/[0.14]',
           )}
         >
+          {/* The header belongs to the LIST, not to the whole pane.
+          
+              Hoisting it above both columns lined its x up with the other
+              destinations and made everything else worse: the tab underline
+              ran 800px past the list it controls, and the title floated over
+              the column divider with the thread beside it. Tabs that switch a
+              360px list must not be as wide as the screen.
+              
+              So it lives here again, and the alignment problem is solved the
+              other way -- by matching this column's padding, which is what
+              PageBody uses too. */}
+          <PageHeader
+            title="swaps.title"
+            tabs={<InboxTabs tab={s.tab} onChange={s.setTab} />}
+          />
           <OffersLink className="mb-4" />
 
           <SwapList

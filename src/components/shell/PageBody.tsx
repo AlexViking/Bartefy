@@ -36,14 +36,18 @@ export function PageBody({
   return (
     <div
       className={cn(
-        // One width for both variants, so the title starts at the same x on
-        // every screen. They were 1160 and 1100, which centred to a 30px
-        // difference -- invisible on any one page, and a visible jog the
-        // moment you moved between destinations.
+        // Fills the pane, with generous side padding -- NOT a centred 1160px
+        // column.
         //
-        // `wide` still differs in what it CONTAINS (a card grid rather than a
-        // reading column); it no longer differs in where the page begins.
-        'mx-auto w-full max-w-[1160px] px-4 pb-10 pt-4 sm:px-5',
+        // The cap was written and checked at 1440, where 1160 nearly fills the
+        // content pane so it reads as a page. On a 1920 screen the same cap
+        // leaves ~500px of dead parchment on the right and pushes every title,
+        // tab strip and card into the left third: the content looked
+        // abandoned in the corner of its own window.
+        //
+        // A reading column still needs a measure -- that is what `prose-col`
+        // on the section inside does -- but the PAGE should own its pane.
+        'w-full px-6 pb-10 pt-4 lg:px-10 xl:px-14',
         className,
       )}
     >
@@ -70,7 +74,15 @@ export function PageColumns({
   children: React.ReactNode
 }) {
   return (
-    <div className={cn('lg:columns-2 lg:gap-6 [&>*]:break-inside-avoid', className)}>
+    <div
+      className={cn(
+        // Three columns from xl, because at 1920 two columns of settings rows
+        // are each ~880px wide -- a switch stranded a full screen-width from
+        // the label it belongs to.
+        'lg:columns-2 lg:gap-6 xl:columns-3 xl:gap-8 [&>*]:break-inside-avoid',
+        className,
+      )}
+    >
       {children}
     </div>
   )
