@@ -173,7 +173,12 @@ export default function MyItems() {
                 type="button"
                 onClick={() => navigate('/item/' + it.publicId)}
                 className={cn(
-                  'flex flex-col gap-2 rounded-lg border border-border/[0.14] bg-card p-3 text-left shadow-card transition-shadow duration-med ease-brand hover:shadow-float',
+                  // w-full + min-w-0: a flex child's default min-width is
+                  // auto, so a long unbroken title sets the button's width
+                  // and `truncate` on the span never gets a box narrower
+                  // than the text to truncate INTO. The card then grows past
+                  // its masonry column and the title runs off the card edge.
+                  'flex w-full min-w-0 flex-col gap-2 rounded-lg border border-border/[0.14] bg-card p-3 text-left shadow-card transition-shadow duration-med ease-brand hover:shadow-float',
                   tab === 'paused' && 'opacity-70',
                 )}
               >
@@ -182,7 +187,13 @@ export default function MyItems() {
                   alt={t('a11y.photoOf', { title: it.title })}
                   fallbackColor={it.photoColor}
                 />
-                <span className="truncate font-display text-base font-semibold">{it.title}</span>
+                {/* min-w-0 here too: truncate is overflow-hidden +
+                    text-overflow, and neither does anything until the element
+                    is allowed to be narrower than its text. A listing title is
+                    user data, so it can be any length. */}
+                <span className="w-full min-w-0 truncate font-display text-base font-semibold">
+                  {it.title}
+                </span>
                 {tab === 'paused' && <ToneBadge tone="quiet">{t('items.tabPaused')}</ToneBadge>}
                 {/* The expiry, and only when it is close enough to matter.
                     "27 days left" on every tile is noise that trains people
