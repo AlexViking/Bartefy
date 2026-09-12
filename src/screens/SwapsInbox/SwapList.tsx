@@ -71,7 +71,15 @@ export function SwapList({
           )}
           <StatusRow
             item={{ id: s.id, title: s.title, photoColor: s.photoColor, photoUrl: s.photoUrl }}
-            title={s.title}
+            pair={s.mine || s.theirs ? { mine: s.mine, theirs: s.theirs } : undefined}
+            title={s.theirs?.title || s.title}
+            /* What the trade actually is, in one line. The row used to show
+               one title with no way to tell whose find it was. */
+            subtitle={
+              s.mine && s.theirs
+                ? t('swaps.pairLine', { mine: s.mine.title, theirs: s.theirs.title })
+                : undefined
+            }
             status={s.status}
             unread={s.unread}
             onClick={() => onOpen(s.id)}

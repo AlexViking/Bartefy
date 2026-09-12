@@ -22,6 +22,7 @@ const TONES: Record<SwapStatus, { tone: 'green' | 'brass' | 'quiet' | 'evidence'
 
 export function StatusRow({
   item,
+  pair,
   title,
   subtitle,
   status,
@@ -30,6 +31,9 @@ export function StatusRow({
   unread = 0,
 }: {
   item?: ItemRef
+  /** Both sides of the swap. When given, replaces the single thumbnail with
+   *  the pair -- yours and theirs -- so the row says what the trade is. */
+  pair?: { mine?: { title: string; photoUrl?: string }; theirs?: { title: string; photoUrl?: string } }
   title: string
   subtitle?: string
   status: SwapStatus
@@ -55,12 +59,37 @@ export function StatusRow({
         className,
       )}
     >
-      <span
-        className="size-11 shrink-0 overflow-hidden rounded-lg"
-        style={{ background: item?.photoColor ?? 'hsl(var(--secondary))' }}
-      >
-        {item?.photoUrl && <img src={item.photoUrl} alt="" className="size-full object-cover" />}
-      </span>
+      {/* A match is two finds. One thumbnail says nothing about what the
+          trade IS -- you cannot tell your listing from theirs -- so when the
+          pair is known both are shown, yours behind theirs. Callers without a
+          pair (offers, reports) keep the single thumbnail. */}
+      {pair ? (
+        <span className="relative size-11 shrink-0">
+          <span
+            className="absolute left-0 top-0 size-8 overflow-hidden rounded-lg border-2 border-card bg-secondary"
+            aria-hidden
+          >
+            {pair.mine?.photoUrl && (
+              <img src={pair.mine.photoUrl} alt="" className="size-full object-cover" />
+            )}
+          </span>
+          <span
+            className="absolute bottom-0 right-0 size-8 overflow-hidden rounded-lg border-2 border-card bg-secondary"
+            aria-hidden
+          >
+            {pair.theirs?.photoUrl && (
+              <img src={pair.theirs.photoUrl} alt="" className="size-full object-cover" />
+            )}
+          </span>
+        </span>
+      ) : (
+        <span
+          className="size-11 shrink-0 overflow-hidden rounded-lg"
+          style={{ background: item?.photoColor ?? 'hsl(var(--secondary))' }}
+        >
+          {item?.photoUrl && <img src={item.photoUrl} alt="" className="size-full object-cover" />}
+        </span>
+      )}
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1.5">
           <span className="min-w-0 truncate font-display text-[15px] font-semibold text-foreground">{title}</span>

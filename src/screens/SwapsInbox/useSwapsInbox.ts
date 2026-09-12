@@ -24,6 +24,12 @@ export interface SwapRow {
   isSideA: boolean
   cancelReason: string | null
   title: string
+  /** The swap PAIR. A match is two finds, and a row showing one of them says
+   *  nothing about what the trade actually is -- you cannot tell your own
+   *  listing from theirs. Both are already fetched; only one used to survive
+   *  into the row. */
+  mine?: { title: string; photoUrl?: string }
+  theirs?: { title: string; photoUrl?: string }
   status: SwapStatus
   photoUrl?: string
   photoColor: string
@@ -104,6 +110,18 @@ export function useSwapsInbox() {
             // A match whose other side was removed still has to render, so
             // fall back to your own find rather than an empty row.
             title: String(theirItem?.title ?? myItem?.title ?? ''),
+            mine: myItem
+              ? {
+                  title: String(myItem.title ?? ''),
+                  photoUrl: (myItem.images as string[] | undefined)?.[0],
+                }
+              : undefined,
+            theirs: theirItem
+              ? {
+                  title: String(theirItem.title ?? ''),
+                  photoUrl: (theirItem.images as string[] | undefined)?.[0],
+                }
+              : undefined,
             status:
               dbStatus === 'completed'
                 ? 'done'

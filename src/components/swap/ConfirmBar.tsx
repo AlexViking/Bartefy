@@ -83,13 +83,27 @@ export function ConfirmBar({
     <>
       <div className={cn('flex flex-col gap-2', className)}>
         {mineConfirmed ? (
+          /* Waiting on them -- but calling it off has to stay reachable.
+             Moving cancel inline with the confirm button would otherwise have
+             removed it entirely from this branch, stranding anyone who
+             confirmed by mistake or whose swap fell through afterwards. */
           <div className="flex items-center gap-2 rounded-card bg-secondary px-4 py-3">
             <Icon name="Clock" size={16} className="shrink-0 text-muted-foreground" />
             <T
               as="span"
               k="barter.confirmWaiting"
-              className="font-body text-sm text-muted-foreground"
+              className="flex-1 font-body text-sm text-muted-foreground"
             />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="shrink-0 text-muted-foreground"
+              disabled={busy}
+              onClick={() => setCancelOpen(true)}
+              data-i18n="barter.cancelAction"
+            >
+              {t('barter.cancelAction')}
+            </Button>
           </div>
         ) : (
           <>
@@ -103,27 +117,40 @@ export function ConfirmBar({
                 className="font-body text-sm text-muted-foreground"
               />
             )}
-            <Button
-              fullWidth
-              size="lg"
-              disabled={busy}
-              onClick={() => setConfirmOpen(true)}
-              data-i18n="barter.confirmAction"
-            >
-              {t('barter.confirmAction')}
-            </Button>
+            {/* The two actions share one row. The prompt above them stays on
+                its own line -- it is a sentence, not a control. */}
+            <div className="flex items-center gap-2">
+              <Button
+                size="lg"
+                className="flex-1"
+                disabled={busy}
+                onClick={() => setConfirmOpen(true)}
+                data-i18n="barter.confirmAction"
+              >
+                {t('barter.confirmAction')}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="shrink-0 text-muted-foreground"
+                disabled={busy}
+                onClick={() => setCancelOpen(true)}
+                data-i18n="barter.cancelAction"
+              >
+                {t('barter.cancelAction')}
+              </Button>
+            </div>
           </>
         )}
 
-        <Button
-          variant="ghost"
-          fullWidth
-          disabled={busy}
-          onClick={() => setCancelOpen(true)}
-          data-i18n="barter.cancelAction"
-        >
-          {t('barter.cancelAction')}
-        </Button>
+        {/* Cancel used to be a second full-width button stacked below the
+            confirm: together ~120px directly above the composer, which on a
+            phone is a quarter of the thread gone in the screen whose whole
+            job is reading messages. Worse, a full-width ghost pill sitting
+            immediately above the message input read as a second text field.
+            It is inline with the confirm now. When I have already confirmed,
+            only the waiting notice shows and there is nothing to cancel from
+            here. */}
       </div>
 
       {/* Confirming is not undoable: it trades both items and closes the
