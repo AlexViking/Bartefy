@@ -13,6 +13,7 @@ import { PlatformProvider } from '@/lib/platform'
 import { ThemeProvider } from '@/lib/theme'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
+import { UpdatePrompt } from '@/components/UpdatePrompt'
 
 /** Cache restores before the first paint, so a cold start opens on the last
  *  known feed, threads and profile rather than an empty screen.
@@ -46,6 +47,7 @@ export function App() {
             <TooltipProvider delayDuration={200}>
               <Live />
               <AppRouter />
+              <UpdatePrompt />
               <Toaster />
             </TooltipProvider>
           </PlatformProvider>

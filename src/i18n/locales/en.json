@@ -28,7 +28,8 @@
     "notYet": "Not yet",
     "previous": "Previous",
     "more": "Read more",
-    "less": "Show less"
+    "less": "Show less",
+    "dismiss": "Dismiss"
   },
   "nav": {
     "profile": "Profile",
@@ -754,5 +755,10 @@
     "streakDay": "1 day",
     "streakBody": "Come back tomorrow for {{points}} points. Miss a day and it starts again.",
     "streakBest": "Best: {{count}} days"
+  },
+  "update": {
+    "title": "A new version is ready",
+    "body": "Reload to get the latest Bartefy.",
+    "reload": "Reload"
   }
 }
