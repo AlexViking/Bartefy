@@ -495,7 +495,7 @@
     "cancelRelist": "Cancel the swap, relist both",
     "tabOpen": "Open",
     "tabClosed": "Closed",
-    "subtitle": "Nothing reaches a deck until it is approved here. Freeze first, decide slowly, tell both sides plainly.",
+    "subtitle": "Everything people upload, newest first. Hide anything against the rules — it is reversible, never a delete.",
     "noAccessTitle": "Staff only",
     "noAccessBody": "This queue is for moderators. If you should have access, ask an admin to grant it.",
     "heldTitle": "Waiting on a photo check",
@@ -512,12 +512,14 @@
     "reason_not_as_described": "Not as described",
     "reason_unsafe": "Felt unsafe",
     "reason_asked_for_money": "Asked for money",
-    "tabItems": "Items",
+    "tabItems": "Uploads",
     "tabReports": "Reports",
-    "itemsEmptyTitle": "Nothing waiting",
-    "itemsEmptyBody": "Every listing has been looked at. New ones arrive here before anyone can swipe on them.",
-    "pendingBadge": "New",
-    "heldBadge": "Held"
+    "itemsEmptyTitle": "No listings yet",
+    "itemsEmptyBody": "Everything people upload appears here, newest first, so you can check it against the rules.",
+    "heldBadge": "Hidden",
+    "view": "View",
+    "hide": "Hide",
+    "restore": "Restore"
   },
   "category": {
     "electronics": "Electronics",

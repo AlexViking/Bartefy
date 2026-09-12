@@ -25,9 +25,11 @@ export type HeldItem = {
   image?: string
   ownerId: string
   createdAt: string
-  /** 'pending' -- never reviewed; 'held' -- a moderator pulled it back. The
-   *  actions are the same either way, but the queue says which it is. */
+  /** 'ok' -- live and visible; 'held' -- a moderator hid it. */
   moderationStatus: string
+  /** The listing's own lifecycle: active, traded, removed, expired. A traded
+   *  item is not a moderation problem, and hiding one would be noise. */
+  itemStatus: string
 }
 
 type Row = Record<string, unknown>
@@ -97,21 +99,27 @@ export function useReportQueue() {
     enabled: !!isStaff,
   })
 
-  /** Items the AI check held. They are not in anyone's deck until a human
-   *  says otherwise, so this list is the only thing standing between a held
-   *  photo and it never being seen again. */
+  /** Every listing, newest first.
+   *
+   *  People publish straight away -- there is no review gate -- so this is an
+   *  audit feed rather than a queue: a moderator reads down it and hides
+   *  anything against policy. That is also why it is NOT filtered to items
+   *  needing action: the whole point is seeing what was uploaded, including
+   *  the ones that are fine.
+   *
+   *  Newest first, because the only listing a moderator can act on before
+   *  anyone sees it is the one that just arrived.
+   *
+   *  Reading every row depends on the staff SELECT policy in migration 028.
+   *  Without it RLS hands a moderator only their own items and the screen
+   *  looks empty rather than unauthorised. */
   const held = useQuery({
-    queryKey: ['admin', 'held'],
+    queryKey: ['admin', 'uploads'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('items')
-        .select('id, title, images, user_id, created_at, moderation_status')
-        // Both states a human still has to act on. 'pending' is a new
-        // listing nobody has looked at yet -- since migration 028 that is
-        // every listing -- and 'held' is one a moderator pulled back. The
-        // screen shows them in one queue because the decision is the same.
-        .in('moderation_status', ['pending', 'held'])
-        .order('created_at', { ascending: true })
+        .select('id, title, images, user_id, created_at, moderation_status, status')
+        .order('created_at', { ascending: false })
         .limit(100)
       if (error) throw error
       return (data ?? []).map((r: Row): HeldItem => {
@@ -122,7 +130,8 @@ export function useReportQueue() {
           image: images[0],
           ownerId: String(r.user_id ?? ''),
           createdAt: String(r.created_at ?? ''),
-          moderationStatus: String(r.moderation_status ?? 'pending'),
+          moderationStatus: String(r.moderation_status ?? 'ok'),
+          itemStatus: String(r.status ?? 'active'),
         }
       })
     },
@@ -141,15 +150,20 @@ export function useReportQueue() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin'] }),
   })
 
-  /** Publish or remove a held item. This is the only place in the app where a
-   *  removal happens, and even here it is a status change, never a delete. */
+  /** Hide a listing, or put a hidden one back.
+   *
+   *  Never a delete, in either direction. Hiding sets moderation_status to
+   *  'held', which migration 028 taught get_feed to exclude, and marks the
+   *  item removed so it leaves its owner's live tab too. Restoring undoes
+   *  both, so a listing hidden by mistake comes back whole -- its photos, its
+   *  age and anything already eyeing it survive, which a delete would not. */
   const decideItem = useMutation({
     mutationFn: async ({ id, publish }: { id: number; publish: boolean }) => {
       const { error } = await supabase
         .from('items')
         .update(
           publish
-            ? { moderation_status: 'ok' }
+            ? { moderation_status: 'ok', status: 'active' }
             : { moderation_status: 'held', status: 'removed' },
         )
         .eq('id', id)
@@ -169,14 +183,19 @@ export function useReportQueue() {
     rows,
     current: rows.find((r) => r.id === selected) ?? rows[0] ?? null,
     select: setSelected,
-    held: held.data ?? [],
+    uploads: held.data ?? [],
     isLoading: reports.isLoading || held.isLoading,
     note,
     setNote,
     review: (id: string) => resolveReport.mutate({ id, next: 'reviewing' }),
     resolve: (id: string) => resolveReport.mutate({ id, next: 'resolved' }),
-    publishItem: (id: number) => decideItem.mutate({ id, publish: true }),
-    removeItem: (id: number) => decideItem.mutate({ id, publish: false }),
+    /** Open the listing itself. Hiding something on the strength of a
+     *  thumbnail and a title is how a good listing gets removed. */
+    openItem: (id: number) => navigate('/item/' + id),
+    /** Put a hidden listing back in the decks. */
+    restoreItem: (id: number) => decideItem.mutate({ id, publish: true }),
+    /** Take a listing out of every deck. Reversible. */
+    hideItem: (id: number) => decideItem.mutate({ id, publish: false }),
     busy: resolveReport.isPending || decideItem.isPending,
     goBack: () => navigate('/profile'),
   }

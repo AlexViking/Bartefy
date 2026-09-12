@@ -82,7 +82,7 @@ export function ReportQueue() {
           tabs={
             <PageTabs
               tabs={[
-                { id: 'items' as const, label: 'admin.tabItems', count: q.held.length },
+                { id: 'items' as const, label: 'admin.tabItems' },
                 { id: 'reports' as const, label: 'admin.tabReports' },
               ]}
               value={pane}
@@ -93,53 +93,83 @@ export function ReportQueue() {
 
         {pane === 'items' && (
           <section className="mb-6">
-            {q.held.length === 0 ? (
+            {q.uploads.length === 0 ? (
               <EmptyState title="admin.itemsEmptyTitle" body="admin.itemsEmptyBody" />
             ) : (
-            <ul className="flex flex-col gap-2">
-              {q.held.map((item) => (
-                <li
-                  key={item.id}
-                  className="flex items-center gap-3 rounded-card border-[1.5px] border-border/[0.14] bg-card p-3"
-                >
-                  {item.image ? (
-                    <img src={item.image} alt="" className="size-14 rounded-card-sm object-cover" />
-                  ) : (
-                    <span className="flex size-14 items-center justify-center rounded-card-sm bg-secondary">
-                      <Icon name="Package" size={18} className="text-muted-foreground" />
-                    </span>
-                  )}
-                  <span className="flex min-w-0 flex-1 items-center gap-2">
-                    {/* A listing title is user data: no data-i18n. */}
-                    <span className="min-w-0 truncate font-body text-body text-foreground">
-                      {item.title}
-                    </span>
-                    {/* Which kind of waiting this is. 'New' has never been
-                        looked at; 'Held' was pulled back by a moderator. */}
-                    <ToneBadge tone={item.moderationStatus === 'held' ? 'brass' : 'green'}>
-                      {t(item.moderationStatus === 'held' ? 'admin.heldBadge' : 'admin.pendingBadge')}
-                    </ToneBadge>
-                  </span>
-                  <Button
-                    size="sm"
-                    disabled={q.busy}
-                    onClick={() => q.publishItem(item.id)}
-                    data-i18n="admin.publish"
-                  >
-                    {t('admin.publish')}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={q.busy}
-                    onClick={() => q.removeItem(item.id)}
-                    data-i18n="admin.remove"
-                  >
-                    {t('admin.remove')}
-                  </Button>
-                </li>
-              ))}
-            </ul>
+              <ul className="flex flex-col gap-2">
+                {q.uploads.map((item) => {
+                  const hidden = item.moderationStatus === 'held'
+                  return (
+                    <li
+                      key={item.id}
+                      className={cn(
+                        'flex items-center gap-3 rounded-card border-[1.5px] border-border/[0.14] bg-card p-3',
+                        // A hidden listing is dimmed rather than removed from
+                        // the list: a moderator needs to see what they hid in
+                        // order to put it back.
+                        hidden && 'opacity-60',
+                      )}
+                    >
+                      {item.image ? (
+                        <img src={item.image} alt="" className="size-14 rounded-card-sm object-cover" />
+                      ) : (
+                        <span className="flex size-14 items-center justify-center rounded-card-sm bg-secondary">
+                          <Icon name="Package" size={18} className="text-muted-foreground" />
+                        </span>
+                      )}
+                      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                        <span className="flex items-center gap-2">
+                          {/* A listing title is user data: no data-i18n. */}
+                          <span className="min-w-0 truncate font-body text-body text-foreground">
+                            {item.title}
+                          </span>
+                          {hidden && (
+                            <ToneBadge tone="brass">{t('admin.heldBadge')}</ToneBadge>
+                          )}
+                        </span>
+                        {/* When it was uploaded. The whole reason this feed is
+                            newest-first is that recency is what a moderator is
+                            acting on. */}
+                        <time
+                          dateTime={item.createdAt}
+                          className="font-body text-xs text-muted-foreground"
+                        >
+                          {new Date(item.createdAt).toLocaleString()}
+                        </time>
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => q.openItem(item.id)}
+                        data-i18n="admin.view"
+                      >
+                        {t('admin.view')}
+                      </Button>
+                      {hidden ? (
+                        <Button
+                          size="sm"
+                          disabled={q.busy}
+                          onClick={() => q.restoreItem(item.id)}
+                          data-i18n="admin.restore"
+                        >
+                          {t('admin.restore')}
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={q.busy}
+                          onClick={() => q.hideItem(item.id)}
+                          className="text-destructive"
+                          data-i18n="admin.hide"
+                        >
+                          {t('admin.hide')}
+                        </Button>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
             )}
           </section>
         )}
