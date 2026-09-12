@@ -12,6 +12,10 @@ export interface ItemRef {
   title: string
   /** Placeholder fill until real photography lands. */
   photoColor?: string
+  /** The first photo's aspect ratio from items.photo_meta, stored at upload.
+   *  Null for listings created before it was written -- those learn it from
+   *  the image on load, as before. */
+  photoRatio?: number | null
   photoUrl?: string
   condition?: string
   category?: string

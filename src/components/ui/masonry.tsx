@@ -70,16 +70,28 @@ export function MasonryPhoto({
   src,
   alt,
   fallbackColor,
+  ratio: knownRatio,
   className,
   children,
 }: {
   src?: string
   alt: string
   fallbackColor?: string
+  /** The photo's aspect ratio, if the row already knows it (items.photo_meta,
+   *  written at upload since this component's own TODO was finally done).
+   *  Given this, the cell is the right shape on first paint and never
+   *  reflows -- which is what made the grid jump as each photo landed. */
+  ratio?: number | null
   className?: string
   children?: ReactNode
 }) {
-  const [ratio, setRatio] = useState<number | null>(null)
+  const [ratio, setRatio] = useState<number | null>(knownRatio ?? null)
+  /** Has the photo actually painted? Until it has, the cell shows a quiet
+   *  skeleton rather than a block of colour. fallbackColor was terracotta --
+   *  an illustration accent -- so a loading grid was a wall of orange
+   *  rectangles that then resized. Colour reads as content; a skeleton reads
+   *  as "not yet". */
+  const [loaded, setLoaded] = useState(false)
   const ref = useRef<HTMLImageElement>(null)
 
   // A cached image can finish loading before React attaches onLoad, which
@@ -87,17 +99,33 @@ export function MasonryPhoto({
   // mount for that case.
   useEffect(() => {
     const el = ref.current
+    // A cached image finishes before React attaches onLoad, so without this
+    // it would sit at opacity 0 forever -- a blank cell where a photo the
+    // browser already has should be.
     if (el?.complete && el.naturalWidth > 0) {
-      setRatio(el.naturalWidth / el.naturalHeight)
+      setLoaded(true)
+      // A known ratio is authoritative; measuring would only confirm it and
+      // cost a render.
+      if (!knownRatio) setRatio(el.naturalWidth / el.naturalHeight)
     }
-  }, [src])
+  }, [src, knownRatio])
 
   return (
     <span
-      className={cn('relative block w-full overflow-hidden rounded-sm', className)}
+      className={cn(
+        'relative block w-full overflow-hidden rounded-sm',
+        // The skeleton IS the background until the photo paints. Once it has,
+        // the shimmer stops -- an animation running under an opaque image is
+        // work nobody can see.
+        !loaded && 'animate-pulse bg-secondary',
+        className,
+      )}
       style={{
         aspectRatio: ratio ?? 4 / 3,
-        background: fallbackColor,
+        // Only once loaded, and only if a colour was given: painting it
+        // underneath a photo that covers it is invisible, and painting it
+        // while loading is the orange-rectangle problem.
+        background: loaded ? fallbackColor : undefined,
       }}
     >
       {src && (
@@ -108,8 +136,14 @@ export function MasonryPhoto({
           loading="lazy"
           onLoad={(e) => {
             const img = e.currentTarget
-            if (img.naturalWidth > 0) setRatio(img.naturalWidth / img.naturalHeight)
+            if (!knownRatio && img.naturalWidth > 0) {
+              setRatio(img.naturalWidth / img.naturalHeight)
+            }
+            setLoaded(true)
           }}
+          // Fading in rather than appearing: with the box already the right
+          // shape there is no reflow, so the only change left is the pixels.
+          style={{ opacity: loaded ? 1 : 0, transition: 'opacity 240ms var(--ease-out)' }}
           // object-cover is correct here and not a regression: the box is
           // already the image's own shape, so there is nothing to crop. It
           // only guards the sub-pixel rounding between the ratio and the

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Eye } from 'lucide-react'
 
 import { Card } from '@/components/ui/card'
@@ -38,6 +38,20 @@ export function HuntCard({
   // stack opens on whatever index the previous one was left at.
   useEffect(() => setIndex(0), [item.id])
 
+  /** Whether the photo currently on screen has painted. Reset per photo, so
+   *  stepping to a second image shows its own skeleton rather than holding
+   *  the previous one's pixels. warmAhead means the NEXT card's photo is
+   *  already decoded, so in the deck this is usually true immediately. */
+  const [photoLoaded, setPhotoLoaded] = useState(false)
+  const imgRef = useRef<HTMLImageElement>(null)
+  useEffect(() => {
+    // A warmed photo is already decoded, so onLoad may never fire for it --
+    // leaving the image at opacity 0 behind a pulsing skeleton. Check
+    // complete on every photo change rather than assuming a load event.
+    const el = imgRef.current
+    setPhotoLoaded(!!el?.complete && el.naturalWidth > 0)
+  }, [item.id, index])
+
   const step = (dir: number) =>
     setIndex((i) => (photos.length ? (i + dir + photos.length) % photos.length : 0))
 
@@ -51,12 +65,26 @@ export function HuntCard({
         className,
       )}
     >
-      <div className="relative h-[62%] w-full shrink-0" style={{ background: item.photoColor }}>
+      {/* A skeleton, not a colour, until the photo paints.
+      
+          photoColor is terracotta -- an illustration accent -- so a card
+          whose photo had not arrived was a solid orange block. The box is a
+          fixed 62% here so nothing reflows; what was wrong was that the
+          waiting state looked like content. */}
+      <div
+        className={cn(
+          'relative h-[62%] w-full shrink-0',
+          !photoLoaded && 'animate-pulse bg-secondary',
+        )}
+      >
         {photos[index] && (
           <img
+            ref={imgRef}
             src={photos[index]}
             alt={t('a11y.photoOf', { title: item.title })}
             loading="lazy"
+            onLoad={() => setPhotoLoaded(true)}
+            style={{ opacity: photoLoaded ? 1 : 0, transition: 'opacity 240ms var(--ease-out)' }}
             className="size-full object-cover"
           />
         )}

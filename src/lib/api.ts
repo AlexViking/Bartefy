@@ -134,6 +134,10 @@ export async function insertItem(item: {
   condition: number
   wants_in_return: string[]
   images: string[]
+  /** Encoded dimensions per photo, same order as `images` (migration 005's
+   *  column, unwritten until now). Lets a grid reserve the right box before
+   *  the photo loads instead of guessing 4:3 and reflowing. */
+  photo_meta?: { w: number | null; h: number | null }[]
   location_city: string
   status: string
   /** NOT NULL with no default in the schema — the insert fails without it. */

@@ -81,10 +81,22 @@ const SHRINK_STEPS = [1, 0.75, 0.5625]
  *  Throws if the file is not a decodable image, so the caller can mark that
  *  one photo failed rather than failing the whole listing.
  */
-export async function toWebP(file: File): Promise<Blob> {
+export interface EncodedPhoto {
+  blob: Blob
+  /** The encoded pixel dimensions, which are NOT the file's originals -- the
+   *  ladder below downscales. Stored on the item so a grid can reserve the
+   *  right box before the photo arrives, instead of guessing 4:3 and
+   *  reflowing when it lands. */
+  width: number
+  height: number
+}
+
+export async function toWebP(file: File): Promise<EncodedPhoto> {
   const bitmap = await createImageBitmap(file)
   try {
     let best: Blob | null = null
+    let bestW = 0
+    let bestH = 0
 
     for (const shrink of SHRINK_STEPS) {
       const edge = MAX_EDGE * shrink
@@ -107,14 +119,20 @@ export async function toWebP(file: File): Promise<Blob> {
         const blob = await encode(canvas, quality)
         if (!blob) continue
         // Keep the smallest seen, so even a total failure to hit the budget
-        // returns the best attempt rather than the first one.
-        if (!best || blob.size < best.size) best = blob
-        if (blob.size <= MAX_BYTES) return blob
+        // returns the best attempt rather than the first one. The dimensions
+        // travel with it: they belong to THAT rung of the ladder, so tracking
+        // them separately is how they stay in step with the blob.
+        if (!best || blob.size < best.size) {
+          best = blob
+          bestW = width
+          bestH = height
+        }
+        if (blob.size <= MAX_BYTES) return { blob, width, height }
       }
     }
 
     if (!best) throw new Error('image encoding failed')
-    return best
+    return { blob: best, width: bestW, height: bestH }
   } finally {
     bitmap.close()
   }

@@ -61,12 +61,20 @@ export default function MyItems() {
 
   const toRef = (it: Record<string, unknown>): ItemRef => {
     const photos = it.images as string[] | undefined
+    /** The first photo's aspect ratio, stored at upload (items.photo_meta).
+     *  Null for anything listed before that was written -- those still learn
+     *  it from the image, which is the old behaviour and no worse. */
+    const meta = Array.isArray(it.photo_meta)
+      ? (it.photo_meta as { w?: number | null; h?: number | null }[])[0]
+      : undefined
+    const photoRatio = meta?.w && meta?.h ? meta.w / meta.h : null
+
     return {
       id: String(it.id),
       publicId: String(it.public_id ?? ''),
       title: String(it.title ?? ''),
       photoUrl: photos?.[0],
-      photoColor: 'hsl(var(--illo-terracotta))',
+      photoRatio,
       condition: String(it.condition ?? ''),
       category: String(it.category ?? ''),
       /** Days until this listing expires. A listing quietly dying is the main
@@ -185,7 +193,7 @@ export default function MyItems() {
                 <MasonryPhoto
                   src={it.photoUrl}
                   alt={t('a11y.photoOf', { title: it.title })}
-                  fallbackColor={it.photoColor}
+                  ratio={it.photoRatio}
                 />
                 {/* min-w-0 here too: truncate is overflow-hidden +
                     text-overflow, and neither does anything until the element

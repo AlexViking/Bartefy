@@ -35,6 +35,10 @@ interface PhotoSlot {
   /** Public R2 URL, set once the PUT succeeds. Only slots that have one are
    *  written to items.images. */
   url?: string
+  /** Encoded pixel dimensions, from toWebP. Written to items.photo_meta so a
+   *  grid can reserve the right box before the photo loads. */
+  width?: number
+  height?: number
   progress?: number
   /** Minted once per photo and reused on retry, so a retry overwrites the
    *  same key rather than duplicating it — see the upload invariant. */
@@ -124,7 +128,7 @@ export function useAddItem() {
       patchSlot(index, { state: 'uploading', progress: 0.1, uploadId, file, previewUrl })
 
       try {
-        const blob = await toWebP(file)
+        const { blob, width, height } = await toWebP(file)
         patchSlot(index, { progress: 0.4 })
 
         const { data, error } = await getR2UploadUrls([uploadId])
@@ -146,7 +150,11 @@ export function useAddItem() {
         })
         if (!res.ok) throw new Error(`upload failed: ${res.status}`)
 
-        patchSlot(index, { state: 'ready', progress: 1, url: target.publicUrl })
+        // The encoded dimensions ride along to the row. photo_meta has
+        // existed since migration 005 and nothing has ever written to it,
+        // which is why every grid had to guess 4:3 and reflow once the real
+        // photo arrived.
+        patchSlot(index, { state: 'ready', progress: 1, url: target.publicUrl, width, height })
       } catch (err) {
         // 402 means the listing cap was hit — that is the upgrade sheet's
         // job, not a failed photo. FunctionsHttpError carries the response on
@@ -236,7 +244,15 @@ export function useAddItem() {
     if (!can('add_find')) return setCapped(true)
     if (!userId || publishing) return
 
-    const images = photos.filter((p) => p.state === 'ready' && p.url).map((p) => p.url as string)
+    const ready = photos.filter((p) => p.state === 'ready' && p.url)
+    const images = ready.map((p) => p.url as string)
+    /** Dimensions per photo, in the same order as `images`.
+     *
+     *  items.photo_meta has existed since migration 005 and nothing has ever
+     *  written to it, so every grid had to assume 4:3 and then reflow when the
+     *  real photo loaded -- the orange boxes that resize. With this stored,
+     *  the box is correct on first paint. */
+    const photoMeta = ready.map((p) => ({ w: p.width ?? null, h: p.height ?? null }))
     // The last line of defence. insertItem would otherwise happily write
     // title: '' — which is how a nameless find got into production.
     if (images.length === 0 || !canPublish) return
@@ -264,6 +280,7 @@ export function useAddItem() {
       condition,
       wants_in_return: wantsColumn,
       images,
+      photo_meta: photoMeta,
       location_city: city,
       status: 'active',
       expires_at: expires.toISOString(),
