@@ -47,7 +47,14 @@ export function useOnboarding() {
 
   /** The city step is the only one that gates progress: without a city we have
    *  no feed to show. Taste is genuinely optional. */
-  const canAdvance = ONBOARDING_STEPS[step].id === 'city' ? city.length > 0 : true
+  /** The current step, never undefined.
+   *
+   *  The store clamps on rehydrate, but indexing an array is the kind of thing
+   *  that should not depend on someone else having been careful: a step that
+   *  falls out of range here throws on render rather than showing a screen. */
+  const current = ONBOARDING_STEPS[step] ?? ONBOARDING_STEPS[0]
+
+  const canAdvance = current.id === 'city' ? city.length > 0 : true
 
   /** With one launch city there is no choice to make, so make it. Leaving the
    *  single chip unselected would gate the step behind a tap that conveys
@@ -95,7 +102,7 @@ export function useOnboarding() {
   return {
     steps: ONBOARDING_STEPS,
     step,
-    stepId: ONBOARDING_STEPS[step].id,
+    stepId: current.id,
     city,
     tastes,
     isFirst,

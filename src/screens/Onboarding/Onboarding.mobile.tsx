@@ -13,7 +13,8 @@ import { useOnboarding } from './useOnboarding'
 export default function OnboardingMobile() {
   const o = useOnboarding()
   const { t } = useT()
-  const titleKey = o.steps[o.step].label
+  // Same guard as the hook: an out-of-range step must not throw on render.
+  const titleKey = (o.steps[o.step] ?? o.steps[0]).label
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">

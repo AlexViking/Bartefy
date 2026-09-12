@@ -14,7 +14,10 @@ import { useOnboarding } from './useOnboarding'
 export default function OnboardingDesktop() {
   const o = useOnboarding()
   const { t } = useT()
-  const titleKey = o.steps[o.step].label
+  // Same guard as mobile: this is the line the stack trace named -- an
+  // out-of-range persisted step made o.steps[o.step] undefined and reading
+  // .label off it threw before anything rendered.
+  const titleKey = (o.steps[o.step] ?? o.steps[0]).label
 
   return (
     <div className="grid min-h-dvh grid-cols-[minmax(0,1fr)_minmax(0,560px)] overflow-x-hidden bg-background">

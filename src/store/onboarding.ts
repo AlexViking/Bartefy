@@ -69,6 +69,31 @@ export const useOnboardingStore = create<OnboardingState>()(
         tastes: s.tastes,
         completed: s.completed,
       }),
+      /** Clamp the rehydrated step into the current array.
+       *
+       *  This is persisted state written by whatever build the person last
+       *  used. An earlier build had more steps, so a browser carrying step 4
+       *  or 5 rehydrated it unchecked, ONBOARDING_STEPS[step] was undefined,
+       *  and reading `.id` off it threw on the first render -- the
+       *  ErrorBoundary's "This part did not load" at /welcome, for anyone with
+       *  an old value in localStorage and nobody else. Clearing site data
+       *  "fixed" it, which is what made it look random.
+       *
+       *  `merge` rather than `onRehydrateStorage`: the latter runs AFTER the
+       *  persisted object has been merged into the store, so correcting it
+       *  there leaves the bad value on disk to be re-read on every visit.
+       *  Fixing it here means the next write persists the corrected step.
+       */
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<OnboardingState>
+        const last = ONBOARDING_STEPS.length - 1
+        const raw = Number(p.step)
+        return {
+          ...current,
+          ...p,
+          step: Number.isInteger(raw) ? Math.min(Math.max(0, raw), last) : 0,
+        }
+      },
     },
   ),
 )
