@@ -649,7 +649,8 @@
     "offerSuper": "Super offer · {{price}} pts",
     "offerSuperBody": "Goes to the top of their list, so they answer now instead of waiting for a match.",
     "errorNoPoints": "Not enough points for that yet.",
-    "superBadge": "Super offer"
+    "superBadge": "Super offer",
+    "errorItemInSwap": "One of those finds is already in an open swap. Finish or call off that one first."
   },
   "report": {
     "itemTitle": "What's wrong with this find?",

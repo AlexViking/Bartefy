@@ -261,6 +261,11 @@ export const BARTER_ERROR_KEYS: Record<string, string> = {
   '28000': 'barter.errorSignedOut',
   P0001: 'barter.errorNotYourItem',
   P0002: 'barter.errorItemGone',
+  /* Distinct from P0002 since 039. "No longer available" sent people looking
+     for a deleted listing when the real answer was that their own find is
+     committed to another open swap -- which they can act on by cancelling
+     it. One code for two causes meant the message had to be wrong for one. */
+  P0016: 'barter.errorItemInSwap',
   P0003: 'barter.errorOwnItem',
   P0004: 'barter.errorAlreadyOffered',
   P0005: 'barter.errorNotFound',
