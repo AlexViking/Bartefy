@@ -37,7 +37,20 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      /* 'prompt', NOT 'autoUpdate' -- UpdatePrompt depends on it.
+       *
+       *  autoUpdate generates a service worker that calls skipWaiting() and
+       *  claims clients as soon as it installs. The new worker therefore never
+       *  sits in the "waiting" state, and `needRefresh` from useRegisterSW is
+       *  what that waiting state reports -- so it stayed false forever and the
+       *  "a new version is ready" bar could never appear. The component was
+       *  written and shipped in 22aee16; this line is why nobody ever saw it.
+       *
+       *  With 'prompt' the new worker installs and waits. UpdatePrompt sees
+       *  needRefresh, offers the reload, and updateServiceWorker(true) is what
+       *  calls skipWaiting -- on a tap, instead of out from under someone
+       *  mid-swipe. */
+      registerType: 'prompt',
       manifest: {
         name: 'Bartefy',
         short_name: 'Bartefy',
