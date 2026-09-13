@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
+import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from './supabase'
 import { keys } from './cache/queryClient'
+import i18n from '@/i18n'
 
 /** Push, don't poll.
  *
@@ -14,6 +16,7 @@ import { keys } from './cache/queryClient'
  *  something new landed nearby; we act on it only when the user is idle.
  */
 type Offer = { to_user?: string; from_user?: string }
+type Match = { user_a?: string; user_b?: string }
 
 export function useRealtime(userId: string | undefined) {
   const qc = useQueryClient()
@@ -83,6 +86,38 @@ export function useRealtime(userId: string | undefined) {
           // The Notifications feed is derived from offers and matches at read
           // time and keys on its own name, so it needs telling separately.
           qc.invalidateQueries({ queryKey: ['notifications', userId] })
+        },
+      )
+
+      /* A match opening, for BOTH people.
+         
+         barter_matches had no subscription at all, so a match pushed nothing
+         to anyone. The person who made the offer that completed the pair saw
+         the celebration sheet because Hunt shows it locally, off their own
+         action -- the other side had no code path to be told at all and found
+         out by refreshing.
+
+         A match is created by respond_to_offer (someone accepted) and by the
+         037 trigger (two plain likes agreed). Neither is an action the
+         recipient took, so this is the only way they learn.
+
+         The toast is deliberately quiet -- no navigation, no modal. It can
+         arrive mid-swipe, and hijacking the screen to celebrate would throw
+         away the card someone was deciding on. */
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'barter_matches' },
+        ({ new: row }: { new?: Match }) => {
+          if (!row) return
+          if (row.user_a !== userId && row.user_b !== userId) return
+          qc.invalidateQueries({ queryKey: ['barter'] })
+          qc.invalidateQueries({ queryKey: ['notifications', userId] })
+          qc.invalidateQueries({ queryKey: keys.unread(userId) })
+          /* Fired here rather than through a callback prop: a function passed
+             in from App would be a new identity every render, and it would
+             have to go in the effect's dep array -- tearing down and
+             rebuilding the websocket channel on each one. */
+          toast.success(i18n.t('notif.matchTitle'))
         },
       )
 
