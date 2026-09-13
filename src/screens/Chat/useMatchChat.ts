@@ -46,8 +46,10 @@ export type MatchContext = {
   theirsConfirmed: boolean
   myItemTitle: string
   myItemImage?: string
+  myItemPublicId?: string
   theirItemTitle: string
   theirItemImage?: string
+  theirItemPublicId?: string
   otherName: string
   otherId: string
   /** Their completed swaps. Shown in the thread header, where "who am I
@@ -96,8 +98,8 @@ export function useMatchChat() {
       .select(
         `id, user_a, user_b, item_a, item_b, status, a_confirmed, b_confirmed,
          cancel_reason, completed_at,
-         itemA:items!barter_matches_item_a_fkey (id, title, images, user_id),
-         itemB:items!barter_matches_item_b_fkey (id, title, images, user_id)`,
+         itemA:items!barter_matches_item_a_fkey (id, public_id, title, images, user_id),
+         itemB:items!barter_matches_item_b_fkey (id, public_id, title, images, user_id)`,
       )
       .eq('id', matchId)
       .maybeSingle()
@@ -123,7 +125,13 @@ export function useMatchChat() {
     // correct if that ever stops being true.
     const a = (Array.isArray(match.itemA) ? match.itemA[0] : match.itemA) as Row | null
     const b = (Array.isArray(match.itemB) ? match.itemB[0] : match.itemB) as Row | null
-    const aIsMine = String(a?.user_id ?? '') === userId
+    /* Decide from the MATCH, not from the embedded row. `a.user_id === me`
+       silently flips the pair when the embed is null -- '' never equals a
+       real id, so a missing row makes the swap read backwards and labels each
+       find as the other one. match.user_a is always present, and item_a is
+       user_a's by construction, so this cannot be fooled by RLS hiding a row.
+       (038 stops the row being hidden; this stops a hidden row lying.) */
+    const aIsMine = String(match.user_a) === userId
     const mine = aIsMine ? a : b
     const theirs = aIsMine ? b : a
     const img = (r: Row | null) =>
@@ -137,8 +145,10 @@ export function useMatchChat() {
       theirsConfirmed: Boolean(isSideA ? match.b_confirmed : match.a_confirmed),
       myItemTitle: String(mine?.title ?? ''),
       myItemImage: img(mine),
+      myItemPublicId: mine?.public_id ? String(mine.public_id) : undefined,
       theirItemTitle: String(theirs?.title ?? ''),
       theirItemImage: img(theirs),
+      theirItemPublicId: theirs?.public_id ? String(theirs.public_id) : undefined,
       otherName: String(profile?.name ?? ''),
       otherId,
       otherTrades: Number(profile?.completed_trades ?? 0),

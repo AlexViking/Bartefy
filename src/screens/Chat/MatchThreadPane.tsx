@@ -19,26 +19,62 @@ import { useMatchChat } from './useMatchChat'
  */
 function SwapHeader({ c }: { c: ReturnType<typeof useMatchChat> }) {
   const { t } = useT()
+  const navigate = useNavigate()
   if (!c.ctx) return null
 
-  const Find = ({ title, image, label }: { title: string; image?: string; label: string }) => (
-    <div className="flex min-w-0 items-center gap-2">
-      {image ? (
-        <img src={image} alt="" className="size-10 shrink-0 rounded-card-sm object-cover" />
-      ) : (
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-card-sm bg-secondary">
-          <Icon name="Package" size={16} className="text-muted-foreground" />
+  /* A link to the listing, not a decoration. 40px showed one photo at stamp
+     size with no way to see the other two, and "is that a chip in the rim or a
+     reflection?" is exactly the question this screen exists to answer before
+     someone travels. 56px, and the whole thing opens the find. */
+  const Find = ({
+    title,
+    image,
+    label,
+    publicId,
+  }: {
+    title: string
+    image?: string
+    label: string
+    publicId?: string
+  }) => {
+    const inner = (
+      <>
+        {image ? (
+          <img
+            src={image}
+            alt=""
+            className="size-14 shrink-0 rounded-card-sm object-cover"
+          />
+        ) : (
+          <span className="flex size-14 shrink-0 items-center justify-center rounded-card-sm bg-secondary">
+            <Icon name="Package" size={20} className="text-muted-foreground" />
+          </span>
+        )}
+        <span className="min-w-0">
+          <span data-i18n={label} className="block font-body text-[11px] text-muted-foreground">
+            {t(label)}
+          </span>
+          {/* A listing title is user data: no data-i18n. */}
+          <span className="block truncate font-body text-sm text-foreground">{title}</span>
         </span>
-      )}
-      <span className="min-w-0">
-        <span data-i18n={label} className="block font-body text-[11px] text-muted-foreground">
-          {t(label)}
-        </span>
-        {/* A listing title is user data: no data-i18n. */}
-        <span className="block truncate font-body text-sm text-foreground">{title}</span>
-      </span>
-    </div>
-  )
+      </>
+    )
+
+    /* No publicId means the row was not readable -- render it flat rather than
+       as a link that 404s. Before 038 that was the normal case for the other
+       person's find, because reserving it put it outside every read policy. */
+    if (!publicId) return <div className="flex min-w-0 items-center gap-2">{inner}</div>
+
+    return (
+      <button
+        type="button"
+        onClick={() => navigate('/item/' + publicId)}
+        className="flex min-w-0 items-center gap-2 rounded-card-sm text-left transition-opacity duration-fast ease-brand hover:opacity-80"
+      >
+        {inner}
+      </button>
+    )
+  }
 
   return (
     /* The pair is one group, centred, not two halves pushed to opposite edges.
@@ -46,9 +82,19 @@ function SwapHeader({ c }: { c: ReturnType<typeof useMatchChat> }) {
        between the arrow and the finds on a wide pane, so the two items read as
        unrelated columns rather than one trade. */
     <div className="flex items-center justify-center gap-3 border-b border-border/[0.14] px-5 py-3">
-      <Find title={c.ctx.myItemTitle} image={c.ctx.myItemImage} label="chat.yourFind" />
+      <Find
+        title={c.ctx.myItemTitle}
+        image={c.ctx.myItemImage}
+        publicId={c.ctx.myItemPublicId}
+        label="chat.yourFind"
+      />
       <Icon name="ArrowRight" size={16} className="shrink-0 text-accent-foreground" />
-      <Find title={c.ctx.theirItemTitle} image={c.ctx.theirItemImage} label="chat.theirFind" />
+      <Find
+        title={c.ctx.theirItemTitle}
+        image={c.ctx.theirItemImage}
+        publicId={c.ctx.theirItemPublicId}
+        label="chat.theirFind"
+      />
     </div>
   )
 }
