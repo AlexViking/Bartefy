@@ -5,6 +5,13 @@ import { supabase } from './supabase'
 import { keys } from './cache/queryClient'
 import i18n from '@/i18n'
 
+/* Realtime requires the table to be BOTH on the supabase_realtime publication
+ * (036) and readable by the subscriber under RLS -- Supabase filters delivery
+ * per subscriber, so a policy that needs auth.uid() delivers nothing to an
+ * anonymous socket. Verified on production 2026-09-13 with a real user token:
+ * an offer inserted for that user arrives. Testing the same thing as anon
+ * receives nothing and proves only that anon cannot read it. */
+
 /** Push, don't poll.
  *
  *  One channel per user, opened once at app level. Each event patches the query
