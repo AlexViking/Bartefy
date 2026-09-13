@@ -56,6 +56,20 @@ function OfferCard({
           >
             {trades > 0 ? t('barter.trustScore', { count: trades }) : t('barter.trustScoreNone')}
           </span>
+          {/* What the 50 points actually bought. The flag was written by
+              make_super_offer and charged for, then never selected, never
+              sorted by and never shown -- so a super offer was identical to a
+              free one on screen. Brass, because this is the accent that means
+              "paid attention" everywhere else. */}
+          {offer.isPriority && (
+            <span
+              data-i18n="barter.superBadge"
+              className="ml-auto flex shrink-0 items-center gap-1 rounded-pill bg-accent/20 px-2 py-0.5 font-display text-[11px] font-semibold text-accent-foreground"
+            >
+              <Icon name="Sparkles" size={12} aria-hidden="true" />
+              {t('barter.superBadge')}
+            </span>
+          )}
         </div>
       )}
 

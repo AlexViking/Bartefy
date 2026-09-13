@@ -13,6 +13,8 @@ import { keys } from './cache/queryClient'
  *  user only ever looks at the top card. A single feed_version integer tells us
  *  something new landed nearby; we act on it only when the user is idle.
  */
+type Offer = { to_user?: string; from_user?: string }
+
 export function useRealtime(userId: string | undefined) {
   const qc = useQueryClient()
 
@@ -52,12 +54,35 @@ export function useRealtime(userId: string | undefined) {
         },
       )
 
-      // Offer accepted / declined / countered / expired.
+      /* An offer arriving, or being accepted / declined / cancelled.
+         
+         This listened on `offers` -- the V3 table -- until now. Every real
+         offer has gone to `barter_offers` since the V4 rebuild, so the
+         callback never ran once: the badge, the Offers list and the
+         Notifications feed all sat still until something else refetched them,
+         which in practice meant the person refreshed the app. Same cause as
+         the unread dot and for the same reason: the rebuild moved the table
+         and left the subscriptions pointing at the old name.
+
+         Two rows change on an offer -- the sender's and the recipient's -- so
+         this cannot filter server-side on one column. It takes every event on
+         the table and drops the ones that are not about this user, which is
+         cheap: the payload is one row. */
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'offers' },
-        ({ new: row }: { new: { swap_id: string } }) => {
-          qc.invalidateQueries({ queryKey: keys.offers(row.swap_id) })
+        { event: '*', schema: 'public', table: 'barter_offers' },
+        ({ new: row, old: prev }: { new?: Offer; old?: Offer }) => {
+          const r = row ?? prev
+          if (!r) return
+          if (r.to_user !== userId && r.from_user !== userId) return
+          /* Everything the Offers screen reads lives under the 'barter'
+             prefix -- both list boxes and the badge count -- so one
+             invalidation refreshes the lot. Accepting an offer also creates a
+             match, which is read under the same prefix. */
+          qc.invalidateQueries({ queryKey: ['barter'] })
+          // The Notifications feed is derived from offers and matches at read
+          // time and keys on its own name, so it needs telling separately.
+          qc.invalidateQueries({ queryKey: ['notifications', userId] })
         },
       )
 

@@ -120,13 +120,20 @@ export async function getIncomingOffers(userId: string) {
   return supabase
     .from('barter_offers')
     .select(
-      `id, from_user, to_user, offered_item_id, wanted_item_id, note, status, created_at,
+      `id, from_user, to_user, offered_item_id, wanted_item_id, note, status, created_at, is_priority,
        offered:items!barter_offers_offered_item_id_fkey (id, public_id, title, images, category, condition, user_id),
        wanted:items!barter_offers_wanted_item_id_fkey (id, public_id, title, images, category, condition, user_id),
        sender:profiles!barter_offers_from_user_fkey (id, name, completed_trades)`,
     )
     .eq('to_user', userId)
     .eq('status', 'pending')
+    /* SUPER OFFERS ONLY (037). A plain like is private: it sits pending and
+       waits for the other person to like back, and the mutual pair forms a
+       match on its own with nobody accepting anything. Showing plain offers
+       here meant every like arrived as a demand for a decision, and made the
+       50 points buy nothing -- a paid offer looked exactly like a free one.
+       Attention is now the thing being sold. */
+    .eq('is_priority', true)
     .order('created_at', { ascending: false })
 }
 

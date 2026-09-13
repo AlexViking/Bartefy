@@ -123,8 +123,8 @@
     "sayHello": "Say hello",
     "keepHunting": "Keep hunting",
     "reachFurther": "Hunt further out",
-    "offerSent": "Offer sent for {{title}}",
-    "superSent": "Super offer sent for {{title}} — top of their list",
+    "offerSent": "Noted. If they want yours too, it is a match.",
+    "superSent": "Super offer sent — it is at the top of their list",
     "superOffer": "Super offer, {{price}} points",
     "superPrice": "★ Super offer · {{price}} pts"
   },
@@ -647,8 +647,9 @@
     "cancelConfirmBody": "Both finds go back on the table. You can always offer again.",
     "errorSuspended": "Your account is on hold. Get in touch and we will sort it out.",
     "offerSuper": "Super offer · {{price}} pts",
-    "offerSuperBody": "Goes to the top of their list. Buys attention, never the trade.",
-    "errorNoPoints": "Not enough points for that yet."
+    "offerSuperBody": "Goes to the top of their list, so they answer now instead of waiting for a match.",
+    "errorNoPoints": "Not enough points for that yet.",
+    "superBadge": "Super offer"
   },
   "report": {
     "itemTitle": "What's wrong with this find?",

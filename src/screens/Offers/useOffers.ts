@@ -29,6 +29,10 @@ export type OfferRow = {
   offered: { id: number; publicId: string; title: string; image?: string } | null
   /** Who is asking. Absent on the sent list -- that is me. */
   sender?: { id: string; name: string | null; completedTrades: number } | null
+  /** They paid points to jump the queue. The list is already sorted priority
+   *  first; this is what lets the row SAY so, which is the other half of what
+   *  the 50 points bought. */
+  isPriority: boolean
 }
 
 type Row = Record<string, unknown>
@@ -62,6 +66,7 @@ function shape(r: Row, withSender: boolean): OfferRow {
     note: (r.note as string) ?? null,
     createdAt: String(r.created_at ?? ''),
     status: String(r.status ?? 'pending'),
+    isPriority: Boolean(r.is_priority),
     wanted: item(r.wanted),
     offered: item(r.offered),
     sender: sender
