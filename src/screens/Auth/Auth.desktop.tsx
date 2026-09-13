@@ -69,26 +69,46 @@ export default function AuthDesktop() {
 
       {/* 0.93 was found by looking: at 0.85 the map read as dirt behind the
           labels, and much above 0.95 it disappeared entirely. */}
+      {/* The column is a stack, not a centring box: parent credit pinned to the
+          top, form centred in whatever is left. Same shape as shadcn's
+          login-02, where the company mark sits at the head of the form column
+          rather than floating under the form as a footer.
+
+          Why it is better here specifically: as a footer the credit sat below
+          the sign-up button, which put a link to another company directly
+          under the primary action. At the top it reads as "whose product this
+          is" before you start, which is what a parent-company credit is for.
+          It also stops moving -- the form changes height between the email and
+          code steps, and a footer under it slid up and down the page. */}
       <main
-        className="relative flex items-center justify-center px-14"
+        className="relative flex flex-col px-14 py-10"
         style={{ backgroundColor: 'hsl(var(--background) / 0.93)' }}
       >
         <div className="absolute right-6 top-6">
           <LanguageSwitcher />
         </div>
+
+        {/* Left-aligned to the form's own 400px column rather than to the
+            panel, so the credit and the fields below it share one left edge
+            instead of being centred against each other. */}
+        <div className="flex w-full justify-center">
+          <div className="w-full max-w-[400px]">
+            <OrzomiByline />
+          </div>
+        </div>
+
+        {/* flex-1 takes the rest of the column and centres the form in it, so
+            the form stays optically centred even though the credit is above
+            it. min-h-0 keeps a tall code step from pushing out of the panel. */}
         <motion.div
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={spring.gentle}
-          className="flex w-full max-w-[400px] flex-col gap-6"
+          className="flex min-h-0 w-full flex-1 flex-col items-center justify-center"
         >
-          <Wordmark />
-          <AuthForm a={a} />
-          {/* Inside the form column, not pinned to the window bottom: on a tall
-              desktop viewport a fixed footer would sit a long way from the
-              thing it credits. */}
-          <div className="mt-12 flex justify-center">
-            <OrzomiByline />
+          <div className="flex w-full max-w-[400px] flex-col gap-6">
+            <Wordmark />
+            <AuthForm a={a} />
           </div>
         </motion.div>
       </main>

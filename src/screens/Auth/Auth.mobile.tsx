@@ -36,9 +36,19 @@ export default function AuthMobile() {
         className="flex min-h-dvh flex-col"
         style={{ backgroundColor: 'hsl(var(--background) / 0.93)' }}
       >
-        <header className="flex shrink-0 items-start justify-between px-6 pt-8">
-          <Wordmark />
-          <LanguageSwitcher />
+        {/* Brand block at the top: the Bartefy mark, then whose product it is
+            directly under it. Moved up from the page footer to match shadcn's
+            login-02, where the company mark heads the form column.
+
+            As a footer it sat under the sign-up button -- a link to another
+            company directly below the primary action -- and it moved, because
+            the form changes height between the email and code steps. */}
+        <header className="flex shrink-0 flex-col gap-3 px-6 pt-8">
+          <div className="flex items-start justify-between">
+            <Wordmark />
+            <LanguageSwitcher />
+          </div>
+          <OrzomiByline className="self-start" />
         </header>
 
         <motion.main
@@ -60,12 +70,6 @@ export default function AuthMobile() {
           <AuthForm a={a} />
         </motion.main>
 
-        {/* Bottom centre of the auth page, clear of the form. shrink-0 so it
-            keeps its height when the keyboard shortens the viewport, and
-            pb-safe so it clears the home indicator. */}
-        <div className="flex shrink-0 justify-center px-6 pb-[calc(20px+env(safe-area-inset-bottom))]">
-          <OrzomiByline />
-        </div>
       </div>
     </div>
   )
