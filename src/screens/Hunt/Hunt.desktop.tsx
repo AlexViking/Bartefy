@@ -128,6 +128,8 @@ export default function HuntDesktop() {
         onAdd={h.goAdd}
         points={h.points}
         superPrice={h.superPrice}
+        multiPrice={h.multiPrice}
+        onConfirmMulti={h.sendMultiOffer}
         onNeedPoints={h.goPoints}
         superFirst={h.superIntent}
       />

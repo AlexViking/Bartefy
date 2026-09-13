@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { fetchFeed, getMyItems, recordSwipe } from '@/lib/api'
-import { barterErrorKey, makeOffer, makeSuperOffer } from '@/lib/barter'
+import { barterErrorKey, makeMultiOffer, makeOffer, makeSuperOffer } from '@/lib/barter'
 import { getBalance, PERK_PRICES } from '@/lib/points'
 import { keys, STALE } from '@/lib/cache/queryClient'
 import { warmAhead } from '@/lib/feed/warm'
@@ -325,6 +325,47 @@ export function useHunt() {
     if (asSuper) void queryClient.invalidateQueries({ queryKey: ['points'] })
   }
 
+  /** Several finds for one of theirs, charged once.
+   *
+   *  A separate path from sendOffer rather than a flag on it: the RPC differs,
+   *  the price differs, and the success copy differs. Sharing one function
+   *  would mean three branches inside it and one more thing to get wrong.
+   */
+  const sendMultiOffer = async (offeredItemIds: string[], note?: string) => {
+    const target = pendingTarget
+    if (!target || sending) return
+    if (balance < PERK_PRICES.multi) {
+      navigate('/points')
+      return
+    }
+
+    setSending(true)
+    setOfferError(null)
+    const { error: rpcError } = await makeMultiOffer({
+      offeredItemIds,
+      wantedItemId: String(target.id),
+      note,
+    })
+    setSending(false)
+
+    if (rpcError) {
+      const key = barterErrorKey(rpcError)
+      setOfferError(key)
+      if (key === 'barter.errorItemGone') {
+        setPendingTarget(null)
+        removeCard(target.id)
+      }
+      return
+    }
+
+    addToLikeHistory(target.id)
+    setPendingTarget(null)
+    removeCard(target.id)
+    setSentTitle(target.title)
+    toast.success(t('hunt.multiSent', { count: offeredItemIds.length }))
+    void queryClient.invalidateQueries({ queryKey: ['points'] })
+  }
+
   /** Whether a free undo has been spent this session. The pitch below is gated
    *  on it, so the deck's first-ever pass cannot trigger an upgrade prompt. */
   const [usedUndo, setUsedUndo] = useState(false)
@@ -407,10 +448,12 @@ export function useHunt() {
      *  button and says the price rather than failing on send. */
     points: balance,
     superPrice: PERK_PRICES.super,
+    multiPrice: PERK_PRICES.multi,
     /** Where too-few-points goes. Not a dead end: the Rewards screen is where
      *  points are earned and what they buy is listed. */
     goPoints: () => navigate('/points'),
     sendOffer,
+    sendMultiOffer,
     cancelOffer,
     superTop,
     superIntent,

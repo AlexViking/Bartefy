@@ -34,6 +34,8 @@ export function OfferSheet({
   superPrice,
   onNeedPoints,
   superFirst = false,
+  onConfirmMulti,
+  multiPrice,
 }: {
   open: boolean
   /** Title of the find being offered on, for the prompt. */
@@ -42,6 +44,9 @@ export function OfferSheet({
   mine: OfferOption[]
   onCancel: () => void
   onConfirm: (offeredItemId: string, note?: string, asSuper?: boolean) => void
+  /** Send several finds at once. Absent means the feature is off. */
+  onConfirmMulti?: (offeredItemIds: string[], note?: string) => void
+  multiPrice?: number
   /** Points on hand, and what a super offer costs. */
   points?: number
   superPrice?: number
@@ -60,12 +65,19 @@ export function OfferSheet({
 }) {
   const { t } = useT()
   const [picked, setPicked] = useState<string | null>(null)
+  /** Multi mode: up to four finds, each sent as its own offer. Kept as a
+   *  separate selection rather than turning `picked` into an array, so every
+   *  existing single-offer path keeps working untouched. */
+  const [multi, setMulti] = useState(false)
+  const [multiPicked, setMultiPicked] = useState<string[]>([])
   const [note, setNote] = useState('')
 
   // Each swipe is its own question, so nothing carries over from the last one.
   useEffect(() => {
     if (open) {
       setPicked(null)
+      setMulti(false)
+      setMultiPicked([])
       setNote('')
     }
   }, [open])
@@ -114,7 +126,55 @@ export function OfferSheet({
               {t(errorKey)}
             </p>
           )}
-          {superFirst ? (
+          {/* Single or several. Shown only where the multi offer is wired and
+              the person has more than one find to give -- with one listing the
+              choice is meaningless. */}
+          {onConfirmMulti && multiPrice != null && mine.length > 1 && (
+            <button
+              type="button"
+              onClick={() => {
+                setMulti((m) => !m)
+                setPicked(null)
+                setMultiPicked([])
+              }}
+              aria-pressed={multi}
+              className={cn(
+                'w-full rounded-pill border-[1.5px] px-3 py-2 font-body text-sm transition-colors duration-fast ease-brand',
+                multi
+                  ? 'border-accent bg-accent/[0.14] text-foreground'
+                  : 'border-border/[0.14] text-muted-foreground hover:text-foreground',
+              )}
+              data-i18n={multi ? 'barter.offerMultiOn' : 'barter.offerMultiOff'}
+            >
+              {t(multi ? 'barter.offerMultiOn' : 'barter.offerMultiOff', { price: multiPrice })}
+            </button>
+          )}
+
+          {multi ? (
+            <>
+              <Button
+                variant="accent"
+                fullWidth
+                size="lg"
+                disabled={multiPicked.length < 2 || sending}
+                onClick={() => {
+                  if (multiPrice != null && points < multiPrice) return onNeedPoints?.()
+                  onConfirmMulti?.(multiPicked, note.trim() || undefined)
+                }}
+                data-i18n="barter.offerMultiSend"
+              >
+                {t('barter.offerMultiSend', {
+                  count: multiPicked.length,
+                  price: multiPrice ?? 0,
+                })}
+              </Button>
+              <T
+                as="p"
+                k="barter.offerMultiBody"
+                className="text-center font-body text-xs text-muted-foreground"
+              />
+            </>
+          ) : superFirst ? (
             <>
           {/* The super offer, at the moment of wanting.
           
@@ -209,7 +269,10 @@ export function OfferSheet({
     >
       <ul className="flex max-h-[46dvh] flex-col gap-2 overflow-y-auto py-1">
         {mine.map((item, i) => {
-          const isPicked = picked === item.id
+          const isPicked = multi ? multiPicked.includes(item.id) : picked === item.id
+          /* Four is the cap the RPC enforces; greying the rest out here means
+             nobody taps a fifth and gets an error for it. */
+          const atCap = multi && !isPicked && multiPicked.length >= 4
           return (
             <motion.li
               key={item.id}
@@ -219,7 +282,17 @@ export function OfferSheet({
             >
               <button
                 type="button"
-                onClick={() => setPicked(item.id)}
+                disabled={atCap}
+                onClick={() => {
+                  if (!multi) return setPicked(item.id)
+                  setMultiPicked((prev) =>
+                    prev.includes(item.id)
+                      ? prev.filter((x) => x !== item.id)
+                      : prev.length >= 4
+                        ? prev
+                        : [...prev, item.id],
+                  )
+                }}
                 aria-pressed={isPicked}
                 className={cn(
                   'flex w-full items-center gap-3 rounded-card border-[1.5px] p-2 text-left',
@@ -227,6 +300,7 @@ export function OfferSheet({
                   isPicked
                     ? 'border-primary bg-primary/[0.08]'
                     : 'border-border/[0.14] bg-card hover:border-primary/40',
+                  atCap && 'opacity-40',
                 )}
               >
                 {item.photoUrl ? (

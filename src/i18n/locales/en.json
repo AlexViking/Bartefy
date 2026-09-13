@@ -126,7 +126,8 @@
     "offerSent": "Noted. If they want yours too, it is a match.",
     "superSent": "Super offer sent — it is at the top of their list",
     "superOffer": "Super offer, {{price}} points",
-    "superPrice": "★ Super offer · {{price}} pts"
+    "superPrice": "★ Super offer · {{price}} pts",
+    "multiSent": "{{count}} offers sent — they pick the one they want"
   },
   "item": {
     "condition": "Condition",
@@ -650,7 +651,12 @@
     "offerSuperBody": "Goes to the top of their list, so they answer now instead of waiting for a match.",
     "errorNoPoints": "Not enough points for that yet.",
     "superBadge": "Super offer",
-    "errorItemInSwap": "One of those finds is already in an open swap. Finish or call off that one first."
+    "errorItemInSwap": "One of those finds is already in an open swap. Finish or call off that one first.",
+    "offerMultiOff": "Offer several finds · {{price}} pts",
+    "offerMultiOn": "Offering several — tap to go back to one",
+    "offerMultiSend": "Send {{count}} offers · {{price}} pts",
+    "offerMultiBody": "Each find goes as its own offer. They pick the one they want.",
+    "errorMultiCount": "Pick between two and four finds."
   },
   "report": {
     "itemTitle": "What's wrong with this find?",

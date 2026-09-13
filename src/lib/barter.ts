@@ -103,6 +103,33 @@ export async function makeSuperOffer(input: {
 /** Accept or decline. Accepting creates the match, reserves both items and
  *  opens the chat, all in one transaction. Returns the match on accept and
  *  null on decline. */
+/** Up to four of your finds, offered for one of theirs, in one transaction.
+ *
+ *  Four SEPARATE offer rows, not one row with four items. The engine is 1-to-1
+ *  everywhere -- a match carries item_a and item_b, and accepting answers one
+ *  concrete pair -- so a bundle would need a junction table and would change
+ *  what "accept" means. Four ordinary rows need neither: respond_to_offer, the
+ *  mutual-match trigger and the Offers list already understand them.
+ *
+ *  The owner accepts ONE. The other three stay pending, like any unanswered
+ *  offer.
+ *
+ *  Charged once, 150 points. The RPC writes all four inside one transaction,
+ *  so a failure on the third rolls back the charge and the first two with it --
+ *  never 150 points for two offers.
+ */
+export async function makeMultiOffer(input: {
+  offeredItemIds: string[]
+  wantedItemId: string
+  note?: string
+}) {
+  return supabase.rpc('make_multi_offer', {
+    p_offered_item_ids: input.offeredItemIds.map((id) => Number(id)),
+    p_wanted_item_id: Number(input.wantedItemId),
+    p_note: input.note ?? null,
+  })
+}
+
 export async function respondToBarterOffer(offerId: string, accept: boolean) {
   return supabase.rpc('respond_to_offer', {
     p_offer_id: offerId,
@@ -266,6 +293,7 @@ export const BARTER_ERROR_KEYS: Record<string, string> = {
      committed to another open swap -- which they can act on by cancelling
      it. One code for two causes meant the message had to be wrong for one. */
   P0016: 'barter.errorItemInSwap',
+  P0017: 'barter.errorMultiCount',
   P0003: 'barter.errorOwnItem',
   P0004: 'barter.errorAlreadyOffered',
   P0005: 'barter.errorNotFound',
