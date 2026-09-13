@@ -1,7 +1,8 @@
 {
   "brand": {
     "name": "Bartefy",
-    "tagline": "Trade what you have for what you want."
+    "tagline": "Trade what you have for what you want.",
+    "productOf": "A product of ORZOMI"
   },
   "common": {
     "next": "Next",

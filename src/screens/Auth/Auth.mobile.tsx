@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 
 import { Wordmark } from '@/components/Wordmark'
+import { OrzomiByline } from '@/components/OrzomiByline'
 import { spring } from '@/lib/motion'
 import mapUrl from '@/assets/bartefy-bg-treasure-map.webp'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
@@ -58,6 +59,11 @@ export default function AuthMobile() {
           />
           <AuthForm a={a} />
         </motion.main>
+
+        {/* Bottom centre of the auth page, clear of the form. shrink-0 so it
+            keeps its height when the keyboard shortens the viewport, and
+            pb-safe so it clears the home indicator. */}
+        <OrzomiByline className="shrink-0 px-6 pb-[calc(20px+env(safe-area-inset-bottom))]" />
       </div>
     </div>
   )

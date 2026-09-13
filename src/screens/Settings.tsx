@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { ChevronRight } from 'lucide-react'
 
 import { AppShell } from '@/components/shell/AppShell'
+import { OrzomiByline } from '@/components/OrzomiByline'
 import { PageBody, PageColumns } from '@/components/shell/PageBody'
 import { PageHeader } from '@/components/shell/PageHeader'
 import { CityPicker } from '@/components/CityPicker'
@@ -280,6 +281,11 @@ export function Settings() {
         </div>
 
         <BuildStamp />
+
+        {/* Parent-company credit, under the build stamp: this is already the
+            page's footer, and it is the one place in the app with a settled
+            "about this software" corner. */}
+        <OrzomiByline className="mt-3" />
       </PageBody>
 
       <ResponsiveSheet open={cityOpen} onOpenChange={setCityOpen} title="onboarding.cityTitle">

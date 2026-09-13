@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 
 import { Wordmark } from '@/components/Wordmark'
+import { OrzomiByline } from '@/components/OrzomiByline'
 import { DriftingBlobs, SwapAnimation } from '@/components/auth/SwapAnimation'
 import { spring } from '@/lib/motion'
 import mapUrl from '@/assets/bartefy-bg-treasure-map.webp'
@@ -83,6 +84,10 @@ export default function AuthDesktop() {
         >
           <Wordmark />
           <AuthForm a={a} />
+          {/* Inside the form column, not pinned to the window bottom: on a tall
+              desktop viewport a fixed footer would sit a long way from the
+              thing it credits. */}
+          <OrzomiByline className="mt-2" />
         </motion.div>
       </main>
     </div>
