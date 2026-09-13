@@ -40,7 +40,14 @@ export default function HuntMobile() {
        *  h-full inside a min-h-0 flex parent, with overflow hidden: the card
        *  is sized by what is left rather than by a guess at the chrome. */}
       <div className="flex h-full min-h-0 flex-col overflow-hidden">
-        <section className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 px-5 pb-4 pt-2">
+        {/* overflow-y-auto, and justify-center only while the content FITS.
+            The empty state plus WatchPrompt is taller than the deck it
+            replaces, and a centred flex child that outgrows its box does not
+            shrink -- it bleeds out of both ends and runs under whatever comes
+            next. That is what put the wishlist card under the NextStep nudge.
+            justify-center centres a short child; once the content is taller
+            the browser falls back to start-aligned and this simply scrolls. */}
+        <section className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 overflow-y-auto px-5 pb-4 pt-2">
           {h.isLoading ? (
             <T as="p" k="hunt.loading" className="font-body text-sm text-muted-foreground" />
           ) : h.top ? (
@@ -71,8 +78,11 @@ export default function HuntMobile() {
           )}
         </section>
 
+        {/* shrink-0: the nudge keeps its height no matter how tall the empty
+            state above gets. Without it the flex parent steals space from it
+            first, which is the other half of the overlap. */}
         {!h.isLoading && h.cards.length === 0 && (
-          <div className="px-5 pb-4">
+          <div className="shrink-0 px-5 pb-4">
             <NextStep
               id="hunt-list-first"
               body="stuck.listFirst"

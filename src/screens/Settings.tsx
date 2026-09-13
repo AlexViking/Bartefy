@@ -240,7 +240,7 @@ export function Settings() {
                   navigate('/welcome')
                 }}
               >
-                {t('common.retry')}
+                {t('settings.replayTipsAction')}
               </Button>
             }
           />

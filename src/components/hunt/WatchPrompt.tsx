@@ -64,16 +64,22 @@ export function WatchPrompt() {
     <div className="mx-auto mt-6 w-full max-w-[340px] rounded-card border border-border/[0.14] bg-card p-4">
       <T as="p" k="wishlist.saveTitle" className="font-display text-sm font-semibold text-foreground" />
       <T as="p" k="wishlist.saveBody" className="mt-0.5 font-body text-xs text-muted-foreground" />
-      <div className="mt-3 flex gap-2">
+      {/* Stacked, not side by side. The card is 340px wide and the button's
+          label is a full phrase, so the input was left ~150px -- enough to
+          clip its own placeholder to "What are you afte". A row here needs
+          either a one-word button or a one-word placeholder, and neither is
+          worth losing. min-w-0 stays on the input regardless: flex-1 alone
+          will not shrink a child below its intrinsic content width. */}
+      <div className="mt-3 flex flex-col gap-2">
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && submit()}
           placeholder={t('wishlist.placeholder')}
           maxLength={60}
-          className="flex-1"
+          className="w-full min-w-0"
         />
-        <Button size="sm" disabled={!query.trim() || busy} onClick={submit} data-i18n="wishlist.saveAction">
+        <Button size="sm" fullWidth disabled={!query.trim() || busy} onClick={submit} data-i18n="wishlist.saveAction">
           {t('wishlist.saveAction')}
         </Button>
       </div>
