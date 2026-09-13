@@ -51,6 +51,27 @@ export default defineConfig({
        *  calls skipWaiting -- on a tap, instead of out from under someone
        *  mid-swipe. */
       registerType: 'prompt',
+
+      /* Without this block the defaults kept people on a dead build.
+       *
+       *  The generated worker precaches index.html and serves it for every
+       *  navigation. index.html is what names the hashed JS bundle -- so a
+       *  worker holding an old index.html serves the old app forever, and
+       *  reloading only re-serves its own cache. A user could refresh all day
+       *  on a build from two deploys ago, which is exactly what happened.
+       *
+       *  cleanupOutdatedCaches deletes precaches from previous workbox
+       *  revisions instead of letting them accumulate.
+       *
+       *  navigateFallbackDenylist keeps the SPA fallback off paths that must
+       *  always hit the network: sw.js itself, and the assets directory. A
+       *  worker that answers a request for its own successor from cache can
+       *  never be replaced. */
+      workbox: {
+        cleanupOutdatedCaches: true,
+        navigateFallbackDenylist: [/^\/sw\.js$/, /^\/assets\//],
+      },
+
       manifest: {
         name: 'Bartefy',
         short_name: 'Bartefy',
