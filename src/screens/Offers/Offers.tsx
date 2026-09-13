@@ -143,6 +143,34 @@ function OfferCard({
  *  rather than a platform split. The decision it asks for is identical on a
  *  phone and a desktop.
  */
+/** Offers from the same person for the same find, drawn together.
+ *
+ *  That is exactly the shape a multi offer makes: one sender, one wanted item,
+ *  up to four offered finds. Grouping is by (sender, wanted item) rather than
+ *  by a batch id, so it needs no schema support and also tidies the case where
+ *  someone made several offers by hand over time.
+ *
+ *  Order within the list is preserved: a group takes the position of its first
+ *  member, so the priority-first sort from getIncomingOffers still holds.
+ */
+function groupOffers(rows: OfferRow[]): OfferRow[][] {
+  const groups: OfferRow[][] = []
+  const index = new Map<string, OfferRow[]>()
+
+  for (const row of rows) {
+    const key = (row.sender?.id ?? '') + ':' + (row.wanted?.id ?? '')
+    const existing = index.get(key)
+    if (existing) {
+      existing.push(row)
+      continue
+    }
+    const group = [row]
+    index.set(key, group)
+    groups.push(group)
+  }
+  return groups
+}
+
 export default function Offers() {
   const o = useOffers()
   const { t } = useT()
@@ -201,16 +229,58 @@ export default function Offers() {
           </div>
         ) : (
           <ul className="flex flex-col gap-3">
-            {rows.map((offer) => (
-              <OfferCard
-                key={offer.id}
-                offer={offer}
-                busy={o.busyId === offer.id}
-                onOpenItem={o.openItem}
-                onAccept={o.tab === 'incoming' ? () => o.accept(offer.id) : undefined}
-                onDecline={o.tab === 'incoming' ? () => o.decline(offer.id) : undefined}
-              />
-            ))}
+            {groupOffers(rows).map((group) => {
+              /* A multi offer is four separate rows by design -- the engine is
+                 1-to-1 and accepting answers one concrete pair. But four cards
+                 in a row from the same person for the same find reads as four
+                 demands rather than one choice, so they are drawn as one block
+                 with a heading that says pick one.
+
+                 Accepting any of them closes the others: respond_to_offer
+                 reserves the items, which makes the siblings unacceptable, and
+                 the list refetches on success. */
+              if (group.length === 1) {
+                const offer = group[0]
+                return (
+                  <OfferCard
+                    key={offer.id}
+                    offer={offer}
+                    busy={o.busyId === offer.id}
+                    onOpenItem={o.openItem}
+                    onAccept={o.tab === 'incoming' ? () => o.accept(offer.id) : undefined}
+                    onDecline={o.tab === 'incoming' ? () => o.decline(offer.id) : undefined}
+                  />
+                )
+              }
+              return (
+                <li
+                  key={group[0].id}
+                  className="flex flex-col gap-2 rounded-card border-[1.5px] border-accent/40 bg-accent/[0.06] p-3"
+                >
+                  <span
+                    data-i18n="barter.multiGroupTitle"
+                    className="font-display text-sm font-semibold text-foreground"
+                  >
+                    {t('barter.multiGroupTitle', {
+                      name: group[0].sender?.name || t('swaps.someone'),
+                      count: group.length,
+                    })}
+                  </span>
+                  <ul className="flex flex-col gap-2">
+                    {group.map((offer) => (
+                      <OfferCard
+                        key={offer.id}
+                        offer={offer}
+                        busy={o.busyId === offer.id}
+                        onOpenItem={o.openItem}
+                        onAccept={o.tab === 'incoming' ? () => o.accept(offer.id) : undefined}
+                        onDecline={o.tab === 'incoming' ? () => o.decline(offer.id) : undefined}
+                      />
+                    ))}
+                  </ul>
+                </li>
+              )
+            })}
           </ul>
         )}
       </div>

@@ -656,7 +656,9 @@
     "offerMultiOn": "Offering several — tap to go back to one",
     "offerMultiSend": "Send {{count}} offers · {{price}} pts",
     "offerMultiBody": "Each find goes as its own offer. They pick the one they want.",
-    "errorMultiCount": "Pick between two and four finds."
+    "errorMultiCount": "Pick between two and four finds.",
+    "offerMultiPrompt": "Pick two to four finds",
+    "multiGroupTitle": "{{name}} offered {{count}} finds — pick one"
   },
   "report": {
     "itemTitle": "What's wrong with this find?",

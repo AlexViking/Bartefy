@@ -161,12 +161,20 @@ export function OfferSheet({
                   if (multiPrice != null && points < multiPrice) return onNeedPoints?.()
                   onConfirmMulti?.(multiPicked, note.trim() || undefined)
                 }}
-                data-i18n="barter.offerMultiSend"
+                data-i18n={
+                  multiPicked.length < 2 ? 'barter.offerMultiPrompt' : 'barter.offerMultiSend'
+                }
               >
-                {t('barter.offerMultiSend', {
-                  count: multiPicked.length,
-                  price: multiPrice ?? 0,
-                })}
+                {/* "Send 0 offers" before anything is picked was nonsense: the
+                    button is disabled at that point and should say what to do,
+                    not report a count of nothing. It only counts once the
+                    count means something. */}
+                {multiPicked.length < 2
+                  ? t('barter.offerMultiPrompt')
+                  : t('barter.offerMultiSend', {
+                      count: multiPicked.length,
+                      price: multiPrice ?? 0,
+                    })}
               </Button>
               <T
                 as="p"
