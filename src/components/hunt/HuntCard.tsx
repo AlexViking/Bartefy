@@ -6,7 +6,7 @@ import { Icon } from '@/components/ui/icon'
 import { ToneBadge } from '@/components/ui/tone-badge'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { useT } from '@/i18n/T'
-import { categoryLabel } from '@/lib/taxonomy'
+import { DEFAULT_CONDITION, categoryLabel, conditionAt } from '@/lib/taxonomy'
 import type { CardItem } from '@/store/hunt'
 import { cn } from '@/lib/utils'
 
@@ -144,8 +144,13 @@ export function HuntCard({
         )}
 
         <div className={cn('absolute inset-x-3 flex justify-between gap-2', many ? 'top-6' : 'top-3')}>
+          {/* conditionAt, not the raw value: items.condition is a SMALLINT 1-5,
+              so rendering it directly put a bare "5" in the corner of every
+              card. The type said `condition?: string`, which is why neither
+              tsc nor the i18n audit ever complained -- the audit only looks
+              for keys that ARE referenced, and this referenced none. */}
           <ToneBadge tone="quiet" className="bg-card/90 backdrop-blur-sm">
-            {item.condition}
+            {t(conditionAt(Number(item.condition ?? DEFAULT_CONDITION)).label)}
           </ToneBadge>
           {eyeing > 0 && (
             <span
@@ -255,11 +260,6 @@ export function HuntCard({
               <span className="truncate">
                 {[item.city, item.distance].filter(Boolean).join(' · ')}
               </span>
-            </span>
-          )}
-          {item.daysLeft != null && (
-            <span data-i18n="profile.daysLeft" className="ml-auto shrink-0">
-              {t('profile.daysLeft', { count: item.daysLeft })}
             </span>
           )}
         </div>

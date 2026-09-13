@@ -9,7 +9,9 @@ export interface CardItem {
   publicId: string
   title: string
   category: string
-  condition: string
+  /** SMALLINT 1-5 from the database, not a label. Render it through
+   *  conditionAt() from lib/taxonomy -- never directly. */
+  condition: number | string
   /** Where the find is. The wireframe leads the card with it: where a
    *  thing is decides whether the swap can happen at all. */
   city?: string
@@ -22,7 +24,6 @@ export interface CardItem {
    *  deck showed one, so the other four were invisible to everyone. */
   photos?: string[]
   description?: string
-  daysLeft?: number
   ownerId?: string
   rating?: number
   swapCount?: number

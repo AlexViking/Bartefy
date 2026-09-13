@@ -17,11 +17,12 @@ export interface ItemRef {
    *  the image on load, as before. */
   photoRatio?: number | null
   photoUrl?: string
-  condition?: string
+  /** items.condition is a SMALLINT 1-5, NOT a label. Declaring it `string`
+   *  is what let HuntCard render it raw -- a bare "5" in the corner of every
+   *  card -- without tsc objecting. Map it through conditionAt() from
+   *  lib/taxonomy to get an i18n key. */
+  condition?: number | string
   category?: string
-  /** Days until the listing expires. Undefined where it does not apply --
-   *  someone else's find in a swap pair has no expiry worth showing you. */
-  daysLeft?: number
 }
 
 export interface PersonRef {

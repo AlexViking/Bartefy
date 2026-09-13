@@ -118,9 +118,6 @@ export function useHunt() {
         ? (it.images as string[]).map(String)
         : [],
     description: it.description ? String(it.description) : undefined,
-    daysLeft: it.expires_at
-      ? Math.max(0, Math.ceil((new Date(String(it.expires_at)).getTime() - Date.now()) / 86_400_000))
-      : undefined,
     ownerId: String(it.user_id ?? ''),
     rating: it.rating != null ? Number(it.rating) : undefined,
     swapCount: it.swaps != null ? Number(it.swaps) : 0,

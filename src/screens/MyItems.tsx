@@ -77,17 +77,6 @@ export default function MyItems() {
       photoRatio,
       condition: String(it.condition ?? ''),
       category: String(it.category ?? ''),
-      /** Days until this listing expires. A listing quietly dying is the main
-       *  way someone loses matches without noticing, so the card says so
-       *  rather than letting it happen silently. */
-      daysLeft: it.expires_at
-        ? Math.max(
-            0,
-            Math.ceil(
-              (new Date(String(it.expires_at)).getTime() - Date.now()) / 86_400_000,
-            ),
-          )
-        : undefined,
     }
   }
 
@@ -203,17 +192,6 @@ export default function MyItems() {
                   {it.title}
                 </span>
                 {tab === 'paused' && <ToneBadge tone="quiet">{t('items.tabPaused')}</ToneBadge>}
-                {/* The expiry, and only when it is close enough to matter.
-                    "27 days left" on every tile is noise that trains people
-                    to stop reading it. */}
-                {tab === 'live' && it.daysLeft != null && it.daysLeft <= 7 && (
-                  <span
-                    data-i18n="profile.daysLeft"
-                    className="font-body text-xs text-accent-foreground"
-                  >
-                    {t('profile.daysLeft', { count: it.daysLeft })}
-                  </span>
-                )}
               </button>
             ))}
           </Masonry>
