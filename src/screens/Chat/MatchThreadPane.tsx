@@ -1,4 +1,5 @@
 import { Send } from 'lucide-react'
+import { useNavigate } from 'react-router'
 
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
@@ -64,6 +65,7 @@ function SwapHeader({ c }: { c: ReturnType<typeof useMatchChat> }) {
 export function MatchThreadPane() {
   const c = useMatchChat()
   const { t } = useT()
+  const navigate = useNavigate()
 
   /** With both panes visible the swap list is already on the left, so a back
    *  button here would only undo the selection the user just made. On a phone
@@ -159,6 +161,23 @@ export function MatchThreadPane() {
         {/* The composer disappears once the swap closes rather than sitting
             there disabled: a greyed-out box invites people to try typing
             into it and wonder why nothing happens. */}
+        {/* Arrange has been routed at /matches/:id/arrange since the V4 rebuild
+            but nothing ever linked to it, so the guided meet-up step was
+            unreachable from the one screen it belongs to. Ghost, and above the
+            composer: proposing a place is a step in the conversation, not a
+            louder alternative to confirming the swap. */}
+        {c.canSend && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="self-start"
+            onClick={() => c.matchId && navigate(`/matches/${c.matchId}/arrange`)}
+          >
+            <Icon name="MapPin" size={16} />
+            <T as="span" k="chat.arrange" />
+          </Button>
+        )}
+
         {c.canSend && (
           <div className="flex items-end gap-2">
             <Textarea

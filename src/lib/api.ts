@@ -1,5 +1,4 @@
 import { supabase } from './supabase'
-import { STATUS_TO_DB } from '@/types/swap'
 
 // ── Auth ────────────────────────────────────────────────────────────────────
 
@@ -208,40 +207,6 @@ export async function recordSwipe({ targetItemId, targetOwnerId, isLike, offerIt
 
 // ── Swaps ───────────────────────────────────────────────────────────────────
 
-/** Every swap you are part of, open and closed alike.
- *
- *  Closed swaps are deliberately NOT filtered out here: the inbox has a
- *  "closed" tab, and excluding them server-side left that tab permanently
- *  empty. The split between active and closed happens in useSwapsInbox.
- */
-export async function getMySwaps(userId: string) {
-  return supabase
-    .from('swaps')
-    .select('*, item_a:item_a_id(*), item_b:item_b_id(*)')
-    .or(`user_a_id.eq.${userId},user_b_id.eq.${userId}`)
-    .order('created_at', { ascending: false })
-}
-
-/** swaps.status is CHECK'd to ('proposed','confirmed','completed','cancelled').
- *  The UI speaks a richer nine-state vocabulary that was never migrated, so a
- *  write of e.g. 'agreed' is rejected by the constraint. This maps the UI's
- *  words back onto the four the column accepts — the mirror of STATUS_FROM_DB
- *  in useSwapsInbox, and the same single place to retire once the schema
- *  catches up.
- */
-
-export async function updateSwapStatus(
-  swapId: string,
-  status: string,
-  cancelReason?: string | null,
-) {
-  const patch: Record<string, unknown> = { status: STATUS_TO_DB[status] ?? status }
-  if (cancelReason) patch.cancel_reason = cancelReason
-  // .select() so a rejected write surfaces as an error rather than a silent
-  // no-op — a constraint violation here used to look like a dead button.
-  return supabase.from('swaps').update(patch).eq('id', swapId).select()
-}
-
 /** The reviews behind someone's star average (migration 010).
  *
  *  The RPC returns only revealed ratings — blind-until-revealed is enforced in
@@ -258,74 +223,63 @@ export async function getUserReviews(userId: string, limit = 20, offset = 0) {
 
 // ── Chat (server-stored) ────────────────────────────────────────────────
 
-export async function getMessages(swapId: string) {
-  return supabase.from('messages').select('*')
-    .eq('swap_id', swapId).order('created_at', { ascending: true })
-}
-
-export async function sendMessage(swapId: string, senderId: string, body: string, clientMsgId: string) {
-  return supabase.from('messages').insert({
-    swap_id: swapId, sender_id: senderId, body, client_msg_id: clientMsgId,
-  })
-}
-
-/** Messages waiting for you: unread, and not your own.
+/** How many messages are waiting for you, for the dot on Matches.
  *
- *  RLS already scopes messages to swaps you are part of, so this needs no
- *  join — `sender_id != you` is the whole filter. Counted, not fetched: the
- *  badge only ever needs the number.
+ *  Counts barter_messages, not the V3 `messages` table. This read `messages`
+ *  until 035 -- a table nothing has written to since the V4 rebuild -- so the
+ *  count was structurally always 0 and the badge could never light up. It
+ *  threw no error and returned no rows, which is exactly what "you are all
+ *  caught up" looks like.
+ *
+ *  RLS already scopes barter_messages to matches you are part of, so
+ *  `sender_id != you` plus `read_at is null` is the whole filter. Counted,
+ *  never fetched: the badge only wants the number.
  */
 export async function getUnreadCount(userId: string) {
   return supabase
-    .from('messages')
+    .from('barter_messages')
     .select('id', { count: 'exact', head: true })
     .is('read_at', null)
     .neq('sender_id', userId)
 }
 
-/** Unread counts per swap, for the dot on each inbox row.
+/** Unread counts per match, for the dot on each inbox row.
  *
  *  One request for the whole inbox rather than one per row: it selects the
- *  swap_id of every unread message addressed to you and tallies them here.
- *  RLS already narrows this to swaps you are part of, exactly as
- *  getUnreadCount relies on.
+ *  match_id of every unread message addressed to you and tallies them here.
+ *  Keyed by match_id, which is the id the inbox rows carry.
  */
 export async function getUnreadBySwap(userId: string) {
   const { data, error } = await supabase
-    .from('messages')
-    .select('swap_id')
+    .from('barter_messages')
+    .select('match_id')
     .is('read_at', null)
     .neq('sender_id', userId)
 
   if (error) return { data: null, error }
 
   const counts: Record<string, number> = {}
-  for (const row of (data ?? []) as { swap_id: string }[]) {
-    counts[row.swap_id] = (counts[row.swap_id] ?? 0) + 1
+  for (const row of (data ?? []) as { match_id: string }[]) {
+    counts[row.match_id] = (counts[row.match_id] ?? 0) + 1
   }
   return { data: counts, error: null }
 }
 
-/** Clear the badge for one thread. The recipient-update RLS policy permits
- *  exactly this — setting read_at on messages sent TO you — so the sender_id
- *  filter is not merely an optimisation: without it every row is rejected.
+/** Clear the badge for one thread.
+ *
+ *  The 035 update policy permits exactly this -- stamping read_at on a message
+ *  addressed TO you -- and an append-only trigger rejects a write that changes
+ *  anything else. The sender_id filter is therefore not an optimisation:
+ *  without it every row is refused.
  */
-export async function markThreadRead(swapId: string, userId: string) {
+export async function markThreadRead(matchId: string, userId: string) {
   return supabase
-    .from('messages')
+    .from('barter_messages')
     .update({ read_at: new Date().toISOString() })
-    .eq('swap_id', swapId)
+    .eq('match_id', matchId)
     .neq('sender_id', userId)
     .is('read_at', null)
     .select()
-}
-
-export function subscribeMessages(swapId: string, onMessage: (m: unknown) => void) {
-  return supabase.channel(`messages:${swapId}`)
-    .on('postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'messages', filter: `swap_id=eq.${swapId}` },
-      (payload) => onMessage(payload.new))
-    .subscribe()
 }
 
 // ── Ratings ─────────────────────────────────────────────────────────────────

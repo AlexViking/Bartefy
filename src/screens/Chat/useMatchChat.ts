@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
 
+import { markThreadRead } from '@/lib/api'
+import { keys } from '@/lib/cache/queryClient'
 import {
   barterErrorKey,
   cancelBarter,
@@ -14,13 +16,12 @@ import { useAuthStore } from '@/store/auth'
 
 /** The thread for a barter_matches row.
  *
- *  A parallel hook rather than a rewrite of useChat. That one is wired to the
- *  old swaps tables and carries two pieces of hard-won behaviour -- the
- *  client_msg_id dedupe and the read-marking loop that took a bug to get right
- *  -- and editing it in place while both engines are live would put those at
- *  risk for no gain. It goes when the old tables do.
+ *  This began as a parallel hook alongside useChat, which was wired to the old
+ *  swaps tables. Those screens are gone now and this is the only chat: the V3
+ *  island (Chat.mobile, ChatPane, Thread, useChat, store/chat) had no route
+ *  and was deleted.
  *
- *  Two rules preserved from it deliberately:
+ *  Two rules carried over from it deliberately:
  *   - client_msg_id is minted once per message and reused on resend, so
  *     UNIQUE(match_id, client_msg_id) dedupes instead of duplicating.
  *   - a duplicate-key error on send is SUCCESS: it means the first attempt
@@ -187,6 +188,41 @@ export function useMatchChat() {
       void supabase.removeChannel(channel)
     }
   }, [matchId, load])
+
+  /** How many messages in this thread came from the other person.
+   *
+   *  A NUMBER, not the array, is what the read-marking effect below depends
+   *  on. `messages` gets a new identity on every send, every realtime insert
+   *  and every optimistic update, so depending on it fired a redundant UPDATE
+   *  each time YOU sent a line -- a write per message, to mark read the
+   *  messages that were already read. This only changes when a message from
+   *  them actually arrives, which is the only event that can re-dirty the dot.
+   */
+  const theirCount = messages.reduce((n, m) => (m.sender_id === userId ? n : n + 1), 0)
+
+  /** Reading a thread clears its dot.
+   *
+   *  Runs when their count goes up, so a message arriving while you are
+   *  looking at the thread is marked read too, rather than leaving a badge on
+   *  a conversation that is open on screen.
+   *
+   *  Failure is deliberately silent: a badge that stays lit is cosmetic, and
+   *  there is nothing the reader could do about it anyway.
+   */
+  useEffect(() => {
+    if (!matchId || !userId || theirCount === 0) return
+
+    void (async () => {
+      const { error } = await markThreadRead(matchId, userId)
+      if (error) {
+        console.error('[chat] markThreadRead failed', error)
+        return
+      }
+      // unreadBySwap nests under the same 'unread' prefix, so one
+      // invalidation refreshes the nav total and the per-row dots together.
+      qc.invalidateQueries({ queryKey: keys.unread(userId) })
+    })()
+  }, [matchId, userId, theirCount, qc])
 
   const send = async () => {
     const body = input.trim()

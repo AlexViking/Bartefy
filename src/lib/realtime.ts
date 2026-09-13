@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useQueryClient, type QueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from './supabase'
 import { keys } from './cache/queryClient'
 
@@ -23,14 +23,21 @@ export function useRealtime(userId: string | undefined) {
     const chan = supabase.channel('user:' + userId) as any
 
     const channel = chan
-      // Messages append to the open thread and bump the inbox.
+      /* A new message bumps the badges. This listened on `messages` until
+         035 -- the V3 table nothing has written to since the V4 rebuild -- so
+         the callback never ran and the dot never moved.
+
+         It does NOT append to the open thread: useMatchChat holds its own
+         channel filtered to the match you are reading, and appending here as
+         well put the message in twice. */
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages' },
-        ({ new: row }: { new: { swap_id: string } }) => {
-          appendMessage(qc, row)
+        { event: 'INSERT', schema: 'public', table: 'barter_messages' },
+        ({ new: row }: { new: { sender_id: string } }) => {
+          // Your own message is not unread, and echoes back over the same
+          // socket you sent it on.
+          if (row.sender_id === userId) return
           qc.invalidateQueries({ queryKey: keys.swaps(userId) })
-          // The badge counts the same rows, so it moves on the same frame.
           qc.invalidateQueries({ queryKey: keys.unread(userId) })
         },
       )
@@ -114,16 +121,6 @@ export function useFeedFreshness({
       supabase.removeChannel(channel)
     }
   }, [city, idle, onStale])
-}
-
-function appendMessage(qc: QueryClient, row: { swap_id: string }) {
-  qc.setQueryData(keys.thread(row.swap_id), (prev: unknown) => {
-    const list = Array.isArray(prev) ? prev : []
-    // Realtime can duplicate an optimistic insert; dedupe on id.
-    const id = (row as { id?: string }).id
-    if (id && list.some((m: { id?: string }) => m.id === id)) return list
-    return [...list, row]
-  })
 }
 
 function patchById(prev: unknown, row: { id: string }) {

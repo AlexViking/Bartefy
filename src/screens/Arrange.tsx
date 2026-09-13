@@ -6,7 +6,7 @@ import { T, useT } from '@/i18n/T'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/badge'
 import { Field } from '@/components/ui/field'
-import { sendMessage } from '@/lib/api'
+import { sendMatchMessage } from '@/lib/barter'
 import { useAuthStore } from '@/store/auth'
 import { cn } from '@/lib/utils'
 
@@ -43,7 +43,9 @@ function useSlots(lang: string) {
 
 export function Arrange() {
   const { t, lang } = useT()
-  const { swapId } = useParams()
+  /* The route param is spelled :swapId for historical reasons, but the id it
+     carries is a barter_matches id -- the same one useMatchChat reads. */
+  const { swapId: matchId } = useParams()
   const navigate = useNavigate()
   const userId = useAuthStore((s) => s.session?.user?.id)
 
@@ -60,7 +62,7 @@ export function Arrange() {
   /** Proposing is a message in the thread, not a silent state change: the
    *  other person has to be able to read it and answer in their own words. */
   const propose = async () => {
-    if (!swapId || !userId || sending) return
+    if (!matchId || !userId || sending) return
     if (mode === 'meet' && !place.trim()) return setFailed(false)
 
     setSending(true)
@@ -74,7 +76,16 @@ export function Arrange() {
           })
         : t('arrange.postMessage')
 
-    const { error } = await sendMessage(swapId, userId, body, crypto.randomUUID())
+    /* barter_messages, not the legacy `messages` table. This used to write to
+       `messages`, which the V5 thread does not read: the proposal was inserted
+       successfully, returned no error, and then never appeared in the
+       conversation it was proposing in. */
+    const { error } = await sendMatchMessage({
+      matchId,
+      senderId: userId,
+      body,
+      clientMsgId: crypto.randomUUID(),
+    })
     setSending(false)
 
     if (error) {
@@ -82,7 +93,7 @@ export function Arrange() {
       setFailed(true)
       return
     }
-    navigate('/matches/' + swapId)
+    navigate('/matches/' + matchId)
   }
 
   return (
