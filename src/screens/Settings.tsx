@@ -285,7 +285,9 @@ export function Settings() {
         {/* Parent-company credit, under the build stamp: this is already the
             page's footer, and it is the one place in the app with a settled
             "about this software" corner. */}
-        <OrzomiByline className="mt-3" />
+        <div className="mt-3 flex justify-center">
+          <OrzomiByline />
+        </div>
       </PageBody>
 
       <ResponsiveSheet open={cityOpen} onOpenChange={setCityOpen} title="onboarding.cityTitle">

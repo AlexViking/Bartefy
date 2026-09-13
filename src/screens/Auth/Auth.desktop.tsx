@@ -87,7 +87,9 @@ export default function AuthDesktop() {
           {/* Inside the form column, not pinned to the window bottom: on a tall
               desktop viewport a fixed footer would sit a long way from the
               thing it credits. */}
-          <OrzomiByline className="mt-2" />
+          <div className="mt-2 flex justify-center">
+            <OrzomiByline />
+          </div>
         </motion.div>
       </main>
     </div>

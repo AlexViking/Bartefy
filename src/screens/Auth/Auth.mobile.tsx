@@ -63,7 +63,9 @@ export default function AuthMobile() {
         {/* Bottom centre of the auth page, clear of the form. shrink-0 so it
             keeps its height when the keyboard shortens the viewport, and
             pb-safe so it clears the home indicator. */}
-        <OrzomiByline className="shrink-0 px-6 pb-[calc(20px+env(safe-area-inset-bottom))]" />
+        <div className="flex shrink-0 justify-center px-6 pb-[calc(20px+env(safe-area-inset-bottom))]">
+          <OrzomiByline />
+        </div>
       </div>
     </div>
   )
