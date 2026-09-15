@@ -49,14 +49,22 @@ export default function HuntDesktop() {
               card and nothing else -- and there is nowhere else for filters to
               live now: the app does not filter at all. */}
 
-          {/* The deck, centred in what is left. max-w keeps the card a card:
-              a 900px-wide swipe card is a poster. */}
+          {/* The deck, centred in what is left. 600px and landscape here, not
+              the phone's 340px portrait: there is width going spare on a
+              desktop and the photo is what people are judging.
+
+              The ratio has to change WITH the width. The card is sized by its
+              aspect ratio, so widening a 3:4 card to 600px would make it 800px
+              tall -- taller than the column it sits in, pushing the swipe
+              buttons off screen. 4:3 at 600px is ~450px tall, which is the
+              height the 340px portrait card already had. max-w still keeps it
+              a card: a 900px-wide swipe card is a poster. */}
           <div className="flex flex-1 flex-col items-center justify-center gap-4">
             {h.isLoading ? (
               <T as="p" k="hunt.loading" className="font-body text-sm text-muted-foreground" />
             ) : h.top ? (
               <>
-                <HuntStack cards={h.cards} onDecide={h.decide} onUndo={h.rewind} canUndo={h.canRewind} onUndoBlocked={h.rewindBlocked} onSuper={h.superTop} superPrice={h.superPrice} className="max-w-[340px]" />
+                <HuntStack cards={h.cards} onDecide={h.decide} onUndo={h.rewind} canUndo={h.canRewind} onUndoBlocked={h.rewindBlocked} onSuper={h.superTop} superPrice={h.superPrice} className="max-w-[600px]" cardClassName="aspect-[4/3]" />
                 <T as="p" k="hunt.hintKeys" className="font-body text-[13px] text-muted-foreground" />
               </>
             ) : (

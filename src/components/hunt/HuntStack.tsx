@@ -29,6 +29,7 @@ export function HuntStack({
   onSuper,
   superPrice,
   className,
+  cardClassName,
 }: {
   cards: CardItem[]
   onDecide: (item: CardItem, want: boolean) => void
@@ -43,6 +44,14 @@ export function HuntStack({
   onSuper?: () => void
   superPrice?: number
   className?: string
+  /** Shape of the card itself, as opposed to `className` which sizes the deck
+   *  around it. Desktop widens the card to 600px and turns it landscape; the
+   *  phone leaves this unset and keeps the 3:4 portrait card.
+   *
+   *  It must reach BOTH cards below -- the top one and the one showing behind
+   *  it. Passing it to the top card alone makes the next card change shape the
+   *  moment the current one flies away. */
+  cardClassName?: string
 }) {
   const { t } = useT()
   const ref = useRef<HTMLDivElement>(null)
@@ -156,7 +165,7 @@ export function HuntStack({
             aria-hidden
             className="pointer-events-none absolute inset-0 origin-center scale-[0.94] overflow-hidden rounded-hero opacity-70 shadow-card"
           >
-            <HuntCard item={behind} />
+            <HuntCard item={behind} className={cardClassName} />
           </div>
         )}
         {/* Physics ported from V5, in the order they matter:
@@ -196,7 +205,7 @@ export function HuntStack({
           <motion.div style={{ opacity: passOpacity }} className="pointer-events-none">
             <Stamp kind="pass" visible />
           </motion.div>
-          <HuntCard item={top} onExpand={(i) => { setViewerAt(i); setViewing(true) }} />
+          <HuntCard item={top} className={cardClassName} onExpand={(i) => { setViewerAt(i); setViewing(true) }} />
           {/* On the card, per the scope contract: the moment you notice a
               listing is wrong is the moment you are looking at it. Behind a
               menu on the detail screen, most people just swipe past instead.
