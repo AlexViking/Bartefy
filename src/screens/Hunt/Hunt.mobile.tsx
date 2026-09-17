@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/sheet'
 import { SwapPair } from '@/components/swap/SwapPair'
 import { T, useT } from '@/i18n/T'
+import { cn } from '@/lib/utils'
 import { useHunt } from './useHunt'
 
 /** Hunt, phone shape: the stack is the whole screen.
@@ -47,17 +48,27 @@ export default function HuntMobile() {
             next. That is what put the wishlist card under the NextStep nudge.
             justify-center centres a short child; once the content is taller
             the browser falls back to start-aligned and this simply scrolls. */}
-        <section className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 overflow-y-auto px-5 pb-4 pt-2">
+        {/* The deck gets no padding and does not scroll; everything else
+            keeps the old padded, scrollable column.
+
+            A full-bleed card cannot sit inside px-5 -- that is what made it a
+            340px card in the middle of the screen. The empty state and the
+            wishlist prompt still need the padding and still need to scroll,
+            so the two cases are separated rather than one box compromising
+            for both. */}
+        <section
+          className={cn(
+            'flex min-h-0 flex-1 flex-col',
+            h.top && !h.isLoading
+              ? 'overflow-hidden'
+              : 'items-center justify-center gap-4 overflow-y-auto px-5 pb-4 pt-2',
+          )}
+        >
           {h.isLoading ? (
             <T as="p" k="hunt.loading" className="font-body text-sm text-muted-foreground" />
           ) : h.top ? (
             <>
-              <HuntStack cards={h.cards} onDecide={h.decide} onUndo={h.rewind} canUndo={h.canRewind} onUndoBlocked={h.rewindBlocked} onSuper={h.superTop} superPrice={h.superPrice} />
-              <T
-                as="p"
-                k="hunt.hintSwipe"
-                className="font-body text-[13px] text-muted-foreground"
-              />
+              <HuntStack cards={h.cards} onDecide={h.decide} onUndo={h.rewind} canUndo={h.canRewind} onUndoBlocked={h.rewindBlocked} onSuper={h.superTop} superPrice={h.superPrice} fill />
             </>
           ) : (
             <>

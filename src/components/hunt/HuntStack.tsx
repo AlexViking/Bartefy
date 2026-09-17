@@ -30,6 +30,7 @@ export function HuntStack({
   superPrice,
   className,
   cardClassName,
+  fill = false,
 }: {
   cards: CardItem[]
   onDecide: (item: CardItem, want: boolean) => void
@@ -52,6 +53,17 @@ export function HuntStack({
    *  it. Passing it to the top card alone makes the next card change shape the
    *  moment the current one flies away. */
   cardClassName?: string
+  /** Fill the box instead of sitting in the middle of it as a 340px card.
+   *
+   *  The phone deck. The card takes the whole area the shell leaves it, its
+   *  details move onto the photo as an overlay, and the three action buttons
+   *  float over the bottom of the card rather than sitting under it in normal
+   *  flow -- which is what a swipe deck has looked like since about 2019 and
+   *  is why 270px of a 844px phone was empty parchment.
+   *
+   *  Desktop leaves this off: there the card is a card, centred in a column
+   *  with a details pane beside it. */
+  fill?: boolean
 }) {
   const { t } = useT()
   const ref = useRef<HTMLDivElement>(null)
@@ -137,13 +149,27 @@ export function HuntStack({
   if (!top) return null
 
   return (
-    <div className={cn('flex w-full max-w-[340px] flex-col', className)}>
+    <div
+      className={cn(
+        'flex w-full flex-col',
+        // min-h-0 so the card can actually shrink to the box: a flex child
+        // defaults to min-height:auto and would otherwise push its own
+        // overflow through the tab bar.
+        // relative: when filling, the action row below is positioned against
+        // this box rather than sitting under the card in normal flow.
+        fill ? 'relative h-full min-h-0 flex-1' : 'max-w-[340px]',
+        className,
+      )}
+    >
       <div
         ref={ref}
         tabIndex={0}
         role="group"
         aria-label={`${t('hunt.hintSwipe')}. ${t('hunt.hintKeys')}`}
-        className="relative select-none rounded-hero outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45"
+        className={cn(
+          'relative select-none rounded-hero outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45',
+          fill && 'min-h-0 flex-1',
+        )}
         onKeyDown={(e) => {
           if (e.key === 'ArrowLeft') fly(false)
           if (e.key === 'ArrowRight') fly(true)
@@ -165,7 +191,7 @@ export function HuntStack({
             aria-hidden
             className="pointer-events-none absolute inset-0 origin-center scale-[0.94] overflow-hidden rounded-hero opacity-70 shadow-card"
           >
-            <HuntCard item={behind} className={cardClassName} />
+            <HuntCard item={behind} fill={fill} className={cardClassName} />
           </div>
         )}
         {/* Physics ported from V5, in the order they matter:
@@ -181,7 +207,7 @@ export function HuntStack({
             stuck to your finger. */}
         <motion.div
           key={top.id}
-          className="relative"
+          className={cn('relative', fill && 'h-full')}
           style={{ x, rotate, cursor: 'grab' }}
           drag="x"
           dragDirectionLock
@@ -205,7 +231,7 @@ export function HuntStack({
           <motion.div style={{ opacity: passOpacity }} className="pointer-events-none">
             <Stamp kind="pass" visible />
           </motion.div>
-          <HuntCard item={top} className={cardClassName} onExpand={(i) => { setViewerAt(i); setViewing(true) }} />
+          <HuntCard item={top} fill={fill} className={cardClassName} onExpand={(i) => { setViewerAt(i); setViewing(true) }} />
           {/* On the card, per the scope contract: the moment you notice a
               listing is wrong is the moment you are looking at it. Behind a
               menu on the detail screen, most people just swipe past instead.
@@ -244,7 +270,22 @@ export function HuntStack({
         onDone={() => fly(false)}
       />
 
-      <div className="mt-4 flex items-center justify-center gap-5">
+      {/* Over the card when it fills the screen, under it when it does not.
+          A full-bleed card with the buttons below it would give back the
+          height the fill just bought. z-20 clears the card's tint and stamps
+          layer (z-10), or a drag would fade the buttons out with the card. */}
+      <div
+        className={cn(
+          'flex items-center justify-center gap-5',
+          fill
+            ? cn(
+                'pointer-events-none absolute inset-x-0 z-20 [&>*]:pointer-events-auto',
+                // Room for the price line below when there is one.
+                onSuper && superPrice != null ? 'bottom-7' : 'bottom-4',
+              )
+            : 'mt-4',
+        )}
+      >
         <button
           type="button"
           aria-label={t('hunt.pass')}
@@ -301,7 +342,15 @@ export function HuntStack({
       {onSuper && superPrice != null && (
         <p
           data-i18n="hunt.superPrice"
-          className="mt-2 text-center font-body text-xs text-muted-foreground"
+          className={cn(
+            'text-center font-body text-xs',
+            // On the photo it needs its own contrast, not muted-foreground:
+            // over a dark image that colour is unreadable, and over a light
+            // one it disappears. Under the card it keeps the quiet treatment.
+            fill
+              ? 'pointer-events-none absolute inset-x-0 bottom-1 z-20 text-white/90 [text-shadow:0_1px_3px_rgb(0_0_0/0.6)]'
+              : 'mt-2 text-muted-foreground',
+          )}
         >
           {t('hunt.superPrice', { price: superPrice })}
         </p>

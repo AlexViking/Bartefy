@@ -19,12 +19,17 @@ export function HuntCard({
   eyeing = 0,
   onExpand,
   className,
+  fill = false,
 }: {
   item: CardItem
   eyeing?: number
   /** Open the photos full screen. Omitted where there is nowhere to open. */
   onExpand?: (index: number) => void
   className?: string
+  /** Fill the box rather than hold a 3:4 ratio, and put the details over the
+   *  photo instead of in a panel under it. The phone deck -- see `fill` on
+   *  HuntStack for why. */
+  fill?: boolean
 }) {
   const { t } = useT()
 
@@ -79,7 +84,11 @@ export function HuntCard({
     // stack look like a list of banners rather than cards you pick up.
     <Card
       className={cn(
-        'flex aspect-[3/4] w-full flex-col overflow-hidden rounded-hero border-0 bg-card shadow-float',
+        'flex w-full flex-col overflow-hidden rounded-hero border-0 bg-card shadow-float',
+        // Sized by its ratio when it is a card in a column; sized by its box
+        // when it is the screen. h-full, not aspect-*, or a tall phone would
+        // letterbox the deck it is supposed to fill.
+        fill ? 'h-full' : 'aspect-[3/4]',
         className,
       )}
     >
@@ -91,7 +100,10 @@ export function HuntCard({
           waiting state looked like content. */}
       <div
         className={cn(
-          'relative h-[62%] w-full shrink-0',
+          'relative w-full',
+          // Full-bleed: the photo IS the card and the details sit on top of
+          // it. Otherwise it is the top 62% with a panel beneath.
+          fill ? 'min-h-0 flex-1' : 'h-[62%] shrink-0',
           !photoLoaded && 'animate-pulse bg-secondary',
         )}
       >
@@ -179,7 +191,37 @@ export function HuntCard({
         )}
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-1.5 p-4">
+      {/* Details: a panel under the photo normally, a gradient overlay ON the
+          photo when the card fills the screen.
+
+          The colours are overridden here rather than by forking the markup
+          below into two copies. Over a photo, `text-foreground` is ink on a
+          dark image and `text-muted-foreground` vanishes on a light one, so
+          both are remapped to white via the CSS variables the children
+          already use -- one place to change, and no second tree to keep in
+          sync. The gradient is what makes white legible over an arbitrary
+          photo; text-shadow covers the rest. pb-20 leaves room for the action
+          buttons floating above the bottom edge. */}
+      <div
+        className={cn(
+          'flex flex-col gap-1.5 p-4',
+          fill
+            ? [
+                // pb-24: the action buttons float at bottom-7 and are 60px
+                // tall, so anything less puts the location row under them --
+                // measured, not guessed.
+                'absolute inset-x-0 bottom-0 z-10 pb-24',
+                // Opaque at the foot and tall enough to fade out behind the
+                // title. A lighter wash is legible over a dark photo and
+                // disappears over a bright one -- the yellow packaging in
+                // testing is the case that decides this.
+                'bg-gradient-to-t from-black/95 via-black/70 via-60% to-transparent',
+                '[--foreground:0_0%_100%] [--muted-foreground:0_0%_100%]',
+                '[text-shadow:0_1px_3px_rgb(0_0_0/0.55)]',
+              ]
+            : 'min-h-0 flex-1',
+        )}
+      >
         <div className="flex items-start justify-between gap-2">
           <h3 className="min-w-0 font-display text-h3 leading-tight text-foreground">
             {item.title}
