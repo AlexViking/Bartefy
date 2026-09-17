@@ -7,10 +7,15 @@ export function MessageBubble({
   from,
   children,
   time,
+  wide = false,
 }: {
   from: 'me' | 'them' | 'system'
   children: React.ReactNode
   time?: string
+  /** Give the bubble a floor width. A voice player sized to its text would
+   *  squeeze the waveform to nothing on a short note; text bubbles keep
+   *  hugging their content. */
+  wide?: boolean
 }) {
   if (from === 'system') {
     return (
@@ -22,7 +27,14 @@ export function MessageBubble({
 
   const mine = from === 'me'
   return (
-    <div className={cn('animate-bubble-in flex max-w-[78%] flex-col gap-0.5', mine ? 'self-end items-end' : 'self-start')}>
+    <div
+      className={cn(
+        'animate-bubble-in flex max-w-[78%] flex-col gap-0.5',
+        // min-w-0 stays so long words still wrap inside the floor width.
+        wide && 'w-[min(78%,17rem)] min-w-0',
+        mine ? 'self-end items-end' : 'self-start',
+      )}
+    >
       <div
         className={cn(
           'px-3.5 py-2.5 font-body text-[15px]',

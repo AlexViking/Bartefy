@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Send } from 'lucide-react'
 import { useNavigate } from 'react-router'
 
@@ -6,6 +7,8 @@ import { Icon } from '@/components/ui/icon'
 import { Textarea } from '@/components/ui/textarea'
 import { ConfirmBar } from '@/components/swap/ConfirmBar'
 import { MessageBubble } from '@/components/swap/MessageBubble'
+import { VoiceNote } from '@/components/swap/VoiceNote'
+import { VoiceRecorderButton } from '@/components/swap/VoiceRecorder'
 import { T, useT } from '@/i18n/T'
 import { useTwoPane } from '@/lib/platform'
 import { cn } from '@/lib/utils'
@@ -118,6 +121,10 @@ export function MatchThreadPane() {
    *  -- and a portrait tablet -- this pane IS the screen, so it needs one. */
   const twoPane = useTwoPane()
 
+  /** Recording takes the whole composer row: the text box and send button are
+   *  unmounted rather than disabled while the mic runs. */
+  const [recording, setRecording] = useState(false)
+
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
       <div className="flex items-center gap-2 px-5 pt-4">
@@ -164,18 +171,32 @@ export function MatchThreadPane() {
         ) : (
           <>
             <MessageBubble from="system">{t('barter.accepted')}</MessageBubble>
-            {c.messages.map((m) => (
-              <MessageBubble
-                key={m.client_msg_id || m.id}
-                from={m.sender_id === c.userId ? 'me' : 'them'}
-                time={new Date(m.created_at).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              >
-                {m.body}
-              </MessageBubble>
-            ))}
+            {c.messages.map((m) => {
+              const mine = m.sender_id === c.userId
+              return (
+                <MessageBubble
+                  key={m.client_msg_id || m.id}
+                  from={mine ? 'me' : 'them'}
+                  wide={m.kind === 'audio'}
+                  time={new Date(m.created_at).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                >
+                  {m.kind === 'audio' && m.audio_url ? (
+                    <VoiceNote
+                      src={m.audio_url}
+                      durationMs={m.duration_ms ?? 0}
+                      mine={mine}
+                      seed={m.client_msg_id || m.id}
+                      pending={m.pending}
+                    />
+                  ) : (
+                    m.body
+                  )}
+                </MessageBubble>
+              )
+            })}
             <div ref={c.bottomRef} />
           </>
         )}
@@ -226,6 +247,15 @@ export function MatchThreadPane() {
 
         {c.canSend && (
           <div className="flex items-end gap-2">
+            {/* Recording takes over the whole row rather than sitting beside a
+                text box nobody can type in while it runs. The recorder
+                renders nothing at all where the browser cannot record. */}
+            <VoiceRecorderButton
+              onRecorded={c.sendVoice}
+              disabled={c.sending}
+              onRecordingChange={setRecording}
+            />
+            {!recording && (
             <Textarea
               value={c.input}
               onChange={(e) => c.setInput(e.target.value)}
@@ -242,6 +272,8 @@ export function MatchThreadPane() {
               placeholder={t('chat.placeholder')}
               className={cn('max-h-32 min-h-hit flex-1 resize-none')}
             />
+            )}
+            {!recording && (
             <Button
               size="icon"
               pill
@@ -251,6 +283,7 @@ export function MatchThreadPane() {
             >
               <Send className="size-5" />
             </Button>
+            )}
           </div>
         )}
       </div>

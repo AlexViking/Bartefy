@@ -10,7 +10,9 @@ import {
   confirmBarter,
   getMatchMessages,
   sendMatchMessage,
+  uploadVoiceNote,
 } from '@/lib/barter'
+import { extensionFor } from '@/lib/voice'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth'
 
@@ -35,6 +37,15 @@ export type MatchMessage = {
   body: string
   client_msg_id: string
   created_at: string
+  /** 'text' or 'audio' (042). Defaults to text so a row written before the
+   *  migration, or a realtime payload from an older client, still renders. */
+  kind: 'text' | 'audio'
+  audio_url?: string
+  duration_ms?: number
+  /** Local-only: the recording is still uploading. Never comes from the
+   *  server -- it marks the optimistic bubble so it can show progress rather
+   *  than a play button that would fetch a URL that does not exist yet. */
+  pending?: boolean
 }
 
 export type MatchContext = {
@@ -67,6 +78,12 @@ function shape(m: Row): MatchMessage {
     body: String(m.body ?? ''),
     client_msg_id: String(m.client_msg_id ?? ''),
     created_at: String(m.created_at ?? ''),
+    // Anything that is not literally 'audio' is text. A row from before 042
+    // has no kind at all, and defaulting the other way would render every
+    // historic message as a broken player.
+    kind: m.kind === 'audio' ? 'audio' : 'text',
+    audio_url: m.audio_url ? String(m.audio_url) : undefined,
+    duration_ms: m.duration_ms != null ? Number(m.duration_ms) : undefined,
   }
 }
 
@@ -249,6 +266,7 @@ export function useMatchChat() {
         body,
         client_msg_id: clientMsgId,
         created_at: new Date().toISOString(),
+        kind: 'text',
       },
     ])
     setInput('')
@@ -266,6 +284,90 @@ export function useMatchChat() {
       setInput(body)
       setErrorKey('barter.errorGeneric')
     }
+  }
+
+  /** Send a recording: upload the bytes, then post the row.
+   *
+   *  The bubble appears BEFORE the upload finishes, playing from a local
+   *  blob: URL -- a 60s note over a bad connection is several seconds of
+   *  nothing otherwise, and this is the app whose whole premise is that
+   *  signal is unreliable.
+   *
+   *  Order matters. The row is written only after R2 has the bytes: a message
+   *  posted first would be a permanent player pointing at a 404 if the upload
+   *  then failed. Nothing is written until there is something to play.
+   */
+  const sendVoice = async (blob: Blob, durationMs: number) => {
+    if (!userId || !matchId || sending) return
+
+    const clientMsgId = crypto.randomUUID()
+    const localUrl = URL.createObjectURL(blob)
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: clientMsgId,
+        match_id: matchId,
+        sender_id: userId,
+        body: '',
+        client_msg_id: clientMsgId,
+        created_at: new Date().toISOString(),
+        kind: 'audio',
+        audio_url: localUrl,
+        duration_ms: durationMs,
+        pending: true,
+      },
+    ])
+    setSending(true)
+
+    const rollback = () => {
+      URL.revokeObjectURL(localUrl)
+      setMessages((prev) => prev.filter((m) => m.client_msg_id !== clientMsgId))
+      setSending(false)
+    }
+
+    const { url, error: uploadError } = await uploadVoiceNote({
+      matchId,
+      uploadId: clientMsgId,
+      blob,
+      // The blob's own type decides the extension. Asking the recorder for
+      // webm and getting mp4 is normal on iOS -- see lib/voice.ts.
+      ext: extensionFor(blob.type),
+    })
+    if (uploadError || !url) {
+      rollback()
+      setErrorKey('chat.voiceFailed')
+      return
+    }
+
+    const { error } = await sendMatchMessage({
+      matchId,
+      senderId: userId,
+      body: '',
+      clientMsgId,
+      audio: { url, durationMs },
+    })
+    setSending(false)
+
+    const duplicate =
+      error?.message?.includes('duplicate') || error?.message?.includes('23505')
+    if (error && !duplicate) {
+      rollback()
+      setErrorKey('chat.voiceFailed')
+      return
+    }
+
+    // Swap the local blob for the real URL and drop the pending flag. The
+    // realtime echo is deduped by client_msg_id, so it will not arrive to do
+    // this for us.
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.client_msg_id === clientMsgId
+          ? { ...m, audio_url: url, pending: false }
+          : m,
+      ),
+    )
+    URL.revokeObjectURL(localUrl)
   }
 
   /** "We met and swapped." The RPC decides when both sides are in; nothing is
@@ -309,6 +411,7 @@ export function useMatchChat() {
     input,
     setInput,
     send,
+    sendVoice,
     sending,
     confirm,
     cancel,

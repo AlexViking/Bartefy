@@ -249,7 +249,14 @@
     "confirmFailed": "That did not go through. Try again in a moment.",
     "markDone": "Did the swap happen?",
     "yourFind": "You give",
-    "theirFind": "You get"
+    "theirFind": "You get",
+    "voiceRecord": "Record a voice note",
+    "voicePlay": "Play",
+    "voicePause": "Pause",
+    "voiceSend": "Send the recording",
+    "voiceDiscard": "Discard the recording",
+    "voiceDenied": "Bartefy needs the microphone to record. You can still type.",
+    "voiceFailed": "That recording did not send. Try again."
   },
   "arrange": {
     "title": "Arrange the swap",

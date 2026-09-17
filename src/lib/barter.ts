@@ -235,7 +235,11 @@ export async function archiveMatch(matchId: string, isSideA: boolean) {
 export async function getMatchMessages(matchId: string) {
   return supabase
     .from('barter_messages')
-    .select('id, match_id, sender_id, body, client_msg_id, created_at')
+    // The voice columns (042) are listed explicitly like the rest. An
+    // explicit select that forgets a new column does not error -- the field
+    // simply arrives undefined and the bubble renders as an empty text
+    // message, which is the silent-empty failure all over again.
+    .select('id, match_id, sender_id, body, client_msg_id, created_at, kind, audio_url, duration_ms')
     .eq('match_id', matchId)
     .order('created_at', { ascending: true })
 }
@@ -248,16 +252,59 @@ export async function sendMatchMessage(input: {
   senderId: string
   body: string
   clientMsgId: string
+  /** A voice note instead of text. 042's CHECK enforces the pairing: audio
+   *  carries a url and a duration and an empty body, text carries neither. */
+  audio?: { url: string; durationMs: number }
 }) {
   return supabase
     .from('barter_messages')
     .insert({
       match_id: input.matchId,
       sender_id: input.senderId,
-      body: input.body,
+      // An audio row's body is '' -- the constraint requires it empty, and
+      // NOT NULL means it cannot be left out.
+      body: input.audio ? '' : input.body,
       client_msg_id: input.clientMsgId,
+      kind: input.audio ? 'audio' : 'text',
+      audio_url: input.audio?.url ?? null,
+      duration_ms: input.audio?.durationMs ?? null,
     })
     .select()
+}
+
+/** Presign a PUT for one voice note, then upload the bytes straight to R2.
+ *
+ *  Returns the public URL. Deliberately NOT routed through
+ *  get-r2-upload-urls: that one gates on the listing limit and answers 402,
+ *  and talking in a swap you already have is ALWAYS_FREE.
+ */
+export async function uploadVoiceNote(input: {
+  matchId: string
+  uploadId: string
+  blob: Blob
+  ext: string
+}): Promise<{ url: string | null; error: Error | null }> {
+  const { data, error } = await supabase.functions.invoke('get-voice-upload-url', {
+    body: { matchId: input.matchId, uploadId: input.uploadId, ext: input.ext },
+  })
+  if (error) return { url: null, error: error as Error }
+  const { uploadUrl, publicUrl } = (data ?? {}) as { uploadUrl?: string; publicUrl?: string }
+  if (!uploadUrl || !publicUrl) {
+    return { url: null, error: new Error('presign returned no url') }
+  }
+
+  // The blob's OWN type, never the one we asked the recorder for -- on iOS
+  // they differ. A wrong Content-Type is stored and served back wrong.
+  const res = await fetch(uploadUrl, {
+    method: 'PUT',
+    body: input.blob,
+    headers: { 'Content-Type': input.blob.type || 'application/octet-stream' },
+  })
+  // R2 answers 200 with no body. A failed PUT here is silent unless checked:
+  // the message would post with a url pointing at nothing.
+  if (!res.ok) return { url: null, error: new Error(`upload failed: ${res.status}`) }
+
+  return { url: publicUrl, error: null }
 }
 
 /** Report a listing. Separate from fileReport, which reports a PERSON
