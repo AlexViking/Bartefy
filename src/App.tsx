@@ -14,6 +14,7 @@ import { PlatformProvider } from '@/lib/platform'
 import { ThemeProvider } from '@/lib/theme'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
+import { ExperimentBadge } from '@/components/guidance/ExperimentBadge'
 import { UpdatePrompt } from '@/components/UpdatePrompt'
 
 /** Cache restores before the first paint, so a cold start opens on the last
@@ -50,6 +51,10 @@ export function App() {
               <AppRouter />
               <UpdatePrompt />
               <Toaster />
+              {/* Staff-only: which tests are live and which arm you are in.
+                  Renders nothing for everyone else, and nothing when no test
+                  is running. */}
+              <ExperimentBadge />
             </TooltipProvider>
           </PlatformProvider>
         </ThemeProvider>
