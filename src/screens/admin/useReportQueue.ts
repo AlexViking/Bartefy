@@ -7,6 +7,33 @@ import { useAuthStore } from '@/store/auth'
 
 export type QueueStatus = 'open' | 'reviewing' | 'resolved'
 
+/** The reported listing, as the queue needs it: enough to judge the report
+ *  without leaving the page. */
+export type ReportedItem = {
+  id: number
+  publicId: string
+  title: string
+  image?: string
+  status: string
+  ownerId: string
+}
+
+/** PostgREST returns an embed as an object or a one-element array depending on
+ *  how it resolves the relationship; both mean the same row here. */
+function itemOf(v: unknown): ReportedItem | null {
+  const r = (Array.isArray(v) ? v[0] : v) as Record<string, unknown> | null
+  if (!r) return null
+  const images = Array.isArray(r.images) ? (r.images as string[]) : []
+  return {
+    id: Number(r.id),
+    publicId: String(r.public_id ?? ''),
+    title: String(r.title ?? ''),
+    image: images[0],
+    status: String(r.status ?? ''),
+    ownerId: String(r.user_id ?? ''),
+  }
+}
+
 export type ReportRow = {
   id: string
   reason: string
@@ -15,6 +42,12 @@ export type ReportRow = {
   note: string | null
   reporterId: string
   aboutUserId: string | null
+  /** Set when the report is about a LISTING rather than a person (028). */
+  aboutItemId: number | null
+  /** The reported listing, joined. Null for a report about a person, and also
+   *  null if the listing has since been deleted -- both render as "no item",
+   *  which is correct for each. */
+  item: ReportedItem | null
   /** Free-text evidence the reporter attached. Storage paths, not URLs. */
   evidence: string[]
 }
@@ -103,12 +136,21 @@ export function useReportQueue() {
   const reports = useQuery({
     queryKey: ['admin', 'reports', status],
     queryFn: async () => {
-      // Columns are read from the real table, not from what the screen wished
-      // it had: reports has about_user and evidence_paths, and no link to an
-      // item at all -- a report is filed about a person or a swap.
+      // A report is about a PERSON (about_user) or a LISTING (about_item,
+      // added by 028) -- and report_item files the item kind, which is what
+      // the flag on a hunt card sends. about_item was not selected here, so
+      // every item report arrived in the queue with nothing to look at: no
+      // title, no photo, no link. The moderator could see that a report
+      // existed and not what it was about.
+      //
+      // The item is embedded rather than fetched per row: a queue of 100
+      // reports would otherwise be 100 round trips to render a title.
       const { data, error } = await supabase
         .from('reports')
-        .select('id, reason, status, created_at, note, from_user, about_user, evidence_paths')
+        .select(
+          `id, reason, status, created_at, note, from_user, about_user, about_item, evidence_paths,
+           item:items!reports_about_item_fkey (id, public_id, title, images, status, user_id)`,
+        )
         .eq('status', status)
         .order('created_at', { ascending: false })
         .limit(100)
@@ -121,6 +163,8 @@ export function useReportQueue() {
         note: (r.note as string) ?? null,
         reporterId: String(r.from_user ?? ''),
         aboutUserId: (r.about_user as string) ?? null,
+        aboutItemId: r.about_item != null ? Number(r.about_item) : null,
+        item: itemOf(r.item),
         evidence: Array.isArray(r.evidence_paths) ? (r.evidence_paths as string[]) : [],
       }))
     },

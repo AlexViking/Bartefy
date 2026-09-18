@@ -222,6 +222,47 @@ export function ReportQueue() {
                   </ToneBadge>
                 </div>
 
+                {/* WHAT was reported. Missing entirely until now: about_item
+                    was never selected, so a report about a listing showed a
+                    reason and a date and nothing to look at. Opens the real
+                    listing, because judging a photo report from a 56px
+                    thumbnail is not judging it. */}
+                {q.current.item && (
+                  <button
+                    type="button"
+                    onClick={() => q.openItem(q.current!.item!.publicId)}
+                    className="flex items-center gap-3 rounded-card-sm bg-popover p-3 text-left transition-opacity duration-fast ease-brand hover:opacity-80"
+                  >
+                    {q.current.item.image ? (
+                      <img
+                        src={q.current.item.image}
+                        alt=""
+                        draggable={false}
+                        className="size-16 shrink-0 rounded-card-sm object-cover"
+                      />
+                    ) : (
+                      <span className="flex size-16 shrink-0 items-center justify-center rounded-card-sm bg-secondary">
+                        <Icon name="Package" size={20} className="text-muted-foreground" />
+                      </span>
+                    )}
+                    <span className="min-w-0 flex-1">
+                      <T
+                        as="span"
+                        k="admin.reportedItem"
+                        className="block font-display text-caption uppercase tracking-[0.18em] text-muted-foreground"
+                      />
+                      {/* A listing title is user data: no data-i18n. */}
+                      <span className="block truncate font-body text-body text-foreground">
+                        {q.current.item.title}
+                      </span>
+                      <span className="block font-body text-xs text-muted-foreground">
+                        {t('admin.itemStatus_' + q.current.item.status)}
+                      </span>
+                    </span>
+                    <Icon name="ArrowRight" size={16} className="shrink-0 text-muted-foreground" />
+                  </button>
+                )}
+
                 {q.current.note && (
                   // The reporter's own words. Never stamped with a key, and
                   // never summarised: a moderator needs what was actually said.

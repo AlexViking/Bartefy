@@ -186,6 +186,8 @@ export function Analytics() {
 
             {a.experiments.map((e) => {
               const selected = e.key === a.activeKey
+              const noExposure =
+                a.results.length > 0 && a.results.every((r) => r.exposed === 0)
               return (
                 <section
                   key={e.key}
@@ -243,6 +245,17 @@ export function Analytics() {
                     busy={a.saving}
                     onChange={(v) => a.setSplit(e.key, v)}
                   />
+
+                  {/* A running test that has never recorded an exposure is
+                      almost always a key nothing calls: the row exists, the
+                      status says running, and no code asks for it. Without
+                      this the pane just shows two empty columns, which reads
+                      as a broken page rather than as missing wiring. */}
+                  {selected && e.status === 'running' && noExposure && (
+                    <p className="mt-3 rounded-card-sm bg-secondary px-3 py-2 font-body text-sm text-muted-foreground">
+                      {t('analytics.notWired', { key: e.key })}
+                    </p>
+                  )}
 
                   {!selected ? (
                     <Button

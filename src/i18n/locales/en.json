@@ -560,7 +560,14 @@
     "statBlocked_other": "blocked by {{count}} people",
     "statReports_one": "{{count}} report",
     "statReports_other": "{{count}} reports",
-    "statJoined": "joined {{date}}"
+    "statJoined": "joined {{date}}",
+    "reportedItem": "Reported listing",
+    "itemStatus_active": "Live",
+    "itemStatus_held": "Held",
+    "itemStatus_removed": "Removed",
+    "itemStatus_reserved": "Reserved",
+    "itemStatus_traded": "Traded",
+    "itemStatus_deleted": "Deleted"
   },
   "category": {
     "electronics": "Electronics",
@@ -726,7 +733,9 @@
     "completedTitle": "Swap finished",
     "cancelledTitle": "A swap was called off",
     "goneTitle": "That find went elsewhere",
-    "wishlistTitle": "One you were waiting for"
+    "wishlistTitle": "One you were waiting for",
+    "messageTitle": "New message",
+    "voiceTitle": "New voice note"
   },
   "items": {
     "title": "My items",
@@ -849,7 +858,8 @@
     "createIt": "Create",
     "remove": "Delete this experiment",
     "splitLabel": "How many people see B",
-    "splitValue": "{{a}}% A · {{b}}% B"
+    "splitValue": "{{a}}% A · {{b}}% B",
+    "notWired": "No one has been put in this test yet. Either nobody has reached the screen since it started, or no code calls useExperiment('{{key}}') — a running experiment that nothing asks for can never collect data."
   },
   "offers": {
     "expired": "Expired",

@@ -25,6 +25,20 @@ import i18n from '@/i18n'
 type Offer = { to_user?: string; from_user?: string }
 type Match = { user_a?: string; user_b?: string }
 
+/** Is the user looking at this match's thread right now?
+ *
+ *  Read from the URL rather than passed in: the subscription is set up once
+ *  per session in App, and threading the current route through it would put a
+ *  changing value in the effect's dep array -- tearing down and rebuilding the
+ *  websocket on every navigation.
+ *
+ *  Routes are /matches/:id, so the id is the last segment.
+ */
+function isReadingMatch(matchId: string | undefined): boolean {
+  if (!matchId || typeof window === 'undefined') return false
+  return window.location.pathname.startsWith('/matches/' + matchId)
+}
+
 export function useRealtime(userId: string | undefined) {
   const qc = useQueryClient()
 
@@ -45,12 +59,20 @@ export function useRealtime(userId: string | undefined) {
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'barter_messages' },
-        ({ new: row }: { new: { sender_id: string } }) => {
+        ({ new: row }: { new: { sender_id: string; match_id?: string; kind?: string } }) => {
           // Your own message is not unread, and echoes back over the same
           // socket you sent it on.
           if (row.sender_id === userId) return
           qc.invalidateQueries({ queryKey: keys.swaps(userId) })
           qc.invalidateQueries({ queryKey: keys.unread(userId) })
+          /* A dot on the nav is easy to miss while you are reading something
+             else; the toast is the part people actually notice. Suppressed
+             while the thread it belongs to is already open -- the message is
+             about to appear in front of them, and announcing it as well is
+             noise. */
+          if (!isReadingMatch(row.match_id)) {
+            toast(i18n.t(row.kind === 'audio' ? 'notif.voiceTitle' : 'notif.messageTitle'))
+          }
         },
       )
 
@@ -81,10 +103,18 @@ export function useRealtime(userId: string | undefined) {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'barter_offers' },
-        ({ new: row, old: prev }: { new?: Offer; old?: Offer }) => {
+        ({ new: row, old: prev, eventType }: {
+          new?: Offer; old?: Offer; eventType?: string
+        }) => {
           const r = row ?? prev
           if (!r) return
           if (r.to_user !== userId && r.from_user !== userId) return
+          /* Only an offer arriving FOR me, and only on INSERT. An UPDATE fires
+             on every status change including my own accept, and toasting
+             those would announce back to people the thing they just did. */
+          if (eventType === 'INSERT' && r.to_user === userId && r.from_user !== userId) {
+            toast(i18n.t('notif.offerTitle'))
+          }
           /* Everything the Offers screen reads lives under the 'barter'
              prefix -- both list boxes and the badge count -- so one
              invalidation refreshes the lot. Accepting an offer also creates a
