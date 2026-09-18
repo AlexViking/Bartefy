@@ -9,10 +9,21 @@ import { cn } from '@/lib/utils'
 
 /** Which experiments are live, and which arm THIS account is in.
  *
- *  Staff only, and deliberately not translated: it is a debugging instrument,
- *  not product copy. Without it a variant is indistinguishable from a bug --
- *  you cannot tell "B is showing correctly" from "A is broken", which makes
- *  every test impossible to check by hand.
+ *  Gated on profiles.show_ab_badge (046), NOT on is_staff. The two are
+ *  deliberately separate: is_staff also grants the moderation queue, the
+ *  analytics of every user, and RLS read access to held listings, which is a
+ *  great deal of authority to hand someone who only needs to know whether
+ *  they are looking at variant A or B.
+ *
+ *  Anyone with the flag knows they are in an experiment and is therefore no
+ *  longer a clean sample. That is fine while people are checking the wiring
+ *  by hand, and not fine once a result is meant to mean something -- turn it
+ *  off before reading numbers you intend to act on.
+ *
+ *  Deliberately not translated: it is a debugging instrument, not product
+ *  copy. Without it a variant is indistinguishable from a bug -- you cannot
+ *  tell "B is showing correctly" from "A is broken", which makes every test
+ *  impossible to check by hand.
  *
  *  It recomputes the bucket with the same function the app uses rather than
  *  reporting what some screen decided, so what it shows is what
@@ -23,13 +34,17 @@ export function ExperimentBadge() {
   const { data: experiments = [] } = useExperiments()
   const [open, setOpen] = useState(false)
 
-  const { data: isStaff = false } = useQuery({
-    queryKey: ['staff', userId ?? ''],
+  /** Own row only -- profiles_own_read (008) means a client can read its own
+   *  profile and nobody else's, so this can never report someone else's flag.
+   *  Separate query key from ['staff'], or the two would share a cache entry
+   *  and whichever loaded first would answer for both. */
+  const { data: showBadge = false } = useQuery({
+    queryKey: ['ab-badge', userId ?? ''],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('profiles').select('is_staff').eq('id', userId!).maybeSingle()
+        .from('profiles').select('show_ab_badge').eq('id', userId!).maybeSingle()
       if (error) throw error
-      return Boolean(data?.is_staff)
+      return Boolean(data?.show_ab_badge)
     },
     enabled: !!userId,
     staleTime: 5 * 60_000,
@@ -37,9 +52,9 @@ export function ExperimentBadge() {
 
   const running = experiments.filter((e) => e.status === 'running')
 
-  // Nothing running, or not staff: render nothing at all. A debug affordance
-  // that sits there empty is just clutter on every screen.
-  if (!isStaff || !userId || running.length === 0) return null
+  // Flag off, or nothing running: render nothing at all. A debug affordance
+  // sitting empty on every screen is just clutter.
+  if (!showBadge || !userId || running.length === 0) return null
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-20 z-50 flex justify-center px-4 print:hidden">
@@ -96,7 +111,7 @@ export function ExperimentBadge() {
               )
             })}
             <span className="font-body text-[10px] text-muted-foreground">
-              Only you see this. Staff only.
+              Only accounts with the tester flag see this.
             </span>
           </span>
         )}
