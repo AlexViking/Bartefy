@@ -17,6 +17,7 @@ import { OwnerRow } from '@/components/swap/OwnerRow'
 import { SwapPair } from '@/components/swap/SwapPair'
 import { WantsRow } from '@/components/swap/WantsRow'
 import { T, useT } from '@/i18n/T'
+import { cn } from '@/lib/utils'
 import { useExperiment } from '@/lib/experiments'
 import { useHunt } from './useHunt'
 
@@ -50,30 +51,66 @@ export default function HuntDesktop() {
       <div className="grid h-[calc(100dvh-68px)] grid-cols-[1fr_340px]">
         {/* Filters and deck in one column: the chips wrap across the full
             width here instead of stacking sixteen deep in a narrow rail. */}
-        <section className="flex min-h-0 flex-col overflow-y-auto px-6 py-5">
+        {/* The deck fills this column and does not scroll; everything else
+            keeps the padded, scrollable version.
+
+            A full-bleed card cannot sit inside px-6 py-5 -- that padding plus
+            a centred 600px card is what left the deck floating in the middle
+            of a 1400px screen with dead space all round it. The empty state
+            and the wishlist prompt still want the padding and still want to
+            scroll, so the two cases are separated rather than one box
+            compromising for both. */}
+        <section
+          className={cn(
+            'flex min-h-0 flex-col',
+            h.top && !h.isLoading ? 'overflow-hidden' : 'overflow-y-auto px-6 py-5',
+          )}
+        >
           <T as="h1" k="hunt.title" className="sr-only" />
 
           {/* No category rail on the deck. The pilot's Discover screen is the
               card and nothing else -- and there is nowhere else for filters to
               live now: the app does not filter at all. */}
 
-          {/* The deck, centred in what is left. 600px and landscape here, not
-              the phone's 340px portrait: there is width going spare on a
-              desktop and the photo is what people are judging.
+          {/* The deck fills the column, like the phone. The 600px landscape
+              card was still a card floating in a much larger space; here the
+              photo takes the whole area and the two bands sit on top of it.
 
-              The ratio has to change WITH the width. The card is sized by its
-              aspect ratio, so widening a 3:4 card to 600px would make it 800px
-              tall -- taller than the column it sits in, pushing the swipe
-              buttons off screen. 4:3 at 600px is ~450px tall, which is the
-              height the 340px portrait card already had. max-w still keeps it
-              a card: a 900px-wide swipe card is a poster. */}
-          <div className="flex flex-1 flex-col items-center justify-center gap-4">
+              min-h-0 is load-bearing: without it this flex child sizes to its
+              content and the card pushes its own overflow out of the column
+              instead of shrinking to fit. */}
+          <div
+            className={cn(
+              'flex min-h-0 flex-1 flex-col',
+              h.top && !h.isLoading ? '' : 'items-center justify-center gap-4',
+            )}
+          >
             {h.isLoading ? (
               <T as="p" k="hunt.loading" className="font-body text-sm text-muted-foreground" />
             ) : h.top ? (
               <>
-                <HuntStack cards={h.cards} onDecide={h.decide} onUndo={h.rewind} canUndo={h.canRewind} onUndoBlocked={h.rewindBlocked} onSuper={h.superTop} superPrice={h.superPrice} className="max-w-[600px]" cardClassName="aspect-[4/3]" />
-                <T as="p" k="hunt.hintKeys" className="font-body text-[13px] text-muted-foreground" />
+                <HuntStack
+                  cards={h.cards}
+                  onDecide={h.decide}
+                  onUndo={h.rewind}
+                  canUndo={h.canRewind}
+                  onUndoBlocked={h.rewindBlocked}
+                  onSuper={h.superTop}
+                  superPrice={h.superPrice}
+                  fill
+                  wide
+                  topSlot={
+                    /* The experimental band. Empty of product content for now
+                       -- the keyboard hint moves here because it is the one
+                       thing that was already floating under the deck, and a
+                       band with nothing in it draws no gradient at all. */
+                    <T
+                      as="span"
+                      k="hunt.hintKeys"
+                      className="font-body text-[13px] text-white/75 [text-shadow:0_1px_3px_rgb(0_0_0/0.7)]"
+                    />
+                  }
+                />
               </>
             ) : (
               <>

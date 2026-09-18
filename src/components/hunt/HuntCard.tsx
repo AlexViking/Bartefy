@@ -20,6 +20,7 @@ export function HuntCard({
   onExpand,
   className,
   fill = false,
+  wide = false,
 }: {
   item: CardItem
   eyeing?: number
@@ -30,6 +31,15 @@ export function HuntCard({
    *  photo instead of in a panel under it. The phone deck -- see `fill` on
    *  HuntStack for why. */
   fill?: boolean
+  /** A card much wider than the photos it shows -- the desktop deck.
+   *
+   *  Separate from `fill` because the two answer different questions. `fill`
+   *  is "does the card take the whole box"; this is "is the box a different
+   *  SHAPE from the photo". A phone card is full-bleed and almost exactly the
+   *  photo's own portrait shape, so object-cover crops nothing worth keeping.
+   *  A 1004x744 desktop card is landscape over a portrait photo, where cover
+   *  showed about a fifth of the item. */
+  wide?: boolean
 }) {
   const { t } = useT()
 
@@ -107,6 +117,27 @@ export function HuntCard({
           !photoLoaded && 'animate-pulse bg-secondary',
         )}
       >
+        {/* A blurred, zoomed copy of the same photo behind the real one.
+            
+            object-cover on a wide box crops a portrait photo to a corner --
+            on a 1004x744 desktop card that showed about a fifth of the item,
+            which is useless for deciding whether you want it. object-contain
+            shows all of it but leaves bars down both sides.
+            
+            So: the blur fills the box, the real photo sits inside it
+            complete. Only when filling; the 340px card is close enough to the
+            photo's own shape that cover crops almost nothing. aria-hidden and
+            no alt -- it is the same image twice, and a screen reader should
+            hear about it once. */}
+        {wide && photos[index] && (
+          <img
+            src={photos[index]}
+            alt=""
+            aria-hidden
+            draggable={false}
+            className="pointer-events-none absolute inset-0 size-full scale-110 object-cover blur-2xl brightness-[0.55]"
+          />
+        )}
         {photos[index] && (
           <img
             ref={imgRef}
@@ -122,7 +153,10 @@ export function HuntCard({
                always felt fine. */
             draggable={false}
             style={{ opacity: photoLoaded ? 1 : 0, transition: 'opacity 240ms var(--ease-out)' }}
-            className="size-full object-cover"
+            className={cn(
+              'relative size-full',
+              wide ? 'object-contain' : 'object-cover',
+            )}
           />
         )}
 
@@ -218,6 +252,13 @@ export function HuntCard({
                 // tall, so anything less puts the location row under them --
                 // measured, not guessed.
                 'absolute inset-x-0 bottom-0 z-10 pb-24',
+                // Cap the text column on a wide card and CENTRE it. Without
+                // the cap the title sits bottom-left and the category
+                // bottom-right with a thousand pixels of photo between them,
+                // and they stop reading as one block about one find. mx-auto
+                // is what puts that block under the middle of the photo
+                // rather than against the left edge of the card.
+                wide && 'mx-auto w-full max-w-[560px]',
                 // Opaque at the foot and tall enough to fade out behind the
                 // title. A lighter wash is legible over a dark photo and
                 // disappears over a bright one -- the yellow packaging in

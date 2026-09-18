@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Check, RotateCcw, Star, X } from 'lucide-react'
 
 import { animate, motion, useMotionValue, useTransform } from 'framer-motion'
@@ -31,6 +31,8 @@ export function HuntStack({
   className,
   cardClassName,
   fill = false,
+  wide = false,
+  topSlot,
 }: {
   cards: CardItem[]
   onDecide: (item: CardItem, want: boolean) => void
@@ -64,6 +66,16 @@ export function HuntStack({
    *  Desktop leaves this off: there the card is a card, centred in a column
    *  with a details pane beside it. */
   fill?: boolean
+  /** Content for the band across the top of a filling card.
+   *
+   *  A slot rather than baked-in content: this is where experiments put
+   *  whatever they are trying -- a countdown, a streak, a nudge -- without
+   *  HuntStack having to know what any of them are. Renders nothing, and
+   *  draws no band, when empty. Only used when `fill` is set; a 340px card in
+   *  a column has no room for a band and does not want one. */
+  topSlot?: ReactNode
+  /** The card is much wider than the photos it shows -- see HuntCard. */
+  wide?: boolean
 }) {
   const { t } = useT()
   const ref = useRef<HTMLDivElement>(null)
@@ -191,7 +203,7 @@ export function HuntStack({
             aria-hidden
             className="pointer-events-none absolute inset-0 origin-center scale-[0.94] overflow-hidden rounded-hero opacity-70 shadow-card"
           >
-            <HuntCard item={behind} fill={fill} className={cardClassName} />
+            <HuntCard item={behind} fill={fill} wide={wide} className={cardClassName} />
           </div>
         )}
         {/* Physics ported from V5, in the order they matter:
@@ -231,7 +243,7 @@ export function HuntStack({
           <motion.div style={{ opacity: passOpacity }} className="pointer-events-none">
             <Stamp kind="pass" visible />
           </motion.div>
-          <HuntCard item={top} fill={fill} className={cardClassName} onExpand={(i) => { setViewerAt(i); setViewing(true) }} />
+          <HuntCard item={top} fill={fill} wide={wide} className={cardClassName} onExpand={(i) => { setViewerAt(i); setViewing(true) }} />
           {/* On the card, per the scope contract: the moment you notice a
               listing is wrong is the moment you are looking at it. Behind a
               menu on the detail screen, most people just swipe past instead.
@@ -269,6 +281,20 @@ export function HuntStack({
         ownerName={top.owner}
         onDone={() => fly(false)}
       />
+
+      {/* The top band. Same overlay treatment as the action row below, at the
+          opposite edge: a gradient so arbitrary photo content stays readable
+          underneath, and pointer-events only on the children so the card can
+          still be dragged from anywhere the band does not actually cover. */}
+      {fill && topSlot && (
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-20 rounded-t-hero bg-gradient-to-b from-black/80 via-black/45 to-transparent px-4 pb-10 pt-4">
+          {/* Same 640px column as the details below, so the two bands line up
+              with each other rather than each running to its own edge. */}
+          <div className={cn('flex w-full items-start justify-between gap-2 [&>*]:pointer-events-auto', wide && 'mx-auto max-w-[560px]')}>
+            {topSlot}
+          </div>
+        </div>
+      )}
 
       {/* Over the card when it fills the screen, under it when it does not.
           A full-bleed card with the buttons below it would give back the
