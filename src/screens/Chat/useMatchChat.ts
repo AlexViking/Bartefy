@@ -12,6 +12,7 @@ import {
   sendMatchMessage,
   uploadVoiceNote,
 } from '@/lib/barter'
+import { track } from '@/lib/analytics'
 import { extensionFor } from '@/lib/voice'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth'
@@ -274,6 +275,7 @@ export function useMatchChat() {
 
     const { error } = await sendMatchMessage({ matchId, senderId: userId, body, clientMsgId })
     setSending(false)
+    if (!error) track('message_sent')
 
     const duplicate =
       error?.message?.includes('duplicate') || error?.message?.includes('23505')
@@ -357,6 +359,7 @@ export function useMatchChat() {
       return
     }
 
+    track('voice_sent', { durationMs })
     // Swap the local blob for the real URL and drop the pending flag. The
     // realtime echo is deduped by client_msg_id, so it will not arrive to do
     // this for us.

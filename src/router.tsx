@@ -28,6 +28,7 @@ import { ItemDetail } from './screens/ItemDetail'
 import { Arrange } from './screens/Arrange'
 import { Membership } from './screens/Membership'
 import { ReportQueue } from './screens/admin/ReportQueue'
+import { Analytics } from './screens/admin/Analytics'
 
 /** Signed in, and past onboarding. Someone who has signed in but never
  *  finished onboarding is sent there first — they have no city, so the feed
@@ -113,6 +114,7 @@ export function AppRouter() {
 
         {/* Internal. The staff check lives inside ReportQueue, not just here. */}
         <Route path="/admin/reports" element={guard(<ReportQueue />)} />
+        <Route path="/admin/analytics" element={guard(<Analytics />)} />
 
         {/* Retired routes kept as redirects so old links and notifications work.
             Match is a sheet over Hunt; Cancel is the TroubleSheet; Rate is

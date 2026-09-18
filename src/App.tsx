@@ -7,6 +7,7 @@ import { useRealtime } from '@/lib/realtime'
 import { startOutbox, type Job } from '@/lib/outbox'
 import { claimDailyVisit } from '@/lib/points'
 import { useAuthStore } from '@/store/auth'
+import { setAnalyticsUser, track } from '@/lib/analytics'
 import { supabase } from '@/lib/supabase'
 import { useEffect } from 'react'
 import { PlatformProvider } from '@/lib/platform'
@@ -62,6 +63,17 @@ function Live() {
   const setSession = useAuthStore((s) => s.setSession)
   const setInitialized = useAuthStore((s) => s.setInitialized)
   useRealtime(userId)
+
+  /** Tell the analytics batcher who is signed in.
+   *
+   *  Events fired before this lands are dropped rather than written with a
+   *  null user -- events_insert_own requires user_id = auth.uid(), so an
+   *  anonymous row would be refused by RLS anyway. app_opened is fired here,
+   *  once the id exists, rather than at module load for the same reason. */
+  useEffect(() => {
+    setAnalyticsUser(userId ?? null)
+    if (userId) track('app_opened')
+  }, [userId])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {

@@ -14,7 +14,7 @@ import type { IconName } from '@/components/ui/icon'
  *  in the topbar on desktop and at the head of the menu on the phone.
  */
 export interface Destination {
-  id: 'discover' | 'matches' | 'items' | 'profile' | 'settings' | 'moderation'
+  id: 'discover' | 'matches' | 'items' | 'profile' | 'settings' | 'moderation' | 'analytics'
   /** i18n key. */
   label: string
   path: string
@@ -39,6 +39,7 @@ export const DESTINATIONS: Destination[] = [
   { id: 'profile', label: 'nav.profile', path: '/profile', icon: 'User' },
   { id: 'settings', label: 'nav.settings', path: '/settings', icon: 'Settings' },
   { id: 'moderation', label: 'nav.moderation', path: '/admin/reports', icon: 'ShieldAlert', staffOnly: true },
+  { id: 'analytics', label: 'nav.analytics', path: '/admin/analytics', icon: 'ChartColumn', staffOnly: true },
 ]
 
 /** Discover, Matches, My Items -- and then Add, drawn as the third of four

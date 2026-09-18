@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { fetchFeed, getMyItems, recordSwipe } from '@/lib/api'
+import { track } from '@/lib/analytics'
 import { barterErrorKey, makeMultiOffer, makeOffer, makeSuperOffer } from '@/lib/barter'
 import { getBalance, PERK_PRICES } from '@/lib/points'
 import { keys, STALE } from '@/lib/cache/queryClient'
@@ -312,6 +313,7 @@ export function useHunt() {
       return
     }
 
+    track('offer_sent', { kind: asSuper ? 'super' : 'plain' })
     addToLikeHistory(target.id)
     setPendingTarget(null)
     removeCard(target.id)
@@ -358,6 +360,7 @@ export function useHunt() {
       return
     }
 
+    track('offer_sent', { kind: 'multi', count: offeredItemIds.length })
     addToLikeHistory(target.id)
     setPendingTarget(null)
     removeCard(target.id)
@@ -427,7 +430,10 @@ export function useHunt() {
     isLoading,
     error,
     radiusKm,
-    widen: () => setRadiusKm((r) => Math.round(r * 2.5)),
+    widen: () => {
+      track('deck_widened')
+      setRadiusKm((r) => Math.round(r * 2.5))
+    },
     matched,
     dismissMatch: () => setMatched(null),
     rewind,
