@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Check, RotateCcw, Star, X } from 'lucide-react'
 
 import { animate, motion, useMotionValue, useTransform } from 'framer-motion'
 
@@ -8,6 +7,7 @@ import { PhotoViewer } from '@/components/ui/photo-viewer'
 import { ReportItemSheet } from './ReportItemSheet'
 import { Stamp } from '@/components/ui/stamp'
 import { useT } from '@/i18n/T'
+import { ActionButtons } from './ActionButtons'
 import { HuntCard } from './HuntCard'
 import type { CardItem } from '@/store/hunt'
 import { SWIPE_COMMIT_PX, SWIPE_COMMIT_VELOCITY, settle as settleSpring } from '@/lib/motion'
@@ -28,6 +28,7 @@ export function HuntStack({
   onUndoBlocked,
   onSuper,
   superPrice,
+  onBoost,
   className,
   cardClassName,
   fill = false,
@@ -46,6 +47,11 @@ export function HuntStack({
    *  which removes the button rather than showing a dead one. */
   onSuper?: () => void
   superPrice?: number
+  /** Put this find in front of more people, for points. The perk has existed
+   *  since 024 at 75 points and no screen ever spent it -- the deck is where
+   *  the wanting happens, so it lives here. Omitted where unavailable, which
+   *  removes the tile rather than showing a dead one. */
+  onBoost?: () => void
   className?: string
   /** Shape of the card itself, as opposed to `className` which sizes the deck
    *  around it. Desktop widens the card to 600px and turns it landscape; the
@@ -302,7 +308,7 @@ export function HuntStack({
           layer (z-10), or a drag would fade the buttons out with the card. */}
       <div
         className={cn(
-          'flex items-center justify-center gap-5',
+          'flex items-center justify-center',
           fill
             ? cn(
                 'pointer-events-none absolute inset-x-0 z-20 [&>*]:pointer-events-auto',
@@ -312,55 +318,14 @@ export function HuntStack({
             : 'mt-4',
         )}
       >
-        <button
-          type="button"
-          aria-label={t('hunt.pass')}
-          onClick={() => fly(false)}
-          className="flex size-[60px] items-center justify-center rounded-pill border-2 border-destructive bg-card text-destructive shadow-float transition-colors duration-fast ease-brand hover:bg-destructive/[0.06] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45"
-        >
-          <X className="size-6" aria-hidden="true" />
-        </button>
-
-        {onUndo && (
-          <button
-            type="button"
-            aria-label={t('hunt.undo')}
-            onClick={canUndo ? onUndo : onUndoBlocked}
-            disabled={!canUndo && !onUndoBlocked}
-            className="flex size-11 items-center justify-center rounded-pill border-[1.5px] border-border/[0.14] bg-card text-muted-foreground shadow-card transition-colors duration-fast ease-brand hover:bg-foreground/[0.06] disabled:opacity-40 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45"
-          >
-            <RotateCcw className="size-4" aria-hidden="true" />
-          </button>
-        )}
-
-        {/* The super offer, in the button row rather than buried in the
-            sheet -- this is the row people's thumbs already know, and the
-            tier sheet's whole rule is that a paid action fires at the moment
-            of wanting, not one screen later.
-
-            Brass, and smaller than the two decisions either side of it: it is
-            an upgrade to the offer, not a third verdict. Never disabled for
-            lack of points -- it shows the price and routes to where points
-            are earned, because a dead button explains nothing. */}
-        {onSuper && (
-          <button
-            type="button"
-            aria-label={t('hunt.superOffer', { price: superPrice ?? 0 })}
-            onClick={onSuper}
-            className="flex size-12 items-center justify-center rounded-pill bg-accent text-accent-foreground shadow-float transition-colors duration-fast ease-brand hover:bg-[var(--brass-hover)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45"
-          >
-            <Star className="size-5" aria-hidden="true" />
-          </button>
-        )}
-
-        <button
-          type="button"
-          aria-label={t('hunt.want')}
-          onClick={() => fly(true)}
-          className="flex size-[60px] items-center justify-center rounded-pill bg-primary text-primary-foreground shadow-float transition-colors duration-fast ease-brand hover:bg-[var(--green-hover)] focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45"
-        >
-          <Check className="size-6" aria-hidden="true" />
-        </button>
+        <ActionButtons
+          onPass={() => fly(false)}
+          onWant={() => fly(true)}
+          onUndo={onUndo ? (canUndo ? onUndo : onUndoBlocked) : undefined}
+          canUndo={canUndo}
+          onSuper={onSuper}
+          onBoost={onBoost}
+        />
       </div>
 
       {/* The price, under the row. On the button it would not fit; omitted

@@ -97,6 +97,7 @@ export default function HuntDesktop() {
                   onUndoBlocked={h.rewindBlocked}
                   onSuper={h.superTop}
                   superPrice={h.superPrice}
+                  onBoost={h.boostMine}
                   fill
                   wide
                   topSlot={

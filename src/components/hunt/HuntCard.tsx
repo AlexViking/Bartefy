@@ -248,10 +248,11 @@ export function HuntCard({
           'flex flex-col gap-1.5 p-4',
           fill
             ? [
-                // pb-24: the action buttons float at bottom-7 and are 60px
-                // tall, so anything less puts the location row under them --
-                // measured, not guessed.
-                'absolute inset-x-0 bottom-0 z-10 pb-24',
+                // pb-36: the action row is a 115px-tall block (it was 60px
+                // circles), floating at bottom-7. Measured, not guessed --
+                // at pb-24 the buttons sat at 631-746 and the location row at
+                // 643-659, straight through the middle of them.
+                'absolute inset-x-0 bottom-0 z-10 pb-36',
                 // Cap the text column on a wide card and CENTRE it. Without
                 // the cap the title sits bottom-left and the category
                 // bottom-right with a thousand pixels of photo between them,

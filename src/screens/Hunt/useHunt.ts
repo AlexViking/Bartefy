@@ -7,7 +7,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchFeed, getMyItems, recordSwipe } from '@/lib/api'
 import { track } from '@/lib/analytics'
 import { barterErrorKey, makeMultiOffer, makeOffer, makeSuperOffer } from '@/lib/barter'
-import { getBalance, PERK_PRICES } from '@/lib/points'
+import { getBalance, PERK_PRICES, spendOnPerk } from '@/lib/points'
 import { keys, STALE } from '@/lib/cache/queryClient'
 import { warmAhead } from '@/lib/feed/warm'
 import { useT } from '@/i18n/T'
@@ -256,6 +256,34 @@ export function useHunt() {
     setPendingTarget(item)
   }
 
+  /** Boost: put MY find in front of more people, paid in points.
+   *
+   *  The odd one out in the action row -- the other four act on the card in
+   *  front of you, this one acts on your own listing. It has been priced at
+   *  75 points since 024 and no screen ever spent it.
+   *
+   *  Boosts the find you are currently offering, which is the one the picker
+   *  already has selected. Too few points routes to where they are earned
+   *  rather than failing: a dead button explains nothing. */
+  const boostMine = async () => {
+    if (!selectedOfferId) {
+      navigate('/items')
+      return
+    }
+    if (balance < PERK_PRICES.boost) {
+      navigate('/points')
+      return
+    }
+    const { error } = await spendOnPerk('boost', selectedOfferId)
+    if (error) {
+      toast.error(t('barter.errorGeneric'))
+      return
+    }
+    track('points_spent', { perk: 'boost', price: PERK_PRICES.boost })
+    toast.success(t('hunt.boosted'))
+    void queryClient.invalidateQueries({ queryKey: ['points'] })
+  }
+
   /** The star, in the button row. Opens the same sheet with the super offer
    *  as its primary action. Too few points routes to where they are earned
    *  rather than opening a sheet whose main button cannot be pressed. */
@@ -462,6 +490,7 @@ export function useHunt() {
     sendMultiOffer,
     cancelOffer,
     superTop,
+    boostMine,
     superIntent,
     sending,
     offerError,
