@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { track } from '@/lib/analytics'
 import {
   barterErrorKey,
   getIncomingOffers,
@@ -33,6 +35,8 @@ export type OfferRow = {
    *  first; this is what lets the row SAY so, which is the other half of what
    *  the 50 points bought. */
   isPriority: boolean
+  /** The real deadline the cron job enforces, not a display flourish. */
+  expiresAt: string | null
 }
 
 type Row = Record<string, unknown>
@@ -65,6 +69,8 @@ function shape(r: Row, withSender: boolean): OfferRow {
     id: String(r.id),
     note: (r.note as string) ?? null,
     createdAt: String(r.created_at ?? ''),
+    /** When this offer dies and the find goes back on the deck (045). */
+    expiresAt: r.expires_at ? String(r.expires_at) : null,
     status: String(r.status ?? 'pending'),
     isPriority: Boolean(r.is_priority),
     wanted: item(r.wanted),
@@ -127,6 +133,11 @@ export function useOffers() {
     },
     onSettled: () => setBusyId(null),
     onSuccess: (match, { accept }) => {
+      // The goal of the offer_deadline test: does seeing a countdown make
+      // people answer at all? Fired on either answer, since declining is also
+      // answering -- an offer left to rot is the outcome the deadline exists
+      // to reduce.
+      track(accept ? 'offer_accepted' : 'offer_declined')
       // Both lists change on either answer: an accepted offer leaves the inbox
       // and a match appears, and the cascade may have cancelled rivals.
       qc.invalidateQueries({ queryKey: ['barter'] })

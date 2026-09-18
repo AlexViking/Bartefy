@@ -51,6 +51,9 @@ export const EVENT_NAMES = [
   // Session
   'app_opened',
   'signed_up',
+  // Experiments. Fired by useExperiment when someone actually sees a variant
+  // -- the denominator every conversion rate is measured against.
+  'experiment_exposed',
 ] as const
 
 /** A real array, not just a union: the admin page renders this list so a goal

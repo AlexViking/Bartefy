@@ -12,6 +12,13 @@ import { useAuthStore } from '@/store/auth'
  *  for why hashing beats a stored coin flip.
  */
 
+/** Experiments this app load has already counted an exposure for.
+ *
+ *  Module scope, not state: the hook remounts on every navigation back to the
+ *  screen, and a per-component guard would count one person as newly exposed
+ *  each time they returned. */
+const exposed = new Set<string>()
+
 export interface Experiment {
   key: string
   status: 'draft' | 'running' | 'stopped'
@@ -33,10 +40,13 @@ export function useExperiments() {
       if (error) throw error
       return (data ?? []) as Experiment[]
     },
-    // Five minutes: long enough that this is not a per-navigation request,
-    // short enough that stopping a runaway test takes effect without anyone
-    // having to reload the app.
-    staleTime: 5 * 60_000,
+    // One minute, not five. This is the delay between starting or stopping a
+    // test and it actually taking effect for someone already in the app --
+    // combined with refetchOnWindowFocus, a query inside its staleTime does
+    // NOT refetch, so staleTime is the real floor on how long a stopped test
+    // keeps running. One tiny request a minute is a fair price for being able
+    // to stop a bad variant promptly.
+    staleTime: 60_000,
   })
 }
 
@@ -62,11 +72,23 @@ export function useExperiment(key: string): 'a' | 'b' {
   // Stamp the variant onto everything this user does while the test is live,
   // so no call site has to know an experiment exists. Cleared on unmount, or
   // a stale key would keep tagging events after the screen is gone.
+  //
+  // It also fires the EXPOSURE event, once per user per experiment per app
+  // load. That is not bookkeeping -- it is what makes the denominator right.
+  // admin_experiment_results counts conversions over people who were exposed,
+  // and without an explicit exposure event the only people counted are those
+  // who happened to do something else afterwards. Everyone who saw the
+  // variant and did nothing would vanish from the denominator, which is
+  // precisely the group a conversion rate exists to measure against, and both
+  // arms would read far higher than the truth.
   useEffect(() => {
-    if (exp && exp.status === 'running' && userId) {
-      setActiveExperiment({ key, variant })
-      return () => setActiveExperiment(null)
+    if (!exp || exp.status !== 'running' || !userId) return
+    setActiveExperiment({ key, variant })
+    if (!exposed.has(key)) {
+      exposed.add(key)
+      track('experiment_exposed', { experiment: key, variant })
     }
+    return () => setActiveExperiment(null)
   }, [exp, key, userId, variant])
 
   return variant

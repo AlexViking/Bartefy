@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { T, useT } from '@/i18n/T'
 import { cn } from '@/lib/utils'
+import { ExpiryCountdown } from '@/components/offer/ExpiryCountdown'
+import { useExperiment } from '@/lib/experiments'
 import { useOffers, type OfferRow } from './useOffers'
 
 /** A photo, or a placeholder of the same size so rows never jump. */
@@ -29,6 +31,7 @@ function OfferCard({
   onAccept,
   onDecline,
   onOpenItem,
+  showTimer,
 }: {
   offer: OfferRow
   busy: boolean
@@ -36,6 +39,10 @@ function OfferCard({
   onDecline?: () => void
   /** Takes the PUBLIC id -- the token in URLs, never items.id. */
   onOpenItem: (publicId: string) => void
+  /** Variant B of offer_deadline shows the countdown. Passed down rather than
+   *  read per row: useExperiment stamps the exposure, and calling it once per
+   *  card would re-stamp it for every offer in the list. */
+  showTimer: boolean
 }) {
   const { t } = useT()
   const trades = offer.sender?.completedTrades ?? 0
@@ -61,10 +68,15 @@ function OfferCard({
               sorted by and never shown -- so a super offer was identical to a
               free one on screen. Brass, because this is the accent that means
               "paid attention" everywhere else. */}
+          {/* Only while the test is running and only on a live offer: a
+              countdown on something already answered is noise. */}
+          {showTimer && offer.status === 'pending' && (
+            <ExpiryCountdown expiresAt={offer.expiresAt} className="ml-auto shrink-0" />
+          )}
           {offer.isPriority && (
             <span
               data-i18n="barter.superBadge"
-              className="ml-auto flex shrink-0 items-center gap-1 rounded-pill bg-accent/20 px-2 py-0.5 font-display text-[11px] font-semibold text-accent-foreground"
+              className="flex shrink-0 items-center gap-1 rounded-pill bg-accent/20 px-2 py-0.5 font-display text-[11px] font-semibold text-accent-foreground"
             >
               <Icon name="Sparkles" size={12} aria-hidden="true" />
               {t('barter.superBadge')}
@@ -176,6 +188,13 @@ export default function Offers() {
   const { t } = useT()
   const rows = o.tab === 'incoming' ? o.incoming : o.sent
 
+  /** Does an offer show how long is left before it expires?
+   *
+   *  The DEADLINE is real either way -- 045 expires the row and frees the item
+   *  whichever arm you are in. This tests only whether SEEING the clock
+   *  changes what people do, which is the honest version of the question. */
+  const showTimer = useExperiment('offer_deadline') === 'b'
+
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-[720px] px-4 py-5">
@@ -249,6 +268,7 @@ export default function Offers() {
                     onOpenItem={o.openItem}
                     onAccept={o.tab === 'incoming' ? () => o.accept(offer.id) : undefined}
                     onDecline={o.tab === 'incoming' ? () => o.decline(offer.id) : undefined}
+                    showTimer={showTimer}
                   />
                 )
               }
@@ -275,6 +295,7 @@ export default function Offers() {
                         onOpenItem={o.openItem}
                         onAccept={o.tab === 'incoming' ? () => o.accept(offer.id) : undefined}
                         onDecline={o.tab === 'incoming' ? () => o.decline(offer.id) : undefined}
+                        showTimer={showTimer}
                       />
                     ))}
                   </ul>

@@ -850,5 +850,10 @@
     "remove": "Delete this experiment",
     "splitLabel": "How many people see B",
     "splitValue": "{{a}}% A · {{b}}% B"
+  },
+  "offers": {
+    "expired": "Expired",
+    "leftHM": "{{h}}h {{m}}m left",
+    "leftMS": "{{m}}m {{s}}s left"
   }
 }

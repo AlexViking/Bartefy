@@ -147,7 +147,7 @@ export async function getIncomingOffers(userId: string) {
   return supabase
     .from('barter_offers')
     .select(
-      `id, from_user, to_user, offered_item_id, wanted_item_id, note, status, created_at, is_priority,
+      `id, from_user, to_user, offered_item_id, wanted_item_id, note, status, created_at, expires_at, is_priority,
        offered:items!barter_offers_offered_item_id_fkey (id, public_id, title, images, category, condition, user_id),
        wanted:items!barter_offers_wanted_item_id_fkey (id, public_id, title, images, category, condition, user_id),
        sender:profiles!barter_offers_from_user_fkey (id, name, completed_trades)`,
@@ -169,7 +169,7 @@ export async function getSentOffers(userId: string) {
   return supabase
     .from('barter_offers')
     .select(
-      `id, from_user, to_user, offered_item_id, wanted_item_id, note, status, created_at, responded_at,
+      `id, from_user, to_user, offered_item_id, wanted_item_id, note, status, created_at, expires_at, responded_at,
        offered:items!barter_offers_offered_item_id_fkey (id, public_id, title, images, category, condition, user_id),
        wanted:items!barter_offers_wanted_item_id_fkey (id, public_id, title, images, category, condition, user_id)`,
     )
