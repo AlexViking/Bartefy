@@ -89,6 +89,10 @@ export function PhotoViewer({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 1.02 }}
                 transition={spring.gentle}
+                /* No drag gesture here to fight, but dragging the photo out
+                   of the lightbox with a mouse still reads as the viewer
+                   coming apart. */
+                draggable={false}
                 className="max-h-full max-w-full object-contain"
               />
             </AnimatePresence>

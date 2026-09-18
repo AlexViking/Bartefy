@@ -114,6 +114,13 @@ export function HuntCard({
             alt={t('a11y.photoOf', { title: item.title })}
             loading="lazy"
             onLoad={() => setPhotoLoaded(true)}
+            /* An <img> is draggable:true by default, so on a desktop starting
+               a swipe ON the photo handed the pointer to the browser's native
+               image drag -- you got a ghost of the picture following the
+               cursor and the card never moved. Only a problem with a mouse:
+               touch has no native image drag, which is why the phone deck
+               always felt fine. */
+            draggable={false}
             style={{ opacity: photoLoaded ? 1 : 0, transition: 'opacity 240ms var(--ease-out)' }}
             className="size-full object-cover"
           />
