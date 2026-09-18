@@ -1,7 +1,14 @@
 import { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
-import { bucketFor, setActiveExperiment, track, type EventName } from '@/lib/analytics'
+import {
+  bucketFor,
+  clearActiveExperiment,
+  setActiveExperiment,
+  setExperimentGoal,
+  track,
+  type EventName,
+} from '@/lib/analytics'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth'
 
@@ -84,11 +91,14 @@ export function useExperiment(key: string): 'a' | 'b' {
   useEffect(() => {
     if (!exp || exp.status !== 'running' || !userId) return
     setActiveExperiment({ key, variant })
+    setExperimentGoal(key, exp.goal_event)
     if (!exposed.has(key)) {
       exposed.add(key)
-      track('experiment_exposed', { experiment: key, variant })
+      // Passes its own key: this event is ABOUT the experiment, so it is not
+      // matched by goal like every other one.
+      track('experiment_exposed', { experiment: key, variant }, key)
     }
-    return () => setActiveExperiment(null)
+    return () => clearActiveExperiment(key)
   }, [exp, key, userId, variant])
 
   return variant

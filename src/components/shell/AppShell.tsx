@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 
 import { MobileMenu } from './MobileMenu'
 import { Sidebar } from './Sidebar'
+import { useExperiment } from '@/lib/experiments'
 import { TabBar } from './TabBar'
 import { Topbar } from './Topbar'
 import { supabase } from '@/lib/supabase'
@@ -128,6 +129,21 @@ export function AppShell({
   })
 
   const badges = { offers, unread }
+
+  /** Register experiment exposure for everyone who opens the app.
+   *
+   *  The hook was called only on the screen that RENDERS each difference --
+   *  Offers for the countdown, Hunt for the empty-deck order. That made
+   *  exposure depend on reaching one specific screen: offer_deadline recorded
+   *  nothing at all while there were no offers to look at, so the test read
+   *  0 of 0 for days and looked broken.
+   *
+   *  Being IN an arm is what exposure means, and the arm is decided the
+   *  moment someone opens the app. The screens still read the same hook to
+   *  decide what to draw -- useExperiment is pure apart from the one-shot
+   *  exposure event, which is deduped per app load in lib/experiments. */
+  useExperiment('deck_empty_cta')
+  useExperiment('offer_deadline')
 
   if (hideNav) {
     return <div className="flex min-h-dvh flex-col bg-background">{children}</div>

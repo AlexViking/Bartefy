@@ -93,12 +93,57 @@ export function setAnalyticsUser(id: string | null) {
   userId = id
 }
 
-/** Variant stamping. Set by the experiment layer so every event fired while a
- *  test is live carries which arm the user is in -- without every call site
- *  having to know about experiments at all. */
-let activeExperiment: { key: string; variant: 'a' | 'b' } | null = null
+/** Which arm this user is in, per running experiment.
+ *
+ *  A MAP, not one slot. With a single slot two concurrent experiments
+ *  overwrite each other -- whichever hook ran last wins, and every goal event
+ *  gets stamped with that experiment regardless of which one it belongs to.
+ *  Two tests running at once is the normal case, not an edge case.
+ *
+ *  An event carries ONE experiment/variant pair (the events table has one
+ *  column each, and a row belonging to two tests would double-count in both).
+ *  The first key registered wins, which is stable for a given app load
+ *  because AppShell registers them in a fixed order.
+ */
+const activeExperiments = new Map<string, 'a' | 'b'>()
+
 export function setActiveExperiment(e: { key: string; variant: 'a' | 'b' } | null) {
-  activeExperiment = e
+  if (e) activeExperiments.set(e.key, e.variant)
+}
+
+export function clearActiveExperiment(key: string) {
+  activeExperiments.delete(key)
+}
+
+/** Which experiment, if any, this event belongs to.
+ *
+ *  Matched by GOAL, not by whichever hook ran last. An events row carries one
+ *  experiment and one variant, so stamping offer_accepted with
+ *  deck_empty_cta -- because that hook happened to register first -- would
+ *  file the conversion under the wrong test and corrupt both.
+ *
+ *  So: an event is attributed to the running experiment whose goal it IS.
+ *  experiment_exposed is the exception; it names its own experiment in props
+ *  and passes it explicitly.
+ */
+const goalOf = new Map<string, string>()
+
+/** Told by the experiment layer which event each running test measures. */
+export function setExperimentGoal(key: string, goalEvent: string) {
+  goalOf.set(key, goalEvent)
+}
+
+function stampFor(name: EventName, explicitKey?: string): {
+  experiment: string | null
+  variant: string | null
+} {
+  const key =
+    explicitKey ??
+    [...activeExperiments.keys()].find((k) => goalOf.get(k) === name)
+  if (!key) return { experiment: null, variant: null }
+  const variant = activeExperiments.get(key)
+  if (!variant) return { experiment: null, variant: null }
+  return { experiment: key, variant }
 }
 
 async function flush() {
@@ -129,13 +174,18 @@ async function flush() {
  *  Returns void rather than a promise so that awaiting it is not even
  *  expressible at a call site.
  */
-export function track(name: EventName, props: Record<string, unknown> = {}): void {
+export function track(
+  name: EventName,
+  props: Record<string, unknown> = {},
+  /** Only experiment_exposed passes this: it names the test it is about,
+   *  rather than being matched by goal like every other event. */
+  experimentKey?: string,
+): void {
   queue.push({
     name,
     props,
     session_id: sessionId,
-    experiment: activeExperiment?.key ?? null,
-    variant: activeExperiment?.variant ?? null,
+    ...stampFor(name, experimentKey),
     // Stamped when it HAPPENED, not when it is written. A batch flushed five
     // seconds later would otherwise compress five seconds of behaviour into
     // one instant and make every duration measured from it wrong.
