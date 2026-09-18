@@ -17,6 +17,7 @@ import { OwnerRow } from '@/components/swap/OwnerRow'
 import { SwapPair } from '@/components/swap/SwapPair'
 import { WantsRow } from '@/components/swap/WantsRow'
 import { T, useT } from '@/i18n/T'
+import { useExperiment } from '@/lib/experiments'
 import { useHunt } from './useHunt'
 
 /** Hunt, desktop shape: filters left, stack centre, the find's details right.
@@ -29,6 +30,13 @@ import { useHunt } from './useHunt'
 export default function HuntDesktop() {
   const h = useHunt()
   const { t } = useT()
+
+  /** deck_empty_cta: which order the empty deck offers its two ways out.
+   *  Called unconditionally at the top, not inside the empty branch -- a hook
+   *  behind a condition is a rules-of-hooks crash, and the exposure should be
+   *  recorded when someone is IN the test, not only once they hit the empty
+   *  state. */
+  const emptyVariant = useExperiment('deck_empty_cta')
 
   return (
     <AppShell>
@@ -69,6 +77,12 @@ export default function HuntDesktop() {
               </>
             ) : (
               <>
+                {/* deck_empty_cta, variant B: the wishlist prompt comes FIRST.
+                    Widening the radius is the obvious action and does nothing when
+                    there genuinely is nothing nearby -- which is the case that
+                    empties a deck. "Tell me when one turns up" is the one that can
+                    still help, so B tries leading with it. */}
+                {emptyVariant === 'b' && <WatchPrompt />}
                 <EmptyState
                   title="hunt.emptyTitle"
                   body="hunt.emptyBody"
@@ -79,9 +93,9 @@ export default function HuntDesktop() {
                   secondaryLabel="hunt.reachFurther"
                   onSecondary={h.openReachPitch}
                 />
-                {/* Below the deck's own actions, not among them: widening
+                {/* Variant A keeps it below the deck's own actions: widening
                     gets you cards now, this is for when that did not work. */}
-                <WatchPrompt />
+                {emptyVariant !== 'b' && <WatchPrompt />}
               </>
             )}
           </div>
