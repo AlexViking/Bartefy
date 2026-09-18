@@ -176,19 +176,25 @@ export function ActionButtons({
     >
       {ORDER.map((a) => {
         const on = handlers[a]
-        // An action with no handler is not drawn at all. A tile that cannot be
-        // pressed is worse than a gap -- the row is still legible with four.
-        if (!on) return null
+        // Undo ALWAYS renders. It is the one action whose availability changes
+        // from card to card, and a tile that disappears the moment there is
+        // nothing to undo shifts the other four sideways under a thumb already
+        // moving toward one of them -- so the button you meant to press is not
+        // where it was a second ago. Disabled and dimmed instead.
+        //
+        // Every other action is either available for the whole session or not
+        // wired at all, so dropping those is safe and keeps the row legible.
+        if (!on && a !== 'undo') return null
         const tile = TILES[a]
         const size = SIZES[a]
-        const dim = a === 'undo' && !canUndo
+        const disabled = a === 'undo' && (!canUndo || !on)
         return (
           <button
             key={a}
             type="button"
             onClick={on}
+            disabled={disabled}
             aria-label={t(labels[a])}
-            aria-disabled={dim || undefined}
             style={{
               ['--glow' as string]: COLOURS[a],
               // The authored size. A path clip is in absolute units, so the
@@ -212,7 +218,9 @@ export function ActionButtons({
               // the icon's own alpha.
               '[&_svg]:[filter:drop-shadow(0_0_3px_var(--glow))_drop-shadow(0_0_10px_var(--glow))]',
               'active:scale-95 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45',
-              dim && 'opacity-40',
+              // Visibly unavailable, and actually unpressable: `disabled`
+              // alone looks identical, and opacity alone still takes the tap.
+              disabled && 'cursor-default opacity-40',
             )}
           >
             {tile.icon(COLOURS[a])}
