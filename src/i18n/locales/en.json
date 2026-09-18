@@ -839,6 +839,16 @@
     "variantB": "B — the new version",
     "ofExposed": "{{converted}} of {{exposed}} people",
     "verdictReady": "Both sides have enough people for this to mean something. Read it alongside what you know about the change.",
-    "verdictEarly": "Too early to call. Each side needs at least {{min}} people before a difference means anything — until then this is a description, not a verdict."
+    "verdictEarly": "Too early to call. Each side needs at least {{min}} people before a difference means anything — until then this is a description, not a verdict.",
+    "newExperiment": "New experiment",
+    "keyLabel": "Key",
+    "keyHelp": "What the code asks for: useExperiment('your_key'). Lower case, underscores.",
+    "goalLabel": "What counts as winning",
+    "whatLabel": "What are you testing?",
+    "whatPlaceholder": "e.g. Wishlist prompt first, instead of widen radius",
+    "createIt": "Create",
+    "remove": "Delete this experiment",
+    "splitLabel": "How many people see B",
+    "splitValue": "{{a}}% A · {{b}}% B"
   }
 }

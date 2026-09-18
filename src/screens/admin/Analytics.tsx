@@ -1,13 +1,17 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { AppShell } from '@/components/shell/AppShell'
 import { PageBody } from '@/components/shell/PageBody'
 import { PageHeader, PageTabs } from '@/components/shell/PageHeader'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Slider } from '@/components/ui/slider'
 import { Icon } from '@/components/ui/icon'
 import { ToneBadge } from '@/components/ui/tone-badge'
 import { T, useT } from '@/i18n/T'
 import { cn } from '@/lib/utils'
+import { EVENT_NAMES } from '@/lib/analytics'
 import { MIN_PER_ARM, useAnalytics, type Pane } from './useAnalytics'
 
 const PANES: Pane[] = ['funnel', 'events', 'experiments']
@@ -172,6 +176,8 @@ export function Analytics() {
         {/* ── Experiments ────────────────────────────────────────────── */}
         {a.pane === 'experiments' && (
           <div className="flex flex-col gap-4">
+            <NewExperiment onCreate={a.create} error={a.createError} busy={a.saving} />
+
             {a.experiments.length === 0 && (
               <section className="rounded-card border border-border/[0.14] bg-card p-5">
                 <T as="p" k="analytics.noExperiments" className="font-body text-sm text-muted-foreground" />
@@ -218,8 +224,25 @@ export function Analytics() {
                           <T as="span" k="analytics.stop" />
                         </Button>
                       )}
+                      {e.status !== 'running' && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={a.saving}
+                          aria-label={t('analytics.remove')}
+                          onClick={() => a.remove(e.key)}
+                        >
+                          <Icon name="Trash2" size={16} className="text-destructive" />
+                        </Button>
+                      )}
                     </div>
                   </div>
+
+                  <SplitControl
+                    value={e.split}
+                    busy={a.saving}
+                    onChange={(v) => a.setSplit(e.key, v)}
+                  />
 
                   {!selected ? (
                     <Button
@@ -240,6 +263,150 @@ export function Analytics() {
         )}
       </PageBody>
     </AppShell>
+  )
+}
+
+/** Create an experiment without touching SQL.
+ *
+ *  The goal is picked from EVENT_NAMES rather than typed: a goal that does not
+ *  match an event the app actually fires produces a test that can never
+ *  convert, and the number it shows -- 0% on both arms -- looks like a real
+ *  result rather than a typo.
+ */
+function NewExperiment({
+  onCreate,
+  error,
+  busy,
+}: {
+  onCreate: (i: { key: string; goal_event: string; split: number; description: string }) => void
+  error: string | null
+  busy: boolean
+}) {
+  const { t } = useT()
+  const [open, setOpen] = useState(false)
+  const [key, setKey] = useState('')
+  const [goal, setGoal] = useState<string>(EVENT_NAMES[0])
+  const [split, setSplit] = useState(50)
+  const [description, setDescription] = useState('')
+
+  if (!open) {
+    return (
+      <Button variant="ghost" className="self-start" onClick={() => setOpen(true)}>
+        <Icon name="Plus" size={16} />
+        <T as="span" k="analytics.newExperiment" />
+      </Button>
+    )
+  }
+
+  const submit = () => {
+    if (!key.trim()) return
+    onCreate({ key, goal_event: goal, split, description })
+    setKey('')
+    setDescription('')
+    setOpen(false)
+  }
+
+  return (
+    <section className="flex flex-col gap-3 rounded-card border border-border/[0.14] bg-card p-5">
+      <T as="h2" k="analytics.newExperiment" className="font-display text-h3 text-foreground" />
+
+      <label className="flex flex-col gap-1">
+        <T as="span" k="analytics.keyLabel" className="font-body text-sm text-muted-foreground" />
+        <Input
+          value={key}
+          onChange={(e) => setKey(e.target.value)}
+          placeholder="deck_empty_cta"
+          maxLength={64}
+        />
+        <T as="span" k="analytics.keyHelp" className="font-body text-xs text-muted-foreground" />
+      </label>
+
+      <label className="flex flex-col gap-1">
+        <T as="span" k="analytics.goalLabel" className="font-body text-sm text-muted-foreground" />
+        <select
+          value={goal}
+          onChange={(e) => setGoal(e.target.value)}
+          className="min-h-hit rounded-card-sm border border-border/[0.14] bg-background px-3 font-body text-sm text-foreground"
+        >
+          {EVENT_NAMES.map((n) => (
+            /* Event names are identifiers the code fires, not copy. */
+            <option key={n} value={n}>{n}</option>
+          ))}
+        </select>
+      </label>
+
+      <label className="flex flex-col gap-1">
+        <T as="span" k="analytics.whatLabel" className="font-body text-sm text-muted-foreground" />
+        <Input
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder={t('analytics.whatPlaceholder')}
+          maxLength={200}
+        />
+      </label>
+
+      <SplitControl value={split} busy={busy} onChange={setSplit} />
+
+      {error && (
+        <p role="alert" className="font-body text-sm text-destructive">{error}</p>
+      )}
+
+      <div className="flex gap-2">
+        <Button disabled={busy || !key.trim()} onClick={submit}>
+          <T as="span" k="analytics.createIt" />
+        </Button>
+        <Button variant="ghost" onClick={() => setOpen(false)}>
+          <T as="span" k="common.cancel" />
+        </Button>
+      </div>
+    </section>
+  )
+}
+
+/** How many people see B.
+ *
+ *  Safe to move on a running test -- assignment is hashed, so there is no
+ *  stored allocation to rewrite. Some people do cross arms when it moves,
+ *  which is fine for ramping a rollout and dishonest for chasing a result;
+ *  the helper text says so rather than leaving it to be discovered.
+ */
+function SplitControl({
+  value,
+  onChange,
+  busy,
+}: {
+  value: number
+  onChange: (v: number) => void
+  busy: boolean
+}) {
+  const { t } = useT()
+  const [local, setLocal] = useState(value)
+
+  // Follow the server when it changes underneath (another tab, a refetch),
+  // but never while dragging -- that would fight the thumb.
+  useEffect(() => setLocal(value), [value])
+
+  return (
+    <div className="mt-3 flex flex-col gap-1.5">
+      <div className="flex items-baseline justify-between">
+        <T as="span" k="analytics.splitLabel" className="font-body text-sm text-muted-foreground" />
+        <span className="font-display text-sm font-semibold tabular-nums text-foreground">
+          {t('analytics.splitValue', { a: 100 - local, b: local })}
+        </span>
+      </div>
+      <Slider
+        value={[local]}
+        min={0}
+        max={100}
+        step={5}
+        disabled={busy}
+        onValueChange={(v) => setLocal(v[0] ?? 0)}
+        // Commit on release, not on every frame: dragging 0 -> 50 would
+        // otherwise be ten writes and ten refetches.
+        onValueCommit={(v) => onChange(v[0] ?? 0)}
+        aria-label={t('analytics.splitLabel')}
+      />
+    </div>
   )
 }
 

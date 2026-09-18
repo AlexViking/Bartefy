@@ -24,33 +24,41 @@ import { supabase } from '@/lib/supabase'
  *  reads a report and finds half the traffic missing; and the admin page can
  *  render a known set rather than whatever happens to have been written.
  */
-export type EventName =
+export const EVENT_NAMES = [
   // Deck
-  | 'deck_viewed'
-  | 'deck_emptied'
-  | 'deck_widened'
-  | 'card_expanded'
+  'deck_viewed',
+  'deck_emptied',
+  'deck_widened',
+  'card_expanded',
   // Offers
-  | 'offer_sheet_opened'
-  | 'offer_sheet_abandoned'
-  | 'offer_sent'
-  | 'offer_accepted'
-  | 'offer_declined'
+  'offer_sheet_opened',
+  'offer_sheet_abandoned',
+  'offer_sent',
+  'offer_accepted',
+  'offer_declined',
   // Chat
-  | 'chat_opened'
-  | 'message_sent'
-  | 'voice_sent'
-  | 'arrange_opened'
+  'chat_opened',
+  'message_sent',
+  'voice_sent',
+  'arrange_opened',
   // Listing
-  | 'add_item_started'
-  | 'add_item_published'
-  | 'add_item_abandoned'
+  'add_item_started',
+  'add_item_published',
+  'add_item_abandoned',
   // Money and membership
-  | 'upgrade_sheet_opened'
-  | 'points_spent'
+  'upgrade_sheet_opened',
+  'points_spent',
   // Session
-  | 'app_opened'
-  | 'signed_up'
+  'app_opened',
+  'signed_up',
+] as const
+
+/** A real array, not just a union: the admin page renders this list so a goal
+ *  can be PICKED rather than typed. A goal that does not match an event the
+ *  app fires makes a test that can never convert, and 0% on both arms reads
+ *  as a result rather than as the typo it is. A bare `type` disappears at
+ *  runtime and could not be offered as options. */
+export type EventName = (typeof EVENT_NAMES)[number]
 
 interface QueuedEvent {
   name: EventName
