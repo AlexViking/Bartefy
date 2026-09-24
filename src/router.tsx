@@ -55,7 +55,18 @@ function NeedsSession({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-function HomeRoute() {
+/** The auth screen, plus the redirect that must follow a successful sign-in.
+ *
+ *  This wrapper exists because the redirect used to live only on `/`. A
+ *  session created at `/login` or `/signup` therefore landed nowhere: the
+ *  verification SUCCEEDED, onAuthStateChange stored the session, and the
+ *  person went on staring at the code form. Editing the URL to `/` was the
+ *  only way out, which is exactly how the bug was reported.
+ *
+ *  Every route that renders Auth now renders this instead, so there is no
+ *  route where a signed-in person can be stranded on a sign-in form.
+ */
+function AuthRoute() {
   const session = useAuthStore((s) => s.session)
   const initialized = useAuthStore((s) => s.initialized)
   const onboarded = useOnboardingStore((s) => s.completed)
@@ -76,7 +87,7 @@ export function AppRouter() {
     <BrowserRouter>
       <RoutedBoundary>
       <Routes>
-        <Route path="/" element={<HomeRoute />} />
+        <Route path="/" element={<AuthRoute />} />
         <Route path="/welcome" element={<NeedsSession><Onboarding /></NeedsSession>} />
         {/* The code is typed on the Auth screen itself now, so there is no
             second page to send anyone to. Kept as a redirect for old push
@@ -85,8 +96,8 @@ export function AppRouter() {
         {/* Sign-in and sign-up are separate screens again. One Auth component
             serves both: the route decides the mode, because the difference is
             an invite field and which Supabase flag gets set, not a layout. */}
-        <Route path="/login" element={<Auth />} />
-        <Route path="/signup" element={<Auth />} />
+        <Route path="/login" element={<AuthRoute />} />
+        <Route path="/signup" element={<AuthRoute />} />
         {/* /register predates the split and is still in old links. */}
         <Route path="/register" element={<Navigate to="/signup" replace />} />
 

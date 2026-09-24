@@ -216,6 +216,18 @@ function CodeStep({ a }: { a: ReturnType<typeof useAuthScreen> }) {
     void verify(code)
   }, [code, verify])
 
+  /** Put the caret back after a rejection.
+   *
+   *  `verify` clears the boxes on failure so the next attempt starts empty.
+   *  Without restoring focus the person has to tap the field again first --
+   *  which, combined with the remount and the disabled input, is why retyping
+   *  the code kept appearing to do nothing. */
+  useEffect(() => {
+    if (!a.error) return
+    const el = document.querySelector<HTMLInputElement>('input[autocomplete="one-time-code"]')
+    el?.focus()
+  }, [a.error])
+
   const clock = `${Math.floor(a.countdown / 60)}:${String(a.countdown % 60).padStart(2, '0')}`
 
   return (
@@ -237,18 +249,25 @@ function CodeStep({ a }: { a: ReturnType<typeof useAuthScreen> }) {
         {t('auth.codeSentBody', { email: a.email })}
       </p>
 
+      {/* The shake is driven by a counter, NOT by `key`. Keying this wrapper
+          on the error text remounted the OTP input on every rejection, which
+          destroyed its internal state and its focus -- so the boxes cleared
+          and the retype landed in a field nobody was typing into. A counter
+          replays the animation without touching the tree. */}
       <motion.div
-        // Keyed on the error text so a second rejection replays the shake
-        // rather than sitting still because the value did not change.
-        key={a.error ?? 'ok'}
-        animate={a.error ? { x: [0, -8, 8, -5, 5, 0] } : undefined}
+        animate={a.error ? { x: [0, -8, 8, -5, 5, 0] } : { x: 0 }}
         transition={{ duration: 0.36, ease: 'easeInOut' }}
       >
       <InputOTP
         maxLength={CODE_LENGTH}
         value={code}
         onChange={a.setCode}
-        disabled={busy}
+        /* NOT disabled while verifying. Disabling blurs the field, and
+           input-otp drops the caret with it -- a pasted code fired the
+           auto-submit, the input went disabled, and the person was left
+           looking at cleared boxes they could not type into. `verify` already
+           dedupes by value, so a second submit is harmless. The busy state is
+           shown on the resend button instead. */
         autoFocus
         // Lets iOS and Android offer the code straight from the notification.
         autoComplete="one-time-code"
