@@ -24,10 +24,33 @@ function commitSha() {
 }
 
 export default defineConfig({
+  /* Two entries: the app, and the organism gallery used by the V6 plan
+   * viewer. The gallery mounts the REAL components so a preview cannot drift
+   * from what ships. It is only built when BARTEFY_PREVIEW is set, so the
+   * production deploy is unchanged. */
+  /* The gallery is opened from a file:// path inside v6/, so it needs
+   * relative asset URLs and a single self-contained chunk -- an absolute
+   * /assets/ URL resolves to the filesystem root and silently 404s. */
+  base: process.env.BARTEFY_PREVIEW ? './' : '/',
+  build: process.env.BARTEFY_PREVIEW
+    ? {
+        rollupOptions: {
+          input: {
+            organisms: path.resolve(__dirname, 'organisms.html'),
+            cards: path.resolve(__dirname, 'cards.html'),
+          },
+
+        },
+      }
+    : {},
   define: {
     __APP_VERSION__: JSON.stringify(version),
     __APP_COMMIT__: JSON.stringify(commitSha()),
     __APP_BUILT_AT__: JSON.stringify(new Date().toISOString()),
+    /* True only for the organism gallery build. Lets analytics.ts expose a
+     * dev tap for the event inspector that is dead-code-eliminated from the
+     * real bundle. */
+    __BARTEFY_PREVIEW__: JSON.stringify(Boolean(process.env.BARTEFY_PREVIEW)),
   },
   resolve: {
     alias: {

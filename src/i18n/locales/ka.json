@@ -1,0 +1,40 @@
+{
+  "_meta": {
+    "language": "ka",
+    "source": "en.json",
+    "note": "Translated from English. Keys missing here fall back to EN at runtime."
+  },
+  "streak": {
+    "title": "სერია: {{count}} აქტიური დღე",
+    "dayCount": "{{count}}-დღიანი სერია",
+    "claimed": "დღეს მიღებული +{{points}}",
+    "nextUnlock": "შემდეგი ბონუსი {{time}}-ში. დაასრულე 7-დღიანი სერია და მიიღე {{total}} ქულა.",
+    "nextUnlockPre": "შემდეგი ბონუსი",
+    "nextUnlockMid": "-ში. დაასრულე 7-დღიანი სერია და მიიღე",
+    "nextUnlockEnd": ".",
+    "rampTotal": "დაასრულე 7-დღიანი სერია და მიიღე {{total}} ქულა.",
+    "points": "{{n}} ქულა",
+    "today": "დღეს",
+    "dayShort": "დღ{{n}}",
+    "progress": "{{done}} / {{total}} დღე",
+    "progressLabel": "{{total}}-დან {{done}} დღეა მიღებული",
+    "rampLabel": "შვიდდღიანი ჯილდოს სერია",
+    "readyTitle": "სერია: 1-ლი დღე მზადაა",
+    "readyBody": "დააჭირე და მიიღე პირველი დღის ბონუსი (+{{points}} ქულა).",
+    "claimAction": "მიიღე +{{points}}",
+    "completeTitle": "7-დღიანი სერია დასრულდა",
+    "completeBody": "სულ დააგროვე +{{total}} ქულა. ახალი ციკლი {{time}}-ში.",
+    "cycleMaster": "ციკლის ოსტატი"
+  },
+  "offers": {
+    "title": "ვადაგასული შეთავაზებები",
+    "urgent": "{{count}} გადაუდებელი",
+    "explain": "გარიგებები ავტომატურად უქმდება 24 საათში, რომ ბაზარი ცოცხალი დარჩეს.",
+    "from": "ავტორი",
+    "askingFor": "ითხოვს შენს",
+    "pass": "გამოტოვება",
+    "review": "ნახვა და მიღება",
+    "countWaiting": "{{count}} შეთავაზება გელოდება",
+    "empty": "არაფერი გელოდება. აქ სუპერ შეთავაზებები ჩნდება — ჩვეულებრივი მოწონება დაფარულია დამთხვევამდე."
+  }
+}

@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:preview": "BARTEFY_PREVIEW=1 vite build --outDir dist-preview --emptyOutDir && rm -rf ../v6/preview && mkdir -p ../v6/preview && cp -r dist-preview/organisms.html dist-preview/cards.html dist-preview/assets ../v6/preview/",
+    "audit:organisms": "npm run build:preview && node scripts/organism-audit.mjs"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.20",

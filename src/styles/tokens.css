@@ -1,6 +1,40 @@
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Karla:ital,wght@0,400;0,500;0,700;1,400&display=swap');
 
 :root {
+  /* ── BRAND PALETTE ──────────────────────────────────────────────────
+   * The single source of truth. Every organism reads these through the
+   * semantic aliases below, never by hex, so changing a value here
+   * repaints the whole app.
+   *
+   * Two rules the palette itself carries:
+   *   1. Accents together stay near 10% of a layout. They are seasoning.
+   *   2. Text on an accent is always Ink, never white.
+   */
+
+  /* Greens — the brand leads */
+  --green: #1B6B55;
+  --deep-forest: #0E3030;
+  --mint: #D6E8DF;
+
+  /* Neutrals — warm, and they give the green room */
+  --neutral-ink: #17191E;
+  --slate: #6B7079;
+  --stone: #EDEBE4;
+  --paper: #F5F4EF;
+
+  /* Accents — one brightness level, so they sit together without
+   * competing. Each has ONE meaning; never use them decoratively. */
+  --coral: #EE886A; /* give, hand over */
+  --sun: #EDC857; /* new match */
+  --sky: #7EB3DD; /* info */
+  --lilac: #AA9FDC; /* community */
+
+  /* Attention. A STATUS marker only -- the one thing on a screen that is
+   * asking to be dealt with. Never a button: "no red buttons" still holds,
+   * because a button is an action and this is a state. Used once per view
+   * at most, or it stops meaning anything. */
+  --attention: #C8321E;
+
   /* Colors */
   --bartefy-green: #2F6A52;
   --parchment: #F7F2E1;
@@ -16,6 +50,24 @@
   --ink-soft: rgba(51, 50, 43, 0.62);
   --ink-faint: rgba(51, 50, 43, 0.14);
   --sage: #7E9473;
+  /* ── SEMANTIC ALIASES ───────────────────────────────────────────────
+   * What organisms actually consume. A component asks for
+   * `--state-new-match`, not for `--sun`, so the palette can be
+   * retuned without touching a single component.
+   */
+  --state-give: var(--coral);
+  --state-new-match: var(--sun);
+  --state-info: var(--sky);
+  --state-community: var(--lilac);
+  --state-settled: var(--green);
+  --state-attention: var(--attention);
+  --state-pressed: var(--deep-forest);
+  --state-highlight: var(--mint);
+
+  /* Text on an accent is ALWAYS Ink. Never white -- that is a palette
+   * rule, not a per-component choice, so it lives here. */
+  --on-accent: var(--neutral-ink);
+
   --surface-page: var(--parchment);
   --surface-card: #FFFFFF;
   --surface-hero: var(--bartefy-green);
@@ -59,4 +111,24 @@
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --dur-fast: 140ms;
   --dur-med: 240ms;
+}
+
+/* Dark theme. The accents are lifted, not inverted: they keep their hue and
+ * meaning, and gain the luminance they need to hold contrast on #121210.
+ * Ink-on-accent still holds, because the accents stay light. */
+[data-theme='dark'] {
+  --green: #2E8D70;
+  --deep-forest: #0A2422;
+  --mint: #1C3B32;
+
+  --neutral-ink: #12120F;
+  --slate: #8A8F98;
+  --stone: #23221E;
+  --paper: #1B1A17;
+
+  --coral: #F09A80;
+  --sun: #F0D275;
+  --sky: #93C1E4;
+  --lilac: #BBB1E4;
+  --attention: #E04A33;
 }

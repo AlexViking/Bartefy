@@ -14,6 +14,9 @@ interface ImportMeta {
 }
 
 /** Injected at build time by vite.config.ts `define`. */
+/** True only in the organism-gallery build; false (and dead-code-eliminated)
+ *  in the real bundle. */
+declare const __BARTEFY_PREVIEW__: boolean
 declare const __APP_VERSION__: string
 declare const __APP_COMMIT__: string
 declare const __APP_BUILT_AT__: string

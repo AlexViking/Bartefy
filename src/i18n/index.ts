@@ -16,6 +16,7 @@ export const SUPPORTED_LANGUAGES = [
   { code: 'fr', label: 'French', nativeLabel: 'Français' },
   { code: 'es', label: 'Spanish', nativeLabel: 'Español' },
   { code: 'lv', label: 'Latvian', nativeLabel: 'Latviešu' },
+  { code: 'ka', label: 'Georgian', nativeLabel: 'ქართული' },
 ] as const
 
 export type LanguageCode = (typeof SUPPORTED_LANGUAGES)[number]['code']
@@ -27,6 +28,7 @@ const LAZY_PACKS: Record<string, () => Promise<{ default: Record<string, unknown
   fr: () => import('./locales/fr.json'),
   es: () => import('./locales/es.json'),
   lv: () => import('./locales/lv.json'),
+  ka: () => import('./locales/ka.json'),
 }
 
 export async function loadLanguage(code: string) {

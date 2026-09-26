@@ -54,6 +54,14 @@ export const EVENT_NAMES = [
   // Experiments. Fired by useExperiment when someone actually sees a variant
   // -- the denominator every conversion rate is measured against.
   'experiment_exposed',
+  // V6 organisms. THREE generic names, never one per organism: this list is
+  // rendered by the admin goal-picker, and a name per organism would grow it
+  // without bound and make choosing a goal unusable. Which organism, which
+  // variant, which platform, which grid cell and which arm all ride in
+  // `props` -- jsonb, so no migration is needed to add an organism.
+  'organism_viewed',
+  'organism_clicked',
+  'organism_converted',
 ] as const
 
 /** A real array, not just a union: the admin page renders this list so a goal
@@ -191,6 +199,21 @@ export function track(
     // one instant and make every duration measured from it wrong.
     created_at: new Date().toISOString(),
   })
+
+  /* Dev-only tap for the organism gallery's event inspector.
+   *
+   * It OBSERVES the real path rather than replacing it -- the event is still
+   * queued, stamped and flushed exactly as in production, so what the
+   * inspector shows is what gets written.
+   *
+   * Gated on __BARTEFY_PREVIEW__, a compile-time constant that is `false` in
+   * the real build -- so the whole block is dead-code-eliminated from what
+   * ships. DEV alone would not do: the gallery is a production build. */
+  if (__BARTEFY_PREVIEW__ && typeof window !== 'undefined') {
+    window.dispatchEvent(
+      new CustomEvent('bartefy:tracked', { detail: { name, props } }),
+    )
+  }
 
   if (queue.length >= MAX_BATCH) {
     void flush()

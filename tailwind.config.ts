@@ -29,6 +29,38 @@ export default {
           denim: 'hsl(var(--illo-denim))',
           sage: 'hsl(var(--illo-sage))',
         },
+
+        /* Brand palette. Plain var(), not hsl(var()), because these are
+         * authored as hex in tokens.css -- the shadcn slots above are HSL
+         * triplets only so shadcn can compose them with an alpha channel.
+         *
+         * Organisms should prefer the `state-*` aliases: they say what a
+         * colour MEANS, so retuning the palette never touches a component. */
+        brand: {
+          green: 'var(--green)',
+          forest: 'var(--deep-forest)',
+          mint: 'var(--mint)',
+          ink: 'var(--neutral-ink)',
+          slate: 'var(--slate)',
+          stone: 'var(--stone)',
+          paper: 'var(--paper)',
+          coral: 'var(--coral)',
+          sun: 'var(--sun)',
+          sky: 'var(--sky)',
+          lilac: 'var(--lilac)',
+          attention: 'var(--attention)',
+        },
+        state: {
+          give: 'var(--state-give)',
+          'new-match': 'var(--state-new-match)',
+          info: 'var(--state-info)',
+          community: 'var(--state-community)',
+          settled: 'var(--state-settled)',
+          attention: 'var(--state-attention)',
+          pressed: 'var(--state-pressed)',
+          highlight: 'var(--state-highlight)',
+        },
+        'on-accent': 'var(--on-accent)',
       },
       fontFamily: {
         display: ['Quicksand', 'system-ui', 'sans-serif'],

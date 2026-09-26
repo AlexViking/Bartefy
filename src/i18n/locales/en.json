@@ -868,6 +868,37 @@
   "offers": {
     "expired": "Expired",
     "leftHM": "{{h}}h {{m}}m left",
-    "leftMS": "{{m}}m {{s}}s left"
+    "leftMS": "{{m}}m {{s}}s left",
+    "title": "Expiring offers",
+    "urgent": "{{count}} urgent",
+    "explain": "Trades cancel automatically after 24 hours to keep the market fresh.",
+    "from": "from",
+    "askingFor": "Asking for your",
+    "pass": "Pass",
+    "review": "Review & accept",
+    "countWaiting": "{{count}} offers waiting",
+    "empty": "Nothing waiting. Super offers show up here — a plain like stays private until it is matched."
+  },
+  "streak": {
+    "title": "Streak: {{count}} days active",
+    "dayCount": "{{count}}-day streak",
+    "claimed": "Claimed today +{{points}}",
+    "nextUnlock": "Next bonus in {{time}}. Finish the 7-day run for {{total}} points.",
+    "rampTotal": "Finish the 7-day run for {{total}} points.",
+    "today": "Today",
+    "dayShort": "D{{n}}",
+    "progress": "{{done}} of {{total}} days",
+    "progressLabel": "{{done}} of {{total}} days claimed",
+    "rampLabel": "Seven-day reward ramp",
+    "nextUnlockPre": "Next bonus unlock in",
+    "nextUnlockMid": ". Complete a 7-day run to net",
+    "nextUnlockEnd": ".",
+    "points": "{{n}} pts",
+    "readyTitle": "Streak: Day 1 ready",
+    "readyBody": "Tap to claim your Day 1 starter perk (+{{points}} pts).",
+    "claimAction": "Claim +{{points}}",
+    "completeTitle": "7-day run completed",
+    "completeBody": "Total earned: +{{total}} pts. Cycle resets in {{time}}.",
+    "cycleMaster": "Cycle master"
   }
 }
