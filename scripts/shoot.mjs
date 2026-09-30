@@ -87,6 +87,7 @@ const SCREENS = [
   { id: 'blocked',       path: '/settings/blocked', label: 'Blocked people' },
   { id: 'analytics',     path: '/admin/analytics', label: 'Staff analytics' },
   { id: 'matches-open', path: '/matches', label: 'Swaps — a row opened (phone)', clickSel: '[role=tab]' },
+  { id: 'items-open', path: '/items', label: 'My finds — a find opened (phone)', clickSel: 'main button[aria-pressed]' },
   { id: 'admirers', path: '/admirers', label: 'Admirers' },
   { id: 'admirers-buy', path: '/admirers', label: 'Admirers — Go Collector', click: 'Go Collector · 600 pts' },
   { id: 'discover-offer', path: '/discover', label: 'Discover — composer', settle: 2500, clickSel: '[data-action="want"]' },

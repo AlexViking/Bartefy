@@ -21,6 +21,8 @@ const URGENT_MS = 6 * 60 * 60 * 1000
 
 export interface ExpiringOffer {
   id: string
+  /** Which of my finds it is for. */
+  wantedId: string
   theirTitle: string
   theirPhoto?: string
   mineTitle: string
@@ -68,6 +70,7 @@ export function useNeedsYou() {
     .sort((a, b) => Date.parse(String(a.expires_at)) - Date.parse(String(b.expires_at)))
     .map((o) => ({
       id: String(o.id),
+      wantedId: String(o.wanted_item_id),
       theirTitle: String(one(o.offered)?.title ?? ''),
       theirPhoto: firstPhoto(one(o.offered)),
       mineTitle: String(one(o.wanted)?.title ?? ''),

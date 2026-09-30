@@ -17,7 +17,7 @@ import { Settings } from './screens/Settings'
 import { BlockedList } from './screens/BlockedList'
 import { Match } from './screens/Match'
 import { Hunt } from './screens/Hunt'
-import MyItems from './screens/MyItems'
+import MyFinds from './screens/MyFinds/MyFinds'
 import Invite from './screens/Invite'
 import Rewards from './screens/Rewards'
 import PublicProfile from './screens/PublicProfile'
@@ -105,7 +105,8 @@ export function AppRouter() {
             session once for all of them. */}
         <Route element={<Protected><ShellLayout /></Protected>}>
           <Route path="/discover" element={<Hunt />} />
-          <Route path="/items" element={<MyItems />} />
+          {/* One route, optional id -- picking a find must not remount the grid. */}
+          <Route path="/items/:findId?" element={<MyFinds />} />
           {/* One route, optional id: picking a row must not remount the
               screen (the list would lose its scroll and folds). */}
           <Route path="/matches/:swapId?" element={<Swaps />} />

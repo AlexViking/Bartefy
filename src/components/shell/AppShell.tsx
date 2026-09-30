@@ -88,7 +88,8 @@ function ShellFrame({ children }: { children: React.ReactNode }) {
             <TopBar data={data} platform="phone" navWidth={0} withWord={false} />
           )}
           <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
-          {pathname !== '/discover' && <TabBar data={data} onYou={() => setYouOpen(true)} youOpen={youOpen} />}
+          {/* Discover's actions and Add a find's Next own the bottom there. */}
+          {pathname !== '/discover' && pathname !== '/add' && <TabBar data={data} onYou={() => setYouOpen(true)} youOpen={youOpen} />}
           <YouSheet data={data} open={youOpen} onOpenChange={setYouOpen} />
         </div>
       </InShell.Provider>

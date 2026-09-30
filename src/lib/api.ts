@@ -340,8 +340,20 @@ export async function searchItems(params: {
   return supabase.functions.invoke('search', { body: params })
 }
 
+/** `.select()` is load-bearing: an update that RLS refuses matches zero rows
+ *  and returns no error, so without reading the row back a refused pause
+ *  looked like it worked. Callers check for an empty result. */
 export async function setItemStatus(itemId: string, status: 'active' | 'reserved' | 'paused' | 'deleted') {
-  return supabase.from('items').update({ status }).eq('id', itemId)
+  return supabase.from('items').update({ status }).eq('id', itemId).select('id, status')
+}
+
+/** Edit a listing's words. Photos are not edited here -- a changed photo is a
+ *  new upload, with its own id (the upload invariant). */
+export async function updateItemDetails(
+  itemId: string,
+  patch: { title: string; description: string; category: string; categories: string[]; condition: number; wants_in_return: string[] },
+) {
+  return supabase.from('items').update(patch).eq('id', itemId).select('id')
 }
 
 // ── Saves / eyeing ──────────────────────────────────────────────────────────

@@ -1,125 +1,69 @@
-import { Icon } from '@/components/ui/icon'
 import { AppShell } from '@/components/shell/AppShell'
-import { Button } from '@/components/ui/button'
-import { FlowSteps } from '@/components/guidance/FlowSteps'
 import { UpgradeSheet } from '@/components/membership/UpgradeSheet'
+import { Button } from '@/components/ui/button'
+import { Icon } from '@/components/ui/icon'
 import { T, useT } from '@/i18n/T'
-import { DetailsSection, PhotosSection, WantsSection , PublishedSection } from './sections'
+import { cn } from '@/lib/utils'
+import { DetailsSection, PhotosSection, PublishedSection, useMissing, WantsSection } from './sections'
 import { useAddItem } from './useAddItem'
 
-/** Listing a find, phone shape: one step at a time. Camera first, typing last
- *  — a wizard keeps a long form from looking like homework on a small screen.
- */
+/** Add a find on a phone (proposal B): three short steps -- the photo, what
+ *  it is, what you would like -- with the one button pinned to the bottom.
+ *  The frame's top bar stays; the tab bar steps aside (AppShell), because the
+ *  bottom belongs to Next. */
 export default function AddItemMobile() {
   const a = useAddItem()
   const { t } = useT()
+  const missing = useMissing(a)
 
-  // The listing exists: show what happened to it instead of navigating away
-  // silently, which left people wondering whether it had worked at all.
   if (a.published) {
     return (
-      <AppShell hideNav>
-        <div className="mx-auto w-full max-w-[560px] px-5 py-6">
-          <PublishedSection
-            state={a.published}
-            onDone={a.goToItems}
-            onAnother={a.listAnother}
-            onBoost={a.onBoost}
-            boostPrice={a.boostPrice}
-          />
-        </div>
+      <AppShell>
+        <PublishedSection a={a} />
       </AppShell>
     )
   }
 
   return (
-    <AppShell hideNav>
-      <div className="flex min-h-dvh flex-col">
-        <header className="flex flex-col gap-3 px-5 pb-3 pt-4">
-          {/* hideNav removes the tab bar, so without this there is no way out
-              of the flow but the browser's back button -- and in the Capacitor
-              wrapper there is no browser chrome to fall back on. */}
-          <Button
-            variant="ghost"
-            size="icon"
-            pill
+    <AppShell>
+      <div className="flex h-full min-h-0 flex-col">
+        <header className="flex shrink-0 items-center gap-3 px-4 pb-2 pt-3">
+          <button
+            type="button"
             onClick={a.goBack}
-            aria-label={t('common.back')}
-            className="-ml-2 self-start"
+            aria-label={a.isFirst ? t('add.notNow') : t('common.back')}
+            className="-ml-2 grid size-10 place-items-center rounded-pill hover:bg-secondary"
           >
-            <Icon name="ArrowLeft" size={20} />
-          </Button>
-          <FlowSteps steps={[...a.steps]} current={a.step} />
+            <Icon name={a.isFirst ? 'X' : 'ArrowLeft'} size={22} />
+          </button>
+          <T as="h1" k="add.title" className="flex-1 font-display text-headline-sm text-foreground" />
+          <div className="flex gap-1.5" aria-label={t('common.stepOf', { current: a.step + 1, total: a.steps.length })}>
+            {a.steps.map((s, i) => (
+              <span key={s.id} className={cn('h-1.5 w-8 rounded-pill', i <= a.step ? 'bg-primary' : 'bg-secondary')} />
+            ))}
+          </div>
         </header>
 
-        <main className="flex-1 space-y-4 overflow-y-auto px-5 pb-6">
-          {a.stepId === 'photos' && (
-            <>
-              <T as="h1" k="add.photoStepTitle" className="font-display text-h2 leading-tight text-foreground" />
-              <PhotosSection a={a} columns={3} />
-            </>
-          )}
-          {a.stepId === 'details' && (
-            <>
-              <T as="h1" k="add.titleLabel" className="font-display text-h2 leading-tight text-foreground" />
-              <DetailsSection a={a} />
-            </>
-          )}
-          {a.stepId === 'wants' && (
-            <>
-              <T as="h1" k="add.wantsStepTitle" className="font-display text-h2 leading-tight text-foreground" />
-              <WantsSection a={a} />
-            </>
-          )}
-        </main>
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-2">
+          {a.stepId === 'photos' && <PhotosSection a={a} />}
+          {a.stepId === 'details' && <DetailsSection a={a} wide={false} />}
+          {a.stepId === 'wants' && <WantsSection a={a} />}
+        </div>
 
-        <footer className="flex flex-col gap-2 border-t border-border/[0.14] bg-card px-5 pb-[max(16px,env(safe-area-inset-bottom))] pt-4">
-          {a.publishError && (
-            <T
-              as="p"
-              k="add.publishFailed"
-              className="text-center font-body text-sm text-destructive"
-              role="alert"
-            />
-          )}
-          {/* Say why the button is dead. A disabled control with no reason is
-              a dead end — the person cannot tell what is missing. */}
-          {!a.canAdvance && !a.uploading && (
-            <T
-              as="p"
-              k={a.stepId === 'details' ? 'add.needDetails' : 'add.needPhoto'}
-              className="text-center font-body text-sm text-muted-foreground"
-            />
-          )}
+        <footer className="flex shrink-0 items-center gap-3 border-t border-input bg-card px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-3">
+          <p className="min-w-0 flex-1 font-body text-[13px] leading-4 text-muted-foreground">
+            {a.publishError ? <T as="span" k="add.publishFailed" className="text-foreground" /> : !a.canAdvance && missing ? <T as="span" k={missing} /> : null}
+          </p>
           {a.isLast ? (
-            <Button
-              size="lg"
-              fullWidth
-              onClick={a.publish}
-              disabled={!a.canPublish || a.publishing}
-              data-i18n="add.publish"
-            >
+            <Button size="lg" onClick={a.publish} disabled={!a.canPublish || a.publishing}>
               {a.publishing ? t('common.loading') : t('add.publish')}
             </Button>
           ) : (
-            <Button
-              size="lg"
-              fullWidth
-              disabled={!a.canAdvance}
-              onClick={a.next}
-              data-i18n="common.continue"
-            >
-              {t('common.continue')}
+            <Button size="lg" onClick={a.next} disabled={!a.canAdvance}>
+              <T as="span" k="common.next" />
+              <Icon name="ArrowRight" size={18} />
             </Button>
           )}
-          <Button
-            variant="ghost"
-            fullWidth
-            onClick={a.isFirst ? a.cancel : a.back}
-            data-i18n={a.isFirst ? 'add.notNow' : 'common.back'}
-          >
-            {a.isFirst ? t('add.notNow') : t('common.back')}
-          </Button>
         </footer>
       </div>
 

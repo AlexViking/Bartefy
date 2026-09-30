@@ -19,13 +19,16 @@ import { useOnboardingStore } from '@/store/onboarding'
 const LISTING_DAYS = 30
 
 export const ADD_STEPS = [
-  // Details first, deliberately. Photos used to be step 0, so an upload could
-  // start — and R2 storage be spent, and the listing cap counted against — for
-  // a find that had no title yet. One live item reached production with a
-  // photo and an empty title exactly that way. Describing the thing is cheap
-  // and local; uploading is neither, so it comes second.
-  { id: 'details', label: 'add.stepDetails' },
+  // V6 (18-add-b, approved by Alex): the photo first -- "Show it. One photo
+  // is enough to start."
+  //
+  // The order used to be details first, deliberately: an upload spends
+  // metered R2 storage, and one live item reached production with a photo and
+  // an empty title. The empty title cannot recur -- publish still requires a
+  // name (canPublish). What photo-first does cost is the bytes of drafts that
+  // are abandoned after a photo. Flip these two lines to go back.
   { id: 'photos', label: 'add.stepPhotos' },
+  { id: 'details', label: 'add.stepDetails' },
   { id: 'wants', label: 'add.stepWants' },
 ] as const
 
@@ -108,8 +111,10 @@ export function useAddItem() {
    *  publish button so the gap cannot be walked past in the first place.
    *
    *  Trimmed, so a title of spaces does not pass. */
-  const detailsComplete =
-    title.trim().length > 0 && description.trim().length > 0 && categories.length > 0
+  // V6: "Only a photo is required -- the rest helps the right people find
+  // it." A NAME stays required too (see ADD_STEPS). The story is optional,
+  // and a find with no category is stored as 'other' rather than blocked.
+  const detailsComplete = title.trim().length > 0
 
   /** Whether the current step may be left for the next one. Photos additionally
    *  requires that nothing is still in flight, so publish cannot fire against a
@@ -242,6 +247,19 @@ export function useAddItem() {
       return next.some((p) => p.state === 'empty') ? next : [...next, { state: 'empty' }]
     })
 
+  /** "Make cover": move a photo to the front -- the first image is the card
+   *  in every deck. Only while nothing is uploading: uploads report back by
+   *  slot INDEX, and reordering under one would land its URL on the wrong
+   *  photo. */
+  const makeCover = (i: number) => {
+    if (uploading || i <= 0) return
+    setPhotos((ps) => {
+      const slot = ps[i]
+      if (!slot || slot.state !== 'ready') return ps
+      return [slot, ...ps.filter((_, x) => x !== i)]
+    })
+  }
+
   const toggleWant = (w: string) =>
     setWants((f) => (f.includes(w) ? f.filter((x) => x !== w) : [...f, w]))
 
@@ -353,6 +371,7 @@ export function useAddItem() {
     isFirst: step === 0,
     isLast: step === ADD_STEPS.length - 1,
     photos,
+    makeCover,
     addPhoto,
     retryPhoto,
     removePhoto,
@@ -402,7 +421,8 @@ export function useAddItem() {
      *  instead meant the item you wanted was simply gone, and the deck may
      *  never show it again -- so the whole reason you listed something was
      *  lost at the last step. */
-    goToItems: () => navigate(offerOn ? '/item/' + offerOn : '/profile'),
+    goToItems: () => navigate(offerOn ? '/discover' : '/items'),
+    publishedId,
     listAnother: () => window.location.reload(),
     cancel: () => navigate(-1),
   }
