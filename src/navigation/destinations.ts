@@ -29,8 +29,7 @@ export const DESTINATIONS: Destination[] = [
   { id: 'discover', label: 'shell.nav_discover', tab: 'shell.tab_discover', path: '/discover', icon: 'GalleryVerticalEnd' },
   { id: 'swaps', label: 'shell.nav_swaps', tab: 'shell.tab_swaps', path: '/matches', icon: 'Handshake', badge: 'swaps', also: ['/offers'] },
   { id: 'finds', label: 'shell.nav_finds', tab: 'shell.tab_finds', path: '/items', icon: 'Package', badge: 'finds' },
-  // Who put a find on the table for yours, for free. Collector only. The page
-  // itself is V6 step 5; until then /admirers lands on My finds.
+  // Who put a find on the table for yours, for free. Collector only.
   { id: 'admirers', label: 'shell.nav_admirers', path: '/admirers', icon: 'Heart', badge: 'admirers' },
   { id: 'points', label: 'shell.nav_points', path: '/points', icon: 'Coins', also: ['/membership', '/invite'] },
 ]

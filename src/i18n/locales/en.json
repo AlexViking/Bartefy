@@ -1091,5 +1091,29 @@
     "missingTitle": "This one is not here any more",
     "missingBody": "The offer may have been answered or expired, or the swap was tidied away.",
     "backToList": "Back to Swaps & offers"
+  },
+  "admirers": {
+    "title": "Your admirers",
+    "titleShort": "Admirers",
+    "intro": "They put one of their finds on the table for yours — quietly, so you never saw it.",
+    "newWeek": "{{n}} new this week.",
+    "allFinds": "All your finds",
+    "new": "New",
+    "forYour": "for your {{title}}",
+    "swap": "Swap",
+    "lockTitle": "{{n}} people want to swap with you",
+    "lockBody": "Collector shows who they are and what they offer — then one tap and it’s a swap.",
+    "goCollector": "Go Collector · {{n}} pts",
+    "buyTitle": "Collector for 30 days",
+    "buyBody": "See all your admirers and swap on the spot. Also: no limit on finds, hunt out to 50 km, undo a pass.",
+    "yourPoints": "Your points",
+    "collector30": "Collector · 30 days",
+    "leftAfter": "Left after",
+    "stillNeed": "Still to earn",
+    "spend": "Spend {{n}} pts",
+    "earn": "See how to earn points",
+    "emptyTitle": "No admirers yet",
+    "emptyBody": "When someone puts one of their finds on the table for yours, they show up here. More finds on your table means more admirers.",
+    "error": "Your admirers did not load. Pull down or come back in a moment."
   }
 }

@@ -23,6 +23,7 @@ import Rewards from './screens/Rewards'
 import PublicProfile from './screens/PublicProfile'
 import Notifications from './screens/Notifications'
 import Swaps from './screens/Swaps/Swaps'
+import Admirers from './screens/Admirers/Admirers'
 import { ItemDetail } from './screens/ItemDetail'
 import { Arrange } from './screens/Arrange'
 import { Membership } from './screens/Membership'
@@ -127,8 +128,8 @@ export function AppRouter() {
           {/* Internal. The staff check lives inside ReportQueue, not just here. */}
           <Route path="/admin/reports" element={<ReportQueue />} />
           <Route path="/admin/analytics" element={<Analytics />} />
-          {/* Admirers is V6 step 5. Until it exists, My finds. */}
-          <Route path="/admirers" element={<Navigate to="/items" replace />} />
+          {/* Who put a find on the table for yours (V6 step 5). */}
+          <Route path="/admirers" element={<Admirers />} />
         </Route>
 
         {/* Retired routes kept as redirects so old links and notifications work.

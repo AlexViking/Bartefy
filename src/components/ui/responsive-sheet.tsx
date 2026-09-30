@@ -60,7 +60,13 @@ export function ResponsiveSheet({
   if (isDesktop) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className={cn('max-w-[440px] rounded-hero', className)}>
+        {/* No focus jump on open: Radix focuses the first control, which drew a
+            keyboard ring on "Not yet" or the ✕ before anyone had touched the
+            keyboard. Tab still enters the dialog first. */}
+        <DialogContent
+          className={cn('max-w-[440px] rounded-hero', className)}
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
           {(title || description) && (
             <DialogHeader>
               {title && (
@@ -88,6 +94,7 @@ export function ResponsiveSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
+        onOpenAutoFocus={(e) => e.preventDefault()}
         side="bottom"
         className={cn('max-h-[92dvh] rounded-t-hero pb-[max(16px,env(safe-area-inset-bottom))]', className)}
       >
