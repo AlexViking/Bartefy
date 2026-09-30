@@ -1,48 +1,71 @@
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Karla:ital,wght@0,400;0,500;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap');
 
+/* Bartefy Brand Book v1.0 (Sep 2026), section 05 — the only colours allowed.
+ *
+ * Alex, 2026-09-27: "consider only these colours". Green leads (~25%), Paper
+ * is the ground (~50%), Ink is the text (~15%), and the four accents together
+ * stay near 10%. Text on an accent is always Ink, never white.
+ *
+ * The V6 mock (client/v6-pages on branch v6-organisms, brand.mjs) is the
+ * approved application of this palette; the shadcn bridge follows it.
+ */
 :root {
-  /* Colors */
-  --bartefy-green: #2F6A52;
-  --parchment: #F7F2E1;
-  --ink: #33322B;
-  --brass: #E9BE8C;
-  --terracotta: #C97C5E;
-  --denim: #4E6FA3;
-  --green-hover: #285C47;
-  --green-press: #224E3C;
-  --brass-hover: #E3B279;
-  --parchment-deep: #EFE8D2;
-  --cream: #FBF8EE;
-  --ink-soft: rgba(51, 50, 43, 0.62);
-  --ink-faint: rgba(51, 50, 43, 0.14);
-  --sage: #7E9473;
-  --surface-page: var(--parchment);
-  --surface-card: #FFFFFF;
-  --surface-hero: var(--bartefy-green);
-  --text-body: var(--ink);
-  --text-muted: var(--ink-soft);
-  --text-on-green: var(--parchment);
-  --text-on-brass: var(--ink);
-  --action-primary: var(--bartefy-green);
-  --action-accent: var(--brass);
-  --border-subtle: var(--ink-faint);
-  --focus-ring: rgba(47, 106, 82, 0.45);
+  /* The eleven */
+  --green: #1B6B55;   /* Barter Green — leads, the one primary action */
+  --forest: #0E3B30;  /* Deep Forest — pressed states, dark UI */
+  --mint: #D6EBDF;    /* Mint — tints, selected states */
+  --ink: #17191E;     /* Ink — text */
+  --slate: #6B7079;   /* Slate — secondary text */
+  --stone: #EDEBE4;   /* Stone — fills, hairlines */
+  --paper: #F5F4EF;   /* Paper — the background */
+  --coral: #EE8B6A;   /* Coral — Give (Add a find), urgency markers */
+  --sun: #EDC857;     /* Sun — New match, points */
+  --sky: #7EB3DD;     /* Sky — Info */
+  --lilac: #AE9FDC;   /* Lilac — Community */
 
-  /* Typography */
-  --font-display: 'Quicksand', system-ui, sans-serif;
-  --font-body: 'Karla', system-ui, sans-serif;
-  --type-display: 700 54px/1.1 var(--font-display);
-  --type-h2: 700 32px/1.2 var(--font-display);
+  /* Legacy names from the Parchment system, re-pointed so the few call sites
+     that still read them get a brand colour. New code uses the names above. */
+  --bartefy-green: var(--green);
+  --parchment: var(--paper);
+  --brass: var(--coral);
+  --terracotta: var(--coral);
+  --denim: var(--sky);
+  --sage: var(--mint);
+  --green-hover: var(--forest);
+  --green-press: var(--forest);
+  --brass-hover: #E57F5D; /* Coral at brightness 95%, the mock's hover */
+  --parchment-deep: var(--stone);
+  --cream: #FFFFFF;
+  --ink-soft: var(--slate);
+  --ink-faint: rgba(23, 25, 30, 0.14);
+  --surface-page: var(--paper);
+  --surface-card: #FFFFFF;
+  --surface-hero: var(--green);
+  --text-body: var(--ink);
+  --text-muted: var(--slate);
+  --text-on-green: #FFFFFF;
+  --text-on-brass: var(--ink);
+  --action-primary: var(--green);
+  --action-accent: var(--coral);
+  --border-subtle: var(--ink-faint);
+  --focus-ring: rgba(27, 107, 85, 0.5);
+
+  /* Typography — Brand Book §06. Outfit for display, headings and numbers;
+     Figtree for body, labels, listings and (per the approved mock) buttons. */
+  --font-display: 'Outfit', system-ui, sans-serif;
+  --font-body: 'Figtree', system-ui, sans-serif;
+  --type-display: 600 64px/1.0 var(--font-display);
+  --type-h2: 500 32px/1.15 var(--font-display);
   --type-h3: 600 20px/1.3 var(--font-display);
   --type-body: 400 17px/1.6 var(--font-body);
-  --type-caption: 700 13px/1.4 var(--font-display);
-  --tracking-caption: 0.18em;
+  --type-caption: 500 13px/1.4 var(--font-body);
+  --tracking-caption: 0.04em;
   --type-body-min: 16px;
 
-  /* Shape */
+  /* Shape — the mock: cards and buttons rounded-xl (12px), chips full. */
   --radius-card: 12px;
-  --radius-card-sm: 10px;
-  --radius-card-lg: 14px;
+  --radius-card-sm: 8px;
+  --radius-card-lg: 16px;
   --radius-pill: 999px;
   --radius-hero: 20px;
   --space-1: 4px;
@@ -54,9 +77,10 @@
   --space-7: 48px;
   --space-8: 64px;
   --hit-min: 44px;
-  --shadow-card: 0 1px 2px rgba(51,50,43,0.05), 0 6px 18px rgba(51,50,43,0.06);
-  --shadow-float: 0 10px 30px rgba(51,50,43,0.12);
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --shadow-card: 0 1px 2px rgba(23,25,30,0.05), 0 6px 18px rgba(23,25,30,0.06);
+  --shadow-float: 0 10px 30px rgba(23,25,30,0.12);
+  /* Motion — cubic-bezier(0.2,0,0,1), as the mock uses throughout. */
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
   --dur-fast: 140ms;
   --dur-med: 240ms;
 }

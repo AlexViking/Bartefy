@@ -15,123 +15,113 @@
 @config "../../tailwind.config.ts";
 
 @layer base {
+  /* Light — the approved V6 mock (brand.mjs): Paper page, white cards, Stone
+     fills and hairlines, Green for the one primary action, Mint + Forest for
+     selected states, accents as fills with Ink text. */
   :root {
-    --background: 46 58% 93%; /* --parchment  #F7F2E1 */
-    --foreground: 52 8% 18%; /* --ink        #33322B */
+    --background: 50 23% 95%; /* Paper #F5F4EF */
+    --foreground: 223 13% 10%; /* Ink   #17191E */
 
     --card: 0 0% 100%;
-    --card-foreground: 52 8% 18%;
+    --card-foreground: 223 13% 10%;
 
-    --popover: 47 62% 96%; /* --cream      #FBF8EE */
-    --popover-foreground: 52 8% 18%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 223 13% 10%;
 
-    --primary: 156 39% 30%; /* --bartefy-green #2F6A52 */
-    --primary-foreground: 46 58% 93%;
+    --primary: 164 60% 26%; /* Green #1B6B55 */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 45 48% 88%; /* --parchment-deep #EFE8D2 */
-    --secondary-foreground: 52 8% 18%;
+    --secondary: 47 20% 91%; /* Stone #EDEBE4 */
+    --secondary-foreground: 223 13% 10%;
 
-    --accent: 32 68% 73%; /* --brass      #E9BE8C */
-    --accent-foreground: 52 8% 18%;
+    /* The accent BUTTON is Coral: "Add a find" in the mock. Menus no longer
+       highlight with it -- dropdown and select items use --muted. */
+    --accent: 15 80% 67%; /* Coral #EE8B6A */
+    --accent-foreground: 223 13% 10%;
 
-    --muted: 45 48% 88%;
-    --muted-foreground: 52 8% 40%;
+    --muted: 47 20% 91%; /* Stone */
+    --muted-foreground: 219 6% 45%; /* Slate #6B7079 */
 
-    /* shadcn insists on a destructive slot. Bartefy has no red buttons —
-       this is used for text and evidence states only, never a filled CTA. */
-    --destructive: 17 50% 45%;
-    --destructive-foreground: 0 0% 100%;
+    /* shadcn insists on a destructive slot. The book has no red; Coral is its
+       warmest colour, and it is a marker, never a button. Coral TEXT on white
+       is too faint to read -- pages rebuilt in V6 put errors in Ink on a
+       Coral fill instead of text-destructive. */
+    --destructive: 15 80% 67%;
+    --destructive-foreground: 223 13% 10%;
 
-    --border: 52 8% 18%; /* consumed at 14% alpha, matching --ink-faint */
-    --input: 52 8% 82%;
-    --ring: 156 39% 30%;
+    --border: 223 13% 10%; /* consumed at 14% alpha */
+    --input: 47 20% 91%; /* Stone: the mock's ring-outline-variant */
+    --ring: 164 60% 26%;
 
-    /* Illustration accents. Art and photo wells only — never a status. */
-    --illo-terracotta: 17 50% 58%; /* --terracotta */
-    --illo-denim: 217 35% 47%; /* --denim */
-    --illo-sage: 100 13% 52%; /* --sage */
+    /* Selected state: Mint tint, Forest text (the mock's primary-container). */
+    --selected: 146 34% 88%;
+    --selected-foreground: 165 62% 14%;
 
-    /* shadcn reads --radius for its own components */
+    /* Illustration accents -> the book's accents. */
+    --illo-terracotta: 15 80% 67%; /* Coral */
+    --illo-denim: 207 58% 68%; /* Sky */
+    --illo-sage: 146 34% 88%; /* Mint */
+
     --radius: var(--radius-card);
 
-    /* Brand-surface pair. These two do NOT flip with the theme: the green
-       panel behind the logo is the brand, and parchment is what stays legible
-       on it. Using --primary/--primary-foreground there would paint near-black
-       text on green the moment the dark theme lifted the green. */
-    --brand-deep: 156 39% 30%; /* #2F6A52 the book green, both themes */
-    --parchment-on-brand: 46 58% 93%; /* #F7F2E1 both themes */
+    /* Brand-surface pair. These do NOT flip with the theme: the green panel
+       behind the logo is the brand, and Paper is what stays legible on it. */
+    --brand-deep: 164 60% 26%; /* Green, both themes */
+    --parchment-on-brand: 50 23% 95%; /* Paper, both themes */
 
-    /* Swipe semantics. The deck needs three unambiguous colours; these are
-       the only place terracotta and denim carry meaning rather than
-       decoration, because a swipe direction is not a status badge. */
-    --swipe-pass: 17 50% 45%;
-    --swipe-offer: 156 39% 30%;
-    --swipe-super: 217 35% 47%;
+    /* Swipe semantics. Revisited when Discover is rebuilt (step 3). */
+    --swipe-pass: 15 80% 67%; /* Coral */
+    --swipe-offer: 164 60% 26%; /* Green */
+    --swipe-super: 45 81% 64%; /* Sun */
   }
 
-  /* Dark theme, ported from V5's globals.css.
+  /* Dark — NOT in the mock, which only draws the chooser. Built on the book's
+   * "Deep Forest ... dark UI": an Ink ground, and Mint as the primary so the
+   * one loud action keeps its contrast (Green on Ink is 2.9:1). Accents keep
+   * their Ink text in both themes.
    *
-   * The earlier note here said an inverted parchment is not a dark theme, and
-   * that is still true -- so this is not an inversion. V5 drew a warm dark
-   * ground (#121210, never blue-black) and lifted the green to #4E9E7C so it
-   * keeps contrast against it. Parchment survives as the text colour, which is
-   * what stops the dark theme reading as a different product.
-   *
-   * Selected by attribute, not by class, so it matches V5 and can be set on
-   * <html> before first paint. Light remains the default: a new user still
-   * meets parchment.
-   */
+   * Four neutrals here are DERIVED, not book colours -- lifts of Ink so cards,
+   * fills and secondary text separate from the ground. Marked "derived". */
   [data-theme='dark'] {
-    --background: 60 6% 7%; /* #121210 warm dark, never blue-black */
-    --foreground: 47 41% 91%; /* #F2EEE0 parchment, inverted into text */
+    --background: 223 13% 10%; /* Ink #17191E */
+    --foreground: 50 23% 95%; /* Paper */
 
-    --card: 45 8% 10%; /* #1B1A17 */
-    --card-foreground: 47 41% 91%;
+    --card: 223 12% 14%; /* derived #1F2228 */
+    --card-foreground: 50 23% 95%;
 
-    --popover: 48 8% 12%; /* #201F1B */
-    --popover-foreground: 47 41% 91%;
+    --popover: 223 11% 16%; /* derived #24272D */
+    --popover-foreground: 50 23% 95%;
 
-    /* Lifted from the book green so it holds contrast on a dark ground. */
-    --primary: 154 34% 46%; /* #4E9E7C */
-    --primary-foreground: 154 20% 7%; /* #0E1512 */
+    --primary: 146 34% 88%; /* Mint */
+    --primary-foreground: 165 62% 14%; /* Forest */
 
-    --secondary: 40 4% 13%; /* #232220 */
-    --secondary-foreground: 46 30% 86%; /* #E7E2D2 */
+    --secondary: 222 10% 19%; /* derived #2A2D34 */
+    --secondary-foreground: 50 23% 95%;
 
-    /* Brass is unchanged: it was already a warm accent and reads on both. */
-    --accent: 32 68% 73%; /* #E9BE8C */
-    --accent-foreground: 33 31% 13%; /* #2A2116 */
+    --accent: 15 80% 67%; /* Coral */
+    --accent-foreground: 223 13% 10%;
 
-    --muted: 40 4% 13%;
-    --muted-foreground: 49 8% 61%; /* #A3A093 */
+    --muted: 222 10% 19%;
+    --muted-foreground: 220 6% 66%; /* derived #A4A7AE, lifted Slate */
 
-    --destructive: 11 60% 56%; /* #D2624A terracotta, pushed for legibility */
-    --destructive-foreground: 16 41% 7%;
+    --destructive: 15 80% 67%;
+    --destructive-foreground: 223 13% 10%;
 
-    /* Borders are consumed as `border-border/[0.14]` in 71 places, so this has
-       to be a colour that survives being taken down to 14% alpha. #2E2C27 did
-       not: it is already darker than most dark surfaces, so 14% of it over
-       #121210 landed at 1.03:1 -- mathematically present, visually absent.
-       That is why the topbar rule could not be seen while the rail's border
-       could: the rail reads as an edge between two different backgrounds, not
-       because the line itself was visible.
+    /* Consumed as border-border/[0.14]: a light colour so the hairline
+       survives on a dark ground (see the 2026-09 note in git history). */
+    --border: 50 23% 95%;
+    --input: 222 10% 19%;
+    --ring: 146 34% 88%;
 
-       A light warm tint at 14% gives ~1.4:1 over both --background and --card,
-       which is the same hairline weight the light theme gets from dark ink on
-       parchment. The value is deliberately near --card-foreground: a border is
-       a faint echo of the text colour, not a colour of its own. */
-    --border: 45 12% 88%;
-    /* Inputs keep the darker value -- a field's edge sits on a filled surface
-       and reads as a container, where a light hairline looks like a seam. */
-    --input: 43 8% 17%;
-    --ring: 154 34% 46%;
+    --selected: 165 62% 14%; /* Forest */
+    --selected-foreground: 146 34% 88%; /* Mint */
 
-    --illo-terracotta: 11 60% 56%;
-    --illo-denim: 217 42% 60%;
-    --illo-sage: 100 13% 52%;
+    --illo-terracotta: 15 80% 67%;
+    --illo-denim: 207 58% 68%;
+    --illo-sage: 146 34% 88%;
 
-    --swipe-pass: 11 60% 56%;
-    --swipe-offer: 154 34% 46%;
-    --swipe-super: 217 42% 60%;
+    --swipe-pass: 15 80% 67%;
+    --swipe-offer: 146 34% 88%;
+    --swipe-super: 45 81% 64%;
   }
 }

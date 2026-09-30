@@ -58,7 +58,7 @@ function apply(theme: Theme) {
   // The address bar and the Capacitor status bar read this, so a dark page
   // with a green bar above it looks like two applications stacked.
   const meta = document.querySelector('meta[name="theme-color"]')
-  if (meta) meta.setAttribute('content', theme === 'dark' ? '#121210' : '#2F6A52')
+  if (meta) meta.setAttribute('content', theme === 'dark' ? '#17191E' : '#1B6B55')
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {

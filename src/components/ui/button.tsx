@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 /** shadcn Button, branded for Bartefy.
  *
  *  The stock shadcn variant set is replaced by the three the brand allows:
- *  primary (green), accent (brass), ghost (outline). There is deliberately no
+ *  primary (Green), accent (Coral, Ink text), ghost (white, Stone edge). There is deliberately no
  *  `destructive` — Bartefy has no red buttons; a destructive action is a ghost
  *  button with plain copy ("Something's wrong").
  *
@@ -15,7 +15,8 @@ import { cn } from '@/lib/utils'
  *  registry keep working: default → primary, outline/secondary → ghost.
  */
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap font-display font-semibold ' +
+  // V6 mock: Figtree label-lg (14px bold), 44px tall, 12px corners.
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap font-body font-bold tracking-[0.02em] ' +
     'transition-colors duration-fast ease-brand focus-visible:outline-none focus-visible:ring-[3px] ' +
     'focus-visible:ring-ring/45 disabled:cursor-not-allowed disabled:opacity-60 ' +
     '[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
@@ -23,23 +24,23 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          'bg-primary text-primary-foreground hover:bg-[var(--green-hover)] active:bg-[var(--green-press)]',
+          'bg-primary text-primary-foreground hover:brightness-90 active:brightness-[0.8]',
         accent:
-          'bg-accent text-accent-foreground hover:bg-[var(--brass-hover)] active:bg-[#DCA968]',
+          'bg-accent text-accent-foreground hover:brightness-95 active:brightness-90',
         ghost:
-          'border-[1.5px] border-border/[0.14] text-foreground hover:bg-foreground/[0.06] active:bg-foreground/[0.10]',
+          'border border-input bg-card text-foreground hover:bg-background active:bg-secondary',
         link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {
-        sm: 'min-h-9 px-4 text-sm',
-        md: 'min-h-hit px-6 text-base',
-        lg: 'min-h-[52px] px-8 text-[17px]',
+        sm: 'min-h-9 px-3 text-[12px] leading-4',
+        md: 'min-h-hit px-5 text-[14px] leading-5',
+        lg: 'min-h-12 px-6 text-[15px] leading-5',
         icon: 'size-hit shrink-0',
       },
-      pill: { true: 'rounded-pill', false: 'rounded' },
+      pill: { true: 'rounded-pill', false: 'rounded-card' },
       fullWidth: { true: 'w-full' },
     },
-    defaultVariants: { variant: 'primary', size: 'md', pill: true },
+    defaultVariants: { variant: 'primary', size: 'md', pill: false },
   },
 )
 

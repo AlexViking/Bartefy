@@ -24,6 +24,21 @@ export default {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
+        selected: { DEFAULT: 'hsl(var(--selected))', foreground: 'hsl(var(--selected-foreground))' },
+        /* The Brand Book's eleven, by name, for the places the mock names one
+           directly (bg-coral on Add a find, bg-sun on points, text-forest on
+           Mint). These do not flip with the theme -- they are the brand. */
+        green: 'var(--green)',
+        forest: 'var(--forest)',
+        mint: 'var(--mint)',
+        ink: 'var(--ink)',
+        slate: 'var(--slate)',
+        stone: 'var(--stone)',
+        paper: 'var(--paper)',
+        coral: 'var(--coral)',
+        sun: 'var(--sun)',
+        sky: 'var(--sky)',
+        lilac: 'var(--lilac)',
         illo: {
           terracotta: 'hsl(var(--illo-terracotta))',
           denim: 'hsl(var(--illo-denim))',
@@ -31,15 +46,30 @@ export default {
         },
       },
       fontFamily: {
-        display: ['Quicksand', 'system-ui', 'sans-serif'],
-        body: ['Karla', 'system-ui', 'sans-serif'],
+        display: ['Outfit', 'system-ui', 'sans-serif'],
+        body: ['Figtree', 'system-ui', 'sans-serif'],
       },
       fontSize: {
-        display: ['54px', { lineHeight: '1.1', fontWeight: '700' }],
-        h2: ['32px', { lineHeight: '1.2', fontWeight: '700' }],
+        // Brand Book §06.
+        display: ['64px', { lineHeight: '1', fontWeight: '600' }],
+        h2: ['32px', { lineHeight: '1.15', fontWeight: '500' }],
         h3: ['20px', { lineHeight: '1.3', fontWeight: '600' }],
         body: ['17px', { lineHeight: '1.6' }],
-        caption: ['13px', { lineHeight: '1.4', letterSpacing: '0.18em', fontWeight: '700' }],
+        caption: ['13px', { lineHeight: '1.4', letterSpacing: '0.04em', fontWeight: '500' }],
+        // The approved V6 mock's scale, by the mock's own names, so its markup
+        // ports without translating sizes. headline-* are Outfit, the rest
+        // Figtree -- set the family with font-display / font-body.
+        'headline-xl': ['40px', { lineHeight: '48px', fontWeight: '800' }],
+        'headline-lg': ['32px', { lineHeight: '40px', fontWeight: '700' }],
+        'headline-md': ['22px', { lineHeight: '30px', fontWeight: '600' }],
+        'headline-sm': ['18px', { lineHeight: '26px', fontWeight: '600' }],
+        'body-lg': ['18px', { lineHeight: '28px', fontWeight: '400' }],
+        'body-md': ['15px', { lineHeight: '24px', fontWeight: '400' }],
+        'body-sm': ['13px', { lineHeight: '20px', fontWeight: '400' }],
+        'label-lg': ['14px', { lineHeight: '20px', letterSpacing: '0.02em', fontWeight: '700' }],
+        'label-md': ['12px', { lineHeight: '16px', letterSpacing: '0.03em', fontWeight: '600' }],
+        'label-sm': ['11px', { lineHeight: '14px', letterSpacing: '0.05em', fontWeight: '700' }],
+        ticker: ['14px', { lineHeight: '18px', fontWeight: '700' }],
       },
       borderRadius: {
         sm: 'var(--radius-card-sm)',

@@ -75,8 +75,8 @@ export default defineConfig({
       manifest: {
         name: 'Bartefy',
         short_name: 'Bartefy',
-        theme_color: '#2F6A52',
-        background_color: '#F7F2E1',
+        theme_color: '#1B6B55',
+        background_color: '#F5F4EF',
         display: 'standalone',
         start_url: '/',
         icons: [
