@@ -39,7 +39,7 @@ export function OrzomiByline({ className }: { className?: string }) {
         /* items-center is the alignment fix: the mark is 34px and the text is
            ~15px, so without it the baseline pulled the line toward the bottom
            of the mark instead of centring on its axis. */
-        'group inline-flex items-center justify-center gap-3 font-body text-sm tracking-[0.01em] text-foreground',
+        'group inline-flex items-center justify-center gap-3 font-body text-[13px] tracking-[0.01em] text-foreground',
         'opacity-55 transition-opacity duration-med ease-brand hover:opacity-90',
         className,
       )}
