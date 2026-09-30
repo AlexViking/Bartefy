@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bartefy V6 — Pages</title>
+<!-- Local tool. Open this file in a browser; no server needed.
+     Data: pages.js (pages) + organisms.js (V6-Organisms tab). -->
+<style>
+  :root {
+    --linen: #FAF8F5; --card: #FFFFFF; --border: #EAE4DC;
+    --ink: #23201D; --stone: #6B6761;
+    --terra: #D95327; --terra-l: #FAECE7;
+    --forest: #1A6246; --forest-l: #E8F3EE;
+    --gold: #A66200; --gold-l: #FEF0D4;
+    --blue: #2F5E8C; --blue-l: #E6EEF6;
+    --shadow: 0 1px 2px rgba(35,32,29,.06), 0 4px 14px rgba(35,32,29,.06);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--linen); color: var(--ink);
+    font: 15px/1.5 "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  h1, h2, h3 { font-family: Epilogue, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; }
+  code, .mono { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-size: 12.5px; }
+  button { font: inherit; color: inherit; }
+  a { color: var(--forest); }
+
+  header.top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px;
+    padding: 16px 24px 0; border-bottom: 1px solid var(--border); background: var(--card); }
+  header.top h1 { font-size: 20px; }
+  header.top .meta { color: var(--stone); font-size: 13px; }
+  .counts { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+  .count { display: flex; align-items: baseline; gap: 6px; padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--linen); font-size: 13px; cursor: pointer; }
+  .count b { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-size: 14px; }
+  .count[aria-pressed="true"] { border-color: var(--ink); background: var(--card); }
+  .progress { flex-basis: 100%; height: 6px; border-radius: 999px; background: var(--border); overflow: hidden; display: flex; }
+  .progress span { height: 100%; }
+  .tabs { flex-basis: 100%; display: flex; gap: 4px; margin-top: 2px; }
+  .tab { padding: 10px 14px; border: 0; border-bottom: 3px solid transparent; background: none; cursor: pointer;
+    font-family: Epilogue, -apple-system, sans-serif; font-weight: 700; color: var(--stone); }
+  .tab[aria-selected="true"] { color: var(--ink); border-color: var(--terra); }
+  .tab .c { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; font-weight: 400; margin-left: 4px; }
+
+  .layout { display: grid; grid-template-columns: 320px minmax(0, 1fr); }
+  aside.list { border-right: 1px solid var(--border); padding: 16px; overflow-y: auto; height: calc(100vh - 150px); position: sticky; top: 0; }
+  .search { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); font: inherit; margin-bottom: 12px; }
+  .group-label { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--stone); margin: 16px 4px 6px; }
+  .row { display: grid; grid-template-columns: 26px minmax(0,1fr) auto; align-items: center; gap: 8px; width: 100%;
+    text-align: left; padding: 8px 10px; border: 1px solid transparent; border-radius: 10px; background: none; cursor: pointer; }
+  .row:hover { background: var(--card); border-color: var(--border); }
+  .row[aria-current="true"] { background: var(--card); border-color: var(--ink); box-shadow: var(--shadow); }
+  .row .n { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-size: 12px; color: var(--stone); }
+  .row .name { font-weight: 600; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .route { display: block; font-size: 12px; color: var(--stone); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+  .s-todo     { background: #F1EEE9; color: var(--stone); }
+  .s-planning { background: var(--blue-l); color: var(--blue); }
+  .s-building { background: var(--gold-l); color: var(--gold); }
+  .s-review   { background: var(--terra-l); color: var(--terra); }
+  .s-done     { background: var(--forest-l); color: var(--forest); }
+  .v-built  { background: var(--forest-l); color: var(--forest); }
+  .v-extend { background: var(--blue-l); color: var(--blue); }
+  .v-new    { background: var(--gold-l); color: var(--gold); }
+  .v-skip   { background: #F1EEE9; color: var(--stone); }
+  .bar-todo { background: #D8D2C9; } .bar-planning { background: var(--blue); } .bar-building { background: var(--gold); }
+  .bar-review { background: var(--terra); } .bar-done { background: var(--forest); }
+  .bar-built { background: var(--forest); } .bar-extend { background: var(--blue); } .bar-new { background: var(--gold); } .bar-skip { background: #D8D2C9; }
+
+  main { padding: 24px 32px 64px; max-width: 1320px; }
+  .title-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  .title-row h2 { font-size: 28px; }
+  .routes { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+  .routes code { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 1px 7px; }
+  .purpose { color: var(--stone); margin: 6px 0 0; max-width: 75ch; }
+  .facts { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--stone); margin-top: 8px; }
+  .facts b { color: var(--ink); font-weight: 600; }
+
+  section.block { margin-top: 28px; }
+  section.block h3 { font-size: 16px; margin-bottom: 10px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+  section.block h3 .sub { font-family: inherit; font-weight: 400; color: var(--stone); font-size: 13px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); }
+  .scroll { overflow-x: auto; }
+
+  .shots { display: grid; grid-template-columns: 150px 1fr 1fr; gap: 12px; align-items: start; }
+  .shot { margin: 0; }
+  .shot button { display: block; width: 100%; padding: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--card); cursor: zoom-in; }
+  .shot img { display: block; width: 100%; height: auto; }
+  .shot figcaption { font-size: 12px; color: var(--stone); margin-top: 4px; }
+  .noshot { padding: 16px; color: var(--stone); font-size: 13px; }
+
+  table.el { width: 100%; border-collapse: collapse; }
+  table.el th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--stone); padding: 10px 14px 6px; }
+  table.el td { padding: 10px 14px; border-top: 1px solid var(--border); vertical-align: top; }
+  table.el tbody tr:first-child td { border-top: 0; }
+  table.el td.k { width: 90px; } table.el td.nm { width: 230px; font-weight: 600; }
+  table.el td.nt { color: var(--stone); }
+  .kind { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 2px 7px; border-radius: 6px; background: #F1EEE9; color: var(--stone); white-space: nowrap; }
+  .kind.sheet { background: var(--blue-l); color: var(--blue); }
+  .kind.state { background: var(--gold-l); color: var(--gold); }
+  .kind.action { background: var(--terra-l); color: var(--terra); }
+  .kind.card, .kind.list { background: var(--forest-l); color: var(--forest); }
+  .origin-mock { background: var(--terra-l); color: var(--terra); }
+  .origin-proposed { background: var(--blue-l); color: var(--blue); }
+  .linkbtn { border: 0; background: none; padding: 0; color: var(--forest); font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+
+  .plan { padding: 14px 18px; }
+  .plan ol, .plan ul { margin: 0; padding-left: 20px; } .plan li { margin: 4px 0; }
+  .empty { color: var(--stone); font-style: italic; }
+  .note { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--linen); font-size: 13.5px; }
+  .flags { list-style: none; margin: 0; padding: 0; }
+  .flags li { display: grid; grid-template-columns: 22px 1fr; gap: 6px; padding: 10px 16px; border-top: 1px solid var(--border); }
+  .flags li:first-child { border-top: 0; }
+  .flags li::before { content: "!"; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--gold-l); color: var(--gold); font-weight: 800; font-size: 12px; margin-top: 2px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .two .card { padding: 12px 16px; }
+  .two h4 { margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--stone); }
+  .two ul { margin: 0; padding-left: 18px; }
+  .log { list-style: none; margin: 0; padding: 0; }
+  .log li { display: grid; grid-template-columns: 96px 1fr; gap: 12px; padding: 10px 16px; border-top: 1px solid var(--border); }
+  .log li:first-child { border-top: 0; }
+  .log .d { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-size: 12.5px; color: var(--stone); }
+  .files { columns: 2; column-gap: 24px; padding: 12px 16px; margin: 0; list-style: none; }
+  .files li { break-inside: avoid; padding: 2px 0; }
+  .redir { display: grid; grid-template-columns: max-content max-content 1fr; gap: 4px 10px; padding: 12px 16px; }
+  .redir span { color: var(--stone); }
+
+  /* Grid diagram of a Stitch layout */
+  .grid12 { display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px; padding: 14px; }
+  .cell { border-radius: 10px; padding: 10px 12px; background: var(--linen); border: 1px dashed #CFC6BA; min-height: 54px;
+    display: flex; flex-direction: column; gap: 6px; }
+  .cell .span { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; color: var(--stone); }
+  .cell button { text-align: left; border: 1px solid var(--border); background: var(--card); border-radius: 8px; padding: 6px 9px; cursor: pointer; font-weight: 600; font-size: 13.5px; }
+  .cell button:hover { border-color: var(--ink); }
+
+  /* Organism × page matrix */
+  table.mx { border-collapse: separate; border-spacing: 0; font-size: 13px; }
+  table.mx th, table.mx td { padding: 6px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  table.mx thead th { position: sticky; top: 0; background: var(--card); vertical-align: bottom; }
+  table.mx thead th .vt { writing-mode: vertical-rl; transform: rotate(180deg); font-weight: 600; font-size: 12.5px; }
+  table.mx tbody th { text-align: left; font-weight: 600; background: var(--card); position: sticky; left: 0; }
+  table.mx td { text-align: center; }
+  .dot { display: inline-block; min-width: 22px; padding: 1px 5px; border-radius: 6px; font-size: 10.5px; font-weight: 800; letter-spacing: .02em; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--stone); padding: 10px 14px; border-top: 1px solid var(--border); }
+
+  /* Live previews of the Stitch organisms */
+  .pv { margin: 0 0 18px; }
+  .pv-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; margin-bottom: 6px; font-size: 13px; color: var(--stone); }
+  .pv-head b { color: var(--ink); font-size: 14px; }
+  .pv-wrap { position: relative; overflow: hidden; max-width: 100%; border-radius: 12px; border: 1px solid var(--border);
+    background: repeating-conic-gradient(#F3EFE9 0% 25%, #FAF8F5 0% 50%) 0 0 / 16px 16px; }
+  .pv-wrap iframe { display: block; border: 0; transform-origin: 0 0; background: #fff8f5; }
+  .gallery-item { margin-bottom: 36px; }
+  .gallery-item h3 { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 18px; margin-bottom: 4px; }
+  .gallery-item p { margin: 0 0 10px; color: var(--stone); font-size: 13.5px; }
+
+  dialog { border: 0; padding: 0; border-radius: 12px; max-width: 94vw; max-height: 94vh; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+  dialog::backdrop { background: rgba(35,32,29,.7); }
+  dialog img { display: block; max-width: 94vw; max-height: 94vh; }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    aside.list { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--border); }
+    main { padding: 20px 16px 48px; }
+    .shots, .two { grid-template-columns: 1fr 1fr; }
+    table.el td.nm { width: auto; } .files { columns: 1; }
+    .grid12 { grid-template-columns: 1fr; } .cell { grid-column: auto !important; }
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>Bartefy V6 — Pages</h1>
+    <div class="meta" id="meta"></div>
+  </div>
+  <div class="counts" id="counts"></div>
+  <div class="progress" id="progress"></div>
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="pages">Pages<span class="c" id="c-pages"></span></button>
+    <button class="tab" role="tab" data-tab="org">V6-Organisms<span class="c" id="c-org"></span></button>
+  </nav>
+</header>
+
+<div class="layout">
+  <aside class="list">
+    <input class="search" id="q" type="search" placeholder="Filter…" autocomplete="off">
+    <div id="nav"></div>
+  </aside>
+  <main id="detail"></main>
+</div>
+
+<dialog id="zoom"><img alt=""></dialog>
+
+<script src="pages.js"></script>
+<script src="organisms.js"></script>
+<script src="stitch/parts/manifest.js" onerror="window.V6_PARTS = {}"></script>
+<script>
+const D = window.V6
+D.organisms = D.organisms || []; D.sources = D.sources || []; D.layouts = D.layouts || []
+
+const STATUSES = ['todo', 'planning', 'building', 'review', 'done']
+const SLABEL = { todo: 'To do', planning: 'Planning', building: 'Building', review: 'Review', done: 'Done' }
+const VERDICTS = ['built', 'extend', 'new', 'skip']
+const VLABEL = { built: 'Built on branch', extend: 'Extend existing', new: 'New organism', skip: 'Not recommended' }
+const VSHORT = { built: 'Built', extend: 'Extend', new: 'New', skip: 'Skip' }
+const numbered = D.pages.filter(p => p.id !== 'shell')
+const pageById = Object.fromEntries(D.pages.map(p => [p.id, p]))
+const orgById = Object.fromEntries(D.organisms.map(o => [o.id, o]))
+const VAR_ABBR = { full: 'FULL', wide: 'WIDE', half: 'HALF', tile: 'TILE', compact: 'CMP', inline: 'INL', sheet: 'SHEET' }
+let filter = null
+
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+const spill = s => `<span class="pill s-${s}">${SLABEL[s] ?? s}</span>`
+const vpill = v => `<span class="pill v-${v}">${VSHORT[v] ?? v}</span>`
+const num = p => p.id === 'shell' ? '◇' : String(numbered.indexOf(p) + 1).padStart(2, '0')
+const onum = o => '#' + String(D.organisms.indexOf(o) + 1).padStart(2, '0')
+const pageLink = id => `<button class="linkbtn" data-go="${id}">${esc(pageById[id]?.name ?? id)}</button>`
+const orgLink = id => `<button class="linkbtn" data-go="org/${id}">${esc(orgById[id]?.name ?? id)}</button>`
+
+const PARTS = window.V6_PARTS || {}
+
+/* One live preview: the organism's own HTML in an iframe at its real width,
+ * scaled down (never up) to fit the column. fitPreviews() does the scaling. */
+function preview(part) {
+  return `<figure class="pv">
+    <div class="pv-head"><b>${esc(part.label)}</b><span class="mono">${part.width - 32} × ${part.height - 32}px</span>
+      <span class="pv-scale"></span><a href="${esc(part.open || part.file)}" target="_blank">open on its own ↗</a></div>
+    <div class="pv-wrap" data-w="${part.width}" data-h="${part.height}">
+      <iframe src="${esc(part.file)}" width="${part.vw || part.width}" height="${part.height}" title="${esc(part.label)}"></iframe>
+    </div></figure>`
+}
+function previews(orgId) {
+  const list = PARTS[orgId] || []
+  return list.length ? list.map(preview).join('')
+    : '<div class="card noshot">No preview — this organism has no cut in stitch/parts yet. Run <code>node v6-pages/build-parts.mjs</code>.</div>'
+}
+function fitPreviews() {
+  document.querySelectorAll('.pv-wrap').forEach(w => {
+    const s = Math.min(1, w.parentElement.clientWidth / Number(w.dataset.w))
+    const f = w.querySelector('iframe')
+    // The iframe is as wide as the Stitch window (so its breakpoints match the
+    // original page); the wrapper crops it to the organism's own width.
+    f.style.transform = `scale(${s})`
+    w.style.height = Math.ceil(Number(w.dataset.h) * s) + 'px'
+    w.style.width = Math.ceil(Number(w.dataset.w) * s) + 'px'
+    const label = w.parentElement.querySelector('.pv-scale')
+    if (label) label.textContent = s < 1 ? `shown at ${Math.round(s * 100)}%` : 'actual size'
+  })
+}
+window.addEventListener('resize', fitPreviews)
+
+function gallery() {
+  return `<div class="title-row"><h2>Gallery</h2></div>
+    <p class="purpose">Every organism as Stitch drew it, cut out of the source page and rendered live — the design BEFORE we rebuild it on shadcn + Bartefy tokens. Needs the internet: Tailwind, fonts and photos load from Stitch's CDNs.</p>
+    <section class="block">${D.organisms.map(o => `
+      <div class="gallery-item">
+        <h3><span class="mono" style="color:var(--stone)">${onum(o)}</span>${orgLink(o.id)}${vpill(o.verdict)}</h3>
+        <p>${esc(o.summary)}</p>
+        ${previews(o.id)}
+      </div>`).join('')}</section>`
+}
+
+/* ---------------------------------------------------------------- routing */
+function route() {
+  const h = decodeURIComponent(location.hash.slice(1))
+  if (h === 'org' || h.startsWith('org/')) return { tab: 'org', id: h.slice(4) || 'overview' }
+  return { tab: 'pages', id: h || D.pages[0].id }
+}
+const go = h => { location.hash = h }
+
+/* ----------------------------------------------------------------- header */
+function header() {
+  const r = route()
+  document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.dataset.tab === r.tab))
+  document.getElementById('c-pages').textContent = numbered.length + 1
+  document.getElementById('c-org').textContent = D.organisms.length
+  let keys, items, pill, label
+  if (r.tab === 'org') {
+    keys = VERDICTS; items = D.organisms; pill = vpill; label = VLABEL
+    document.getElementById('meta').textContent =
+      `${D.organisms.length} organisms from ${D.sources.length} Stitch source${D.sources.length === 1 ? '' : 's'} · ${D.organisms.reduce((a, o) => a + o.placements.length, 0)} placements`
+  } else {
+    keys = STATUSES; items = D.pages; pill = spill; label = SLABEL
+    document.getElementById('meta').textContent =
+      `${numbered.length} pages + shared shell · inventory ${D.inventoryDate} · branch ${D.branch} · screenshots from ${D.shots.date}`
+  }
+  const field = r.tab === 'org' ? 'verdict' : 'status'
+  const by = Object.fromEntries(keys.map(k => [k, items.filter(x => x[field] === k).length]))
+  document.getElementById('counts').innerHTML = keys.map(k =>
+    `<button class="count" data-k="${k}" aria-pressed="${filter === k}">${pill(k)}<b>${by[k]}</b></button>`).join('')
+  document.getElementById('progress').innerHTML = keys.map(k =>
+    `<span class="bar-${k}" style="width:${(by[k] / items.length) * 100}%" title="${label[k]}: ${by[k]}"></span>`).join('')
+  document.querySelectorAll('.count').forEach(b => b.onclick = () => { filter = filter === b.dataset.k ? null : b.dataset.k; render() })
+}
+
+/* ------------------------------------------------------------------- nav */
+function nav() {
+  const r = route()
+  const q = document.getElementById('q').value.trim().toLowerCase()
+  document.getElementById('q').placeholder = r.tab === 'org' ? 'Filter organisms, parts, pages…' : 'Filter pages, routes, elements…'
+  let html = ''
+  if (r.tab === 'pages') {
+    const hit = p => (!filter || p.status === filter) && (!q ||
+      [p.name, p.purpose, ...p.routes, ...p.elements.flatMap(e => [e.name, e.note])].join(' ').toLowerCase().includes(q))
+    for (const g of D.groups) {
+      const rows = D.pages.filter(p => p.group === g.id && hit(p))
+      if (!rows.length) continue
+      html += `<div class="group-label">${esc(g.label)}</div>` + rows.map(p => {
+        const n = orgsOn(p.id).length
+        return `<button class="row" data-go="${p.id}" aria-current="${p.id === r.id}">
+          <span class="n">${num(p)}</span>
+          <span><span class="name">${esc(p.name)}</span><span class="route">${esc(p.routes[0])} · ${p.elements.length} el${n ? ` · ${n} org` : ''}</span></span>
+          ${spill(p.status)}</button>`
+      }).join('')
+    }
+    html += `<div class="group-label">Reference</div>
+      <button class="row" data-go="missing" aria-current="${r.id === 'missing'}"><span class="n">?</span><span><span class="name">Missing for V6</span><span class="route">${missingCount()} gaps</span></span><span></span></button>
+      <button class="row" data-go="log" aria-current="${r.id === 'log'}"><span class="n">≡</span><span><span class="name">Change log & redirects</span><span class="route">${D.LOG.length} entries</span></span><span></span></button>`
+  } else {
+    html += `<button class="row" data-go="org" aria-current="${r.id === 'overview'}"><span class="n">▦</span><span><span class="name">Overview</span><span class="route">layouts + where each goes</span></span><span></span></button>
+      <button class="row" data-go="org/gallery" aria-current="${r.id === 'gallery'}"><span class="n">◫</span><span><span class="name">Gallery</span><span class="route">see every organism</span></span><span></span></button>`
+    const hit = o => (!filter || o.verdict === filter) && (!q ||
+      [o.name, o.code, o.summary, o.app, ...o.parts.flat(), ...o.placements.map(p => pageById[p.page]?.name + ' ' + p.slot)].join(' ').toLowerCase().includes(q))
+    for (const v of VERDICTS) {
+      const rows = D.organisms.filter(o => o.verdict === v && hit(o))
+      if (!rows.length) continue
+      html += `<div class="group-label">${esc(VLABEL[v])}</div>` + rows.map(o => `
+        <button class="row" data-go="org/${o.id}" aria-current="${o.id === r.id}">
+          <span class="n">${onum(o)}</span>
+          <span><span class="name">${esc(o.name)}</span><span class="route">${o.placements.length} placement${o.placements.length === 1 ? '' : 's'} · ${new Set(o.placements.map(p => p.page)).size} page${new Set(o.placements.map(p => p.page)).size === 1 ? '' : 's'}${o.flags.length ? ` · ${o.flags.length} ⚑` : ''}</span></span>
+          ${vpill(o.verdict)}</button>`).join('')
+    }
+  }
+  document.getElementById('nav').innerHTML = html || '<p class="empty">Nothing matches.</p>'
+}
+
+function orgsOn(pageId) {
+  return D.organisms.flatMap(o => o.placements.filter(p => p.page === pageId).map(p => ({ o, p })))
+}
+
+/* ---------------------------------------------------------- pages detail */
+function shot(label, dir, file) {
+  if (!file) return ''
+  const src = dir + file
+  return `<figure class="shot"><button data-src="${esc(src)}"><img src="${esc(src)}" alt="${esc(label)}" loading="lazy"
+    onerror="this.closest('figure').innerHTML='<div class=noshot>${esc(label)}: no screenshot</div>'"></button>
+    <figcaption>${esc(label)}</figcaption></figure>`
+}
+
+function pageView(p) {
+  const group = D.groups.find(g => g.id === p.group)?.label
+  const plan = p.v6.plan.length
+    ? `<ol>${p.v6.plan.map(x => `<li>${esc(x)}</li>`).join('')}</ol>`
+    : '<p class="empty">Not planned yet — this is where we write what V6 changes on this page.</p>'
+  const shots = p.shot
+    ? `<div class="shots">${shot('Phone 390', D.shots.mobile, p.shot)}${shot('Desktop 1440', D.shots.desktop, p.shot)}${shot('Desktop 1920', D.shots.wide, p.shot)}</div>
+       ${p.shotAlt ? `<div class="shots" style="margin-top:12px">${shot('Phone 390 — alt', D.shots.mobile, p.shotAlt)}${shot('Desktop 1440 — alt', D.shots.desktop, p.shotAlt)}${shot('Desktop 1920 — alt', D.shots.wide, p.shotAlt)}</div>` : ''}`
+    : '<div class="card noshot">No screenshot captured for this page.</div>'
+  const placed = orgsOn(p.id)
+  const sources = D.sources.filter(s => s.page === p.id || (s.alsoPages || []).includes(p.id))
+
+  return `
+    <div class="title-row"><span class="mono" style="color:var(--stone)">${num(p)}</span><h2>${esc(p.name)}</h2>${spill(p.status)}</div>
+    <div class="routes">${p.routes.map(r => `<code>${esc(r)}</code>`).join('')}</div>
+    <p class="purpose">${esc(p.purpose)}</p>
+    <div class="facts"><span>Group <b>${esc(group)}</b></span><span>Layout <b>${esc(p.split)}</b></span><span>Elements <b>${p.elements.length}</b></span>
+      ${sources.map(s => `<span>Stitch <a href="${esc(s.file)}" target="_blank">${esc(s.id)} · ${esc(s.name)} ↗</a></span>`).join('')}</div>
+
+    <section class="block"><h3>V6 plan <span class="sub">what we decided to change</span></h3>
+      <div class="card plan">${plan}${p.v6.notes ? `<div class="note">${esc(p.v6.notes)}</div>` : ''}</div></section>
+
+    <section class="block"><h3>V6 organisms for this page <span class="sub">${placed.length ? `${placed.length} — from the V6-Organisms tab` : 'none assigned yet'}</span></h3>
+      ${placed.length ? `<div class="card scroll"><table class="el"><thead><tr><th>Organism</th><th>Slot</th><th>Variant</th><th>Platform</th><th>From</th></tr></thead><tbody>${placed.map(({ o, p: pl }) => `
+        <tr><td class="nm">${orgLink(o.id)} ${vpill(o.verdict)}</td><td class="nt">${esc(pl.slot)}</td><td><code>${esc(pl.variant)}</code></td><td>${esc(pl.platform)}</td>
+        <td><span class="pill origin-${pl.origin}">${pl.origin === 'mock' ? 'Stitch mock' : 'My proposal'}</span></td></tr>`).join('')}
+      </tbody></table></div>` : ''}</section>
+
+    <section class="block"><h3>Elements on this page <span class="sub">as the code is today</span></h3>
+      <div class="card scroll"><table class="el"><tbody>${p.elements.map(e => `
+        <tr><td class="k"><span class="kind ${e.kind}">${e.kind}</span></td><td class="nm">${esc(e.name)}</td><td class="nt">${esc(e.note)}</td></tr>`).join('')}
+      </tbody></table></div></section>
+
+    <section class="block"><h3>Screenshots <span class="sub">captured ${D.shots.date} — before V6</span></h3>${shots}</section>
+
+    <section class="block"><h3>Change log</h3><div class="card">${p.changelog.length
+      ? `<ul class="log">${p.changelog.map(c => `<li><span class="d">${esc(c.date)}</span><span>${esc(c.note)}</span></li>`).join('')}</ul>`
+      : '<p class="empty" style="padding:12px 16px;margin:0">No V6 changes yet.</p>'}</div></section>
+
+    <section class="block"><h3>Files <span class="sub">client/</span></h3>
+      <div class="card"><ul class="files">${p.files.map(f => `<li><code>${esc(f)}</code></li>`).join('')}</ul></div></section>`
+}
+
+/* ------------------------------------------------------ missing for V6 */
+function coverage(p) {
+  const src = D.sources.filter(s => /^S\d/.test(s.id) && (s.page === p.id || (s.alsoPages || []).includes(p.id)))
+  const pl = D.organisms.flatMap(o => o.placements.filter(x => x.page === p.id).map(x => ({ o, x })))
+  const drawn = [...new Set(pl.filter(z => z.x.origin === 'mock').map(z => z.o.id))]
+  const proposed = [...new Set(pl.filter(z => z.x.origin === 'proposed').map(z => z.o.id))].filter(id => !drawn.includes(id))
+  // Drawn organisms count even when the design came from another page's file
+  // (the shell is drawn in S1 / R1).
+  const level = drawn.length ? 'designed' : src.length ? 'mentioned' : proposed.length ? 'proposals' : 'nothing'
+  return { src, drawn, proposed, level }
+}
+const LEVEL = {
+  designed: ['s-done', 'Has a Stitch design'],
+  mentioned: ['s-review', 'Folded into another page’s design'],
+  proposals: ['s-building', 'Only my proposals — no design'],
+  nothing: ['s-todo', 'Nothing yet'],
+}
+function missingCount() {
+  return D.pages.filter(p => coverage(p).level !== 'designed').length + (D.GAPS || []).reduce((a, g) => a + g.items.length, 0)
+}
+function missingView() {
+  const rows = D.pages.map(p => ({ p, c: coverage(p) }))
+  const order = ['nothing', 'proposals', 'mentioned', 'designed']
+  rows.sort((a, b) => order.indexOf(a.c.level) - order.indexOf(b.c.level))
+  const n = l => rows.filter(r => r.c.level === l).length
+  return `<div class="title-row"><h2>Missing for V6</h2></div>
+    <p class="purpose">What still needs a design before V6 is complete. The page table is calculated from the Stitch sources and organism placements, so it updates as designs arrive.</p>
+    <div class="facts">${order.map(l => `<span><span class="pill ${LEVEL[l][0]}">${LEVEL[l][1]}</span> <b>${n(l)}</b></span>`).join('')}</div>
+
+    <section class="block"><h3>Pages <span class="sub">${D.pages.length} incl. the shell</span></h3>
+      <div class="card scroll"><table class="el"><thead><tr><th>Page</th><th>Coverage</th><th>Stitch</th><th>Organisms drawn</th><th>Only proposed</th></tr></thead><tbody>${rows.map(({ p, c }) => `
+        <tr><td class="nm">${pageLink(p.id)}</td><td><span class="pill ${LEVEL[c.level][0]}">${LEVEL[c.level][1]}</span></td>
+        <td>${c.src.map(s => `<code>${s.id}</code>`).join(' ') || '—'}</td><td>${c.drawn.length || '—'}</td>
+        <td class="nt">${c.proposed.map(id => orgLink(id)).join(', ') || '—'}</td></tr>`).join('')}
+      </tbody></table></div></section>
+
+    ${(D.GAPS || []).map(g => `<section class="block"><h3>${esc(g.area)} <span class="sub">${g.items.length}</span></h3>
+      <div class="card scroll"><table class="el"><tbody>${g.items.map(([a, b]) => `<tr><td class="nm">${esc(a)}</td><td class="nt">${esc(b)}</td></tr>`).join('')}</tbody></table></div></section>`).join('')}`
+}
+
+function logView() {
+  return `<div class="title-row"><h2>Change log & redirects</h2></div>
+    <section class="block"><h3>Every V6 change <span class="sub">newest first</span></h3>
+      <div class="card"><ul class="log">${D.LOG.map(c => `<li><span class="d">${esc(c.date)}</span><span>${esc(c.note)}</span></li>`).join('')}</ul></div></section>
+    <section class="block"><h3>Redirect-only routes <span class="sub">not pages — kept so old links work</span></h3>
+      <div class="card redir">${D.redirects.map(([a, b]) => `<code>${esc(a)}</code><span>→</span><code>${esc(b)}</code>`).join('')}</div></section>`
+}
+
+/* ----------------------------------------------------- organisms detail */
+function layoutDiagram(L) {
+  const src = D.sources.find(s => s.id === L.source)
+  return `<div class="card">
+    <div style="padding:12px 14px 0;font-size:13px;color:var(--stone)">${esc(pageById[L.page]?.name)} · ${esc(L.platform)} · ${L.cols} columns · max ${esc(L.maxWidth)} · from <a href="${esc(src.file)}" target="_blank">${esc(src.id)} ↗</a></div>
+    <div class="grid12">${L.rows.flat().map(c => `
+      <div class="cell" style="grid-column: span ${c.span}">
+        <span class="span">${c.span}/12</span>
+        ${(c.stack || [c.org]).map(id => `<button data-go="org/${id}">${esc(orgById[id]?.name ?? id)}</button>`).join('')}
+      </div>`).join('')}
+    </div></div>`
+}
+
+function matrix() {
+  const pagesUsed = D.pages.filter(p => D.organisms.some(o => o.placements.some(pl => pl.page === p.id)))
+  const cell = (o, p) => {
+    const pls = o.placements.filter(pl => pl.page === p.id)
+    if (!pls.length) return '<td></td>'
+    return `<td>${[...new Set(pls.map(pl => pl.variant + '|' + pl.origin))].map(k => {
+      const [v, origin] = k.split('|')
+      return `<span class="dot origin-${origin}" title="${esc(pls.find(pl => pl.variant === v)?.slot)}">${VAR_ABBR[v] ?? v}</span>`
+    }).join(' ')}</td>`
+  }
+  return `<div class="card"><div class="scroll"><table class="mx">
+    <thead><tr><th></th>${pagesUsed.map(p => `<th><button class="linkbtn vt" data-go="${p.id}" style="text-decoration:none;color:var(--ink)">${esc(p.name)}</button></th>`).join('')}</tr></thead>
+    <tbody>${D.organisms.map(o => `<tr><th>${onum(o)} ${orgLink(o.id)}</th>${pagesUsed.map(p => cell(o, p)).join('')}</tr>`).join('')}</tbody>
+  </table></div>
+  <div class="legend"><span><span class="dot origin-mock">WIDE</span> drawn in the Stitch mock</span><span><span class="dot origin-proposed">TILE</span> my proposal</span>
+    <span>FULL · WIDE · HALF · TILE · CMP compact · INL inline · SHEET</span></div></div>`
+}
+
+function overview() {
+  const pagesTouched = new Set(D.organisms.flatMap(o => o.placements.map(p => p.page))).size
+  return `
+    <div class="title-row"><h2>V6-Organisms</h2></div>
+    <p class="purpose">Every Stitch design is taken apart into organisms: self-contained units with named size variants that the V6 grid can place on any page. The verdict says how much of each one the app already has.</p>
+    <div class="facts"><span>Organisms <b>${D.organisms.length}</b></span><span>Pages touched <b>${pagesTouched}</b></span>
+      ${VERDICTS.map(v => `<span>${VLABEL[v]} <b>${D.organisms.filter(o => o.verdict === v).length}</b></span>`).join('')}</div>
+
+    <section class="block"><h3>Stitch sources <span class="sub">saved under stitch/</span></h3>
+      <div class="card"><ul class="log">${D.sources.map(s => `<li><span class="d">${esc(s.id)} · ${esc(s.received)}</span>
+        <span><a href="${esc(s.file)}" target="_blank"><b>${esc(s.name)}</b> ↗</a> → ${pageLink(s.page)}<br><span style="color:var(--stone);font-size:13.5px">${esc(s.notes)}</span></span></li>`).join('')}</ul></div></section>
+
+    ${D.layouts.map(L => `<section class="block"><h3>Layout the mock implies <span class="sub">${esc(pageById[L.page]?.name)}, ${esc(L.platform)}</span></h3>${layoutDiagram(L)}</section>`).join('')}
+
+    <section class="block"><h3>Where each organism goes <span class="sub">organism × page</span></h3>${matrix()}</section>`
+}
+
+function orgView(o) {
+  const src = D.sources.find(s => s.id === o.source)
+  return `
+    <div class="title-row"><span class="mono" style="color:var(--stone)">${onum(o)}</span><h2>${esc(o.name)}</h2>${vpill(o.verdict)}${o.revision ? `<span class="pill s-planning">${esc(o.revision)}</span>` : ''}</div>
+    <div class="routes"><code>${esc(o.code)}</code><code>id: ${esc(o.id)}</code><code>kind: ${esc(o.kind)}</code></div>
+    <p class="purpose">${esc(o.summary)}</p>
+    <div class="facts"><span>Verdict <b>${esc(VLABEL[o.verdict])}</b></span>
+      <span>Source <a href="${esc(src?.file)}" target="_blank">${esc(src?.id)} · ${esc(src?.name)} ↗</a></span></div>
+
+    ${o.decisions?.length ? `<section class="block"><h3>Decisions <span class="sub">what we changed from the Stitch design, and why</span></h3>
+      <div class="card"><ul class="log">${o.decisions.map(d => `<li><span class="d">${esc(d.date)}<br>${esc(d.by)}</span><span>${esc(d.text)}</span></li>`).join('')}</ul></div></section>` : ''}
+
+    <section class="block"><h3>What it looks like <span class="sub">${o.revision ? `revision ${esc(o.revision)} first, then any earlier version kept for comparison` : 'Stitch original, live — before the rebuild'}</span></h3>${previews(o.id)}</section>
+
+    <section class="block"><h3>Where it goes <span class="sub">${o.placements.length} placement${o.placements.length === 1 ? '' : 's'}</span></h3>
+      ${o.placements.length ? '' : '<div class="card noshot">Nowhere — not recommended. See the flags for why.</div>'}
+      <div class="card scroll" ${o.placements.length ? '' : 'hidden'}><table class="el"><thead><tr><th>Page</th><th>Slot</th><th>Variant</th><th>Platform</th><th>From</th><th>Why</th></tr></thead><tbody>${o.placements.map(pl => `
+        <tr><td class="nm">${pageLink(pl.page)}</td><td>${esc(pl.slot)}</td><td><code>${esc(pl.variant)}</code></td><td>${esc(pl.platform)}</td>
+        <td><span class="pill origin-${pl.origin}">${pl.origin === 'mock' ? 'Stitch mock' : 'My proposal'}</span></td><td class="nt">${esc(pl.why)}</td></tr>`).join('')}
+      </tbody></table></div></section>
+
+    <section class="block"><h3>What is inside it <span class="sub">as the mock draws it</span></h3>
+      <div class="card scroll"><table class="el"><tbody>${o.parts.map(([n, d]) => `
+        <tr><td class="nm">${esc(n)}</td><td class="nt">${esc(d)}</td></tr>`).join('')}</tbody></table></div></section>
+
+    <section class="block"><h3>Size variants</h3>
+      <div class="two"><div class="card"><h4>Seen in the mock</h4><ul>${o.variants.seen.map(v => `<li>${esc(v)}</li>`).join('')}</ul></div>
+        <div class="card"><h4>Proposed</h4><ul>${o.variants.proposed.map(v => `<li>${esc(v)}</li>`).join('')}</ul></div></div></section>
+
+    <section class="block"><h3>In the app today</h3><div class="card plan"><p style="margin:0">${esc(o.app)}</p><div class="note"><b>Data:</b> ${esc(o.data)}</div></div></section>
+
+    <section class="block"><h3>Flags <span class="sub">where the mock breaks an agreed rule or needs data we lack</span></h3>
+      <div class="card">${o.flags.length ? `<ul class="flags">${o.flags.map(f => `<li><span>${esc(f)}</span></li>`).join('')}</ul>`
+        : '<p class="empty" style="padding:12px 16px;margin:0">None.</p>'}</div></section>`
+}
+
+/* ------------------------------------------------------------------ render */
+function detail() {
+  const r = route(), el = document.getElementById('detail')
+  if (r.tab === 'org') el.innerHTML = r.id === 'gallery' ? gallery() : r.id === 'overview' ? overview() : orgById[r.id] ? orgView(orgById[r.id]) : overview()
+  else el.innerHTML = r.id === 'log' ? logView() : r.id === 'missing' ? missingView() : pageView(pageById[r.id] ?? D.pages[0])
+  fitPreviews()
+  el.querySelectorAll('.shot button').forEach(b => b.onclick = () => {
+    const d = document.getElementById('zoom'); d.querySelector('img').src = b.dataset.src; d.showModal()
+  })
+}
+
+function render() { header(); nav(); detail() }
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-go]'); if (t) go(t.dataset.go)
+  const tab = e.target.closest('.tab'); if (tab) { filter = null; go(tab.dataset.tab === 'org' ? 'org' : D.pages[0].id) }
+})
+document.getElementById('zoom').onclick = e => e.currentTarget.close()
+document.getElementById('q').oninput = nav
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || !['ArrowDown', 'ArrowUp'].includes(e.key)) return
+  const ids = [...document.querySelectorAll('#nav .row')].map(r => r.dataset.go)
+  const cur = location.hash.slice(1)
+  const i = Math.max(0, ids.indexOf(cur))
+  const next = ids[Math.max(0, Math.min(ids.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)))]
+  if (next) { e.preventDefault(); go(next) }
+})
+let lastTab = route().tab
+window.onhashchange = () => {
+  // A status filter means nothing on the other tab (and vice versa).
+  if (route().tab !== lastTab) { filter = null; lastTab = route().tab }
+  render(); scrollTo(0, 0)
+}
+render()
+</script>
+</body>
+</html>

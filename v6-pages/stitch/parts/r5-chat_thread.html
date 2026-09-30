@@ -1,0 +1,179 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<meta content="web_standard" name="shell-type">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&amp;family=Outfit:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style>
+<script src="https://cdn.tailwindcss.com"></script>
+<script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "outline": "#6f7974", "tertiary-fixed-dim": "#b7cbc0", "on-error-container": "#93000a", "surface": "#faf9f4", "primary-fixed-dim": "#8ad5ba", "primary-container": "#1b6b55", "on-tertiary-fixed": "#0d1f18", "surface-bright": "#faf9f4", "inverse-on-surface": "#f2f1ec", "on-primary": "#ffffff", "primary": "#00523f", "on-secondary-fixed": "#002019", "on-primary-fixed": "#002117", "on-surface": "#1b1c19", "on-background": "#1b1c19", "outline-variant": "#bec9c3", "secondary-container": "#bce9d9", "on-secondary-container": "#416b5e", "primary-fixed": "#a6f2d6", "tertiary-container": "#50635a", "background": "#faf9f4", "surface-container": "#efeee9", "secondary": "#3c665a", "surface-container-high": "#e9e8e3", "on-secondary": "#ffffff", "secondary-fixed": "#bfecdc", "surface-container-lowest": "#ffffff", "tertiary-fixed": "#d2e7db", "tertiary": "#394b42", "surface-container-low": "#f5f4ef", "on-tertiary-fixed-variant": "#384b42", "coral": "#EE8B6A", "on-primary-fixed-variant": "#00513e", "slate": "#6B7079", "pure-white": "#FFFFFF", "destructive": "#B8492A", "sky": "#7EB3DD", "surface-variant": "#e3e3de", "stone": "#EDEBE4", "on-primary-container": "#9de9cd", "surface-dim": "#dbdad5", "on-surface-variant": "#3f4944", "sun": "#EDC857", "secondary-fixed-dim": "#a3d0c0", "on-tertiary": "#ffffff", "on-error": "#ffffff", "on-secondary-fixed-variant": "#244e42", "surface-tint": "#1a6a54", "inverse-surface": "#30312e", "inverse-primary": "#8ad5ba", "ink": "#17191E", "error": "#ba1a1a", "error-container": "#ffdad6", "surface-container-highest": "#e3e3de", "on-tertiary-container": "#c9ded2", "lilac": "#AE9FDC" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "gutter-lg": "2rem", "gutter": "1.5rem", "gutter-sm": "1rem", "space-lg": "1.5rem", "space-sm": "0.5rem", "margin": "1.5rem", "space-xl": "2.5rem", "space-md": "1rem", "margin-sm": "1rem", "space-xs": "0.25rem", "margin-lg": "3.5rem" }, fontFamily: { "mono-eyebrow": ["JetBrains Mono"], "headline-lg-mobile": ["Outfit"], "body-default": ["Plus Jakarta Sans"], "display-hero": ["Outfit"], "headline-lg": ["Outfit"], "mono-spec": ["JetBrains Mono"], "headline-md": ["Outfit"], "body-secondary": ["Plus Jakarta Sans"], "label-uppercase": ["Plus Jakarta Sans"], "display-hero-mobile": ["Outfit"], "title-card": ["Plus Jakarta Sans"] }, fontSize: { "mono-eyebrow": ["12px", { lineHeight: "16px", letterSpacing: "0.08em", fontWeight: "400" }], "headline-lg-mobile": ["26px", { lineHeight: "32px", letterSpacing: "-0.01em", fontWeight: "500" }], "body-default": ["17px", { lineHeight: "27px", fontWeight: "400" }], "display-hero": ["64px", { lineHeight: "64px", letterSpacing: "-0.025em", fontWeight: "600" }], "headline-lg": ["32px", { lineHeight: "38px", letterSpacing: "-0.015em", fontWeight: "500" }], "mono-spec": ["11px", { lineHeight: "16px", fontWeight: "400" }], "headline-md": ["24px", { lineHeight: "30px", fontWeight: "600" }], "body-secondary": ["15px", { lineHeight: "22px", fontWeight: "400" }], "label-uppercase": ["13px", { lineHeight: "18px", letterSpacing: "0.04em", fontWeight: "600" }], "display-hero-mobile": ["36px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "600" }], "title-card": ["20px", { lineHeight: "26px", fontWeight: "600" }] } } } };</script></head>
+<body class="bg-background font-body-md text-on-surface antialiased">
+<div id="frame" style="width:560px;padding:16px;box-sizing:content-box"><main class="lg:col-span-6 flex flex-col bg-pure-white rounded-xl shadow-sm overflow-hidden">
+<!-- Chat Header -->
+<div class="p-space-md bg-stone flex flex-wrap items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="relative">
+<img class="w-12 h-12 rounded-full object-cover" data-alt="Close-up friendly profile photograph of Sara M. smiling gently, wearing an olive linen coat, daylight softly highlighting her hair against a clean studio architectural background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBd9Zwp5myIkWPHEcYM3x_odI6hhJDAsfJGAMPJ_ziBbTpuyow-aECoHQ5BUZgCA3029X4TaVXvLUBSGIRKhxEpM4crJ5h-6_xAmz2Ekav0uvI83z6CRS5CdvKsMHIWBZb-W71HEB4HZcUNVLM6IGtiKUEf4H6WdysCC2rVYySB6gdakz8BhUs1hvfIPux1nFgClRIBS385A0bZcBh6whPX0xxGGmF4xauqtwYMcySbLblGPUBAWTu0-A">
+<span class="absolute bottom-0 right-0 w-3 h-3 bg-primary rounded-full ring-2 ring-stone"></span>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<h2 class="font-headline-md text-headline-md text-ink">Sara M.</h2>
+<span class="inline-flex items-center gap-0.5 bg-lilac/30 text-ink px-1.5 py-0.5 rounded font-mono-spec text-mono-spec">
+<img alt="Verified" class="w-3 h-3" src="https://lh3.googleusercontent.com/aida/AEtjO1UbnlfRbzCrMPdtvc7FuujfvZKi8NSIkxa5pOvWmH8eceYUMf_GOJ7uEQQiSdepxOfKgOnDswov-UkUKPHbjxZZLxGeoOCf0IMhB4UuKmroh-e1LXYjh8SbpdbjbRZRo_zJkdFEuhSE-gIVhU2L3NZ8In8hfqJslvnFs6aygwLwEiU73ZDUrt64Oh9I6PrJVbHrxh_9qJLHZFRb-KgQQM0IRvO6Lo5DaAcZImprpFmxbxFV8TgsK4RtxG8">
+                  Verified Swapper
+                </span>
+</div>
+<p class="font-mono-spec text-mono-spec text-slate">
+                98% Positive Swap Rating (42 swaps) · Central Borough · 2.4 km away
+              </p>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="bg-primary text-on-primary font-body-secondary text-body-secondary px-space-md py-1.5 rounded-lg flex items-center gap-1 hover:bg-tertiary transition-colors">
+<span class="material-symbols-outlined text-[18px]">event</span>
+              Propose Meetup
+            </button>
+<button class="bg-surface-container-high text-ink font-body-secondary text-body-secondary px-space-sm py-1.5 rounded-lg hover:bg-stone transition-colors">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+</button>
+</div>
+</div>
+<!-- Chat Protocol Banner -->
+<div class="bg-surface-container-low px-space-md py-2 flex items-center justify-between text-ink">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">handshake</span>
+<span class="font-mono-spec text-mono-spec">Mutual Match Established · Ready to Handshake · Zero Currency Trade</span>
+</div>
+<span class="font-mono-spec text-mono-spec text-slate">Node Safe-Lock Active</span>
+</div>
+<!-- Message Stream Area -->
+<div class="p-space-md flex flex-col gap-space-md overflow-y-auto max-h-[580px] bg-pure-white">
+<!-- System Match Summary Card -->
+<div class="bg-surface-container-low rounded-xl p-space-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-mono-eyebrow text-mono-eyebrow text-slate uppercase tracking-wider">Item Transparency Record</span>
+<span class="font-mono-spec text-mono-spec text-primary font-medium">Both Swappers Confirmed Descriptions</span>
+</div>
+<div class="grid grid-cols-2 gap-space-sm">
+<div class="bg-pure-white p-space-sm rounded-lg flex items-center gap-space-xs">
+<span class="w-2 h-2 rounded-full bg-coral flex-shrink-0"></span>
+<div class="min-w-0">
+<div class="font-mono-spec text-mono-spec font-medium text-ink truncate">Olympus OM-1 (Black)</div>
+<div class="font-mono-spec text-mono-spec text-slate truncate">Light hairline base wear · Lens clear</div>
+</div>
+</div>
+<div class="bg-pure-white p-space-sm rounded-lg flex items-center gap-space-xs">
+<span class="w-2 h-2 rounded-full bg-secondary flex-shrink-0"></span>
+<div class="min-w-0">
+<div class="font-mono-spec text-mono-spec font-medium text-ink truncate">Specialized Sirrus Road</div>
+<div class="font-mono-spec text-mono-spec text-slate truncate">Grip tape new · Fresh brake pads</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Message from Sara -->
+<div class="flex items-start gap-space-sm max-w-[85%]">
+<img class="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-1" data-alt="Portrait of Sara M." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8iESJtbP8OjQLBSAwuxgxrZN47wSH8P08Yfk15bHiQT55gij3gyQhvQ4tydy3uEZFtytLRLH9aEnoxLZRpl_HRKsul3_ruu6j5deDLzjDtPiSB1XCMsRPOe2LSasFIZv6VP_VlRI-EFrcSgXeUPBoGNd_2Rdei03N4n9MrJoCwBy8_CRamYudErITm5lyOc9PEvq-4eaclBTpdWNzmB_2dqZDGW6OdJkKk71Uj70F1rKiBPrwdlcIKQ">
+<div class="flex flex-col gap-1">
+<span class="font-mono-spec text-mono-spec text-slate">Sara M. · 14:12</span>
+<div class="bg-stone text-ink p-space-sm rounded-xl rounded-tl-none font-body-default text-body-secondary leading-relaxed">
+                Hi! So excited this matched! I've been looking for an OM-1 for months. The bike is in great mechanical shape, fresh brake pads, tuned last month at Velodrome Works.
+              </div>
+</div>
+</div>
+<!-- User Response Message -->
+<div class="flex items-start gap-space-sm max-w-[85%] self-end flex-row-reverse">
+<div class="w-8 h-8 rounded-full bg-primary-container text-pure-white flex items-center justify-center font-headline-md text-mono-eyebrow flex-shrink-0 mt-1">
+              AV
+            </div>
+<div class="flex flex-col gap-1 items-end">
+<span class="font-mono-spec text-mono-spec text-slate">You · 14:16</span>
+<div class="bg-primary text-on-primary p-space-sm rounded-xl rounded-tr-none font-body-default text-body-secondary leading-relaxed">
+                Hey Sara! That's awesome. The camera has a tiny hairline mark on the bottom plate like in the photo, but shutter speeds and meter are 100% accurate. Just shot a roll of Portra 400 on it.
+              </div>
+</div>
+</div>
+<!-- Second Message from Sara with Meetup Proposal -->
+<div class="flex items-start gap-space-sm max-w-[90%]">
+<img class="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-1" data-alt="Portrait of Sara M." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9c_NgOkEhTRD7fEabvxN3OCPEyL6y0U0ZJVgqyXK_VV32U_vZPMjGsREGERJm8yuM982U0UkihVwMLyP6Pn1saVRNLGvQCB6C8kBs_ibT7eSFYVdjDh4b2TisYaziGQzZavktlmdFbfQlF3IABiuSBMwsAdSLUgr7AL4hqz1tkQgUYvEbynsih5QgLK_DnTlVFYtl6_2rAxlx0yU6aCmGFB0wflzSQddguAcPCifKkBngHWNHgo0Ylg">
+<div class="flex flex-col gap-space-xs w-full">
+<span class="font-mono-spec text-mono-spec text-slate">Sara M. · 14:24</span>
+<div class="bg-stone text-ink p-space-sm rounded-xl rounded-tl-none font-body-default text-body-secondary leading-relaxed">
+                Totally fine with minor wear—it gives it character! Would Friday around 6:00 PM work for you? We could meet at the Public Library Safe Zone.
+              </div>
+<!-- Interactive Safe Zone Meetup Proposal Card -->
+<div class="bg-surface-container-low rounded-xl p-space-md mt-space-xs shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">verified_user</span>
+<span class="font-title-card text-body-secondary font-semibold text-ink">Official Bartefy Safe Zone Proposal</span>
+</div>
+<span class="bg-sky text-ink font-mono-spec text-mono-spec px-2 py-0.5 rounded-full font-medium">1.8 km midpoint</span>
+</div>
+<div class="flex flex-col gap-1 bg-pure-white p-space-sm rounded-lg">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-slate">location_on</span>
+<span class="font-body-secondary text-body-secondary font-semibold text-ink">Central Borough Public Library (Courtyard Lobby)</span>
+</div>
+<p class="font-mono-spec text-mono-spec text-slate pl-6">
+                    420 Heritage Ave · Well lit, public staff present until 8:00 PM
+                  </p>
+<div class="flex items-center gap-2 mt-2 pt-2 bg-surface-container-low px-2 py-1 rounded">
+<span class="material-symbols-outlined text-[18px] text-slate">schedule</span>
+<span class="font-mono-spec text-mono-spec font-medium text-ink">Friday, Oct 16 · 6:00 PM (EDT)</span>
+</div>
+</div>
+<!-- Proposed Spot Actions -->
+<div class="flex flex-wrap items-center gap-space-sm pt-1">
+<button class="bg-primary text-on-primary font-body-secondary text-body-secondary px-space-md py-2 rounded-lg font-semibold hover:bg-tertiary transition-colors flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+                    Accept Meetup Spot
+                  </button>
+<button class="bg-stone text-ink font-body-secondary text-body-secondary px-space-md py-2 rounded-lg font-medium hover:bg-surface-container-high transition-colors">
+                    Suggest Alternative
+                  </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Chat Input & Quick Actions -->
+<div class="p-space-md bg-stone flex flex-col gap-space-xs">
+<!-- Fast reply chips -->
+<div class="flex items-center gap-space-xs overflow-x-auto pb-1">
+<button class="bg-pure-white text-ink font-mono-spec text-mono-spec px-space-sm py-1 rounded-full whitespace-nowrap hover:bg-secondary-container transition-colors">
+              “Friday works for me!”
+            </button>
+<button class="bg-pure-white text-ink font-mono-spec text-mono-spec px-space-sm py-1 rounded-full whitespace-nowrap hover:bg-secondary-container transition-colors">
+              “Sounds good!”
+            </button>
+<button class="bg-pure-white text-ink font-mono-spec text-mono-spec px-space-sm py-1 rounded-full whitespace-nowrap hover:bg-secondary-container transition-colors">
+              “Can you send a close-up?”
+            </button>
+<button class="bg-pure-white text-ink font-mono-spec text-mono-spec px-space-sm py-1 rounded-full whitespace-nowrap hover:bg-secondary-container transition-colors">
+              “Let's check serial numbers.”
+            </button>
+</div>
+<!-- Input bar -->
+<div class="flex items-center gap-space-xs bg-pure-white rounded-xl p-1.5 shadow-sm">
+<button aria-label="Attach Photo" class="w-9 h-9 rounded-lg flex items-center justify-center text-slate hover:text-ink hover:bg-stone transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">add_photo_alternate</span>
+</button>
+<button aria-label="Suggest Safe Spot" class="w-9 h-9 rounded-lg flex items-center justify-center text-slate hover:text-ink hover:bg-stone transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">add_location_alt</span>
+</button>
+<input class="flex-1 font-body-default text-body-secondary text-ink px-2 py-1 outline-none bg-transparent" placeholder="Type message or clarify condition details..." type="text" value="Friday 6:00 PM at the library courtyard sounds ideal for me!">
+<button class="bg-primary text-on-primary w-10 h-10 rounded-lg flex items-center justify-center hover:bg-tertiary transition-colors flex-shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[20px]">send</span>
+</button>
+</div>
+<div class="flex items-center justify-between px-1">
+<span class="font-mono-spec text-mono-spec text-slate">Press Return to send · Markdown preview active</span>
+<span class="font-mono-spec text-mono-spec text-slate">Encrypted Local Peer Channel</span>
+</div>
+</div>
+</main></div>
+</body></html>
