@@ -126,6 +126,14 @@ export function useShellData() {
     unread,
     admirers,
     liveFinds: items.filter((it) => it.status === 'active').length,
+    /** Live finds with a photo, for My table. */
+    table: items
+      .filter((it) => it.status === 'active')
+      .map((it) => ({
+        id: String(it.id),
+        title: String(it.title ?? ''),
+        photo: Array.isArray(it.images) && it.images.length ? String(it.images[0]) : undefined,
+      })),
   }
 }
 

@@ -1,205 +1,61 @@
+import * as React from 'react'
+
 import { AppShell } from '@/components/shell/AppShell'
-import { EmptyState } from '@/components/EmptyState'
-import { WatchPrompt } from '@/components/hunt/WatchPrompt'
-import { OfferSheet } from '@/components/offer/OfferSheet'
-import { HuntStack } from '@/components/hunt/HuntStack'
-import { UpgradeSheet } from '@/components/membership/UpgradeSheet'
-import { NextStep } from '@/components/guidance/NextStep'
-import { Button } from '@/components/ui/button'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
-import { SwapPair } from '@/components/swap/SwapPair'
-import { T, useT } from '@/i18n/T'
-import { cn } from '@/lib/utils'
-import { useExperiment } from '@/lib/experiments'
+import { DeckActions } from '@/components/deck/DeckActions'
+import { DeckStage, type DeckControl } from '@/components/deck/DeckStage'
+import { BOOST_PRICE, DeckEmpty, DiscoverOverlays, useDiscoverUi } from './DiscoverShared'
 import { useHunt } from './useHunt'
 
-/** Hunt, phone shape: the stack is the whole screen.
+/** Discover on a phone -- layout C (Alex, 2026-09-29).
  *
- *  No heading and no filter button. The card already says what it is, and a
- *  title reading "Today's finds" above it spent a fifth of a 390px screen
- *  restating that -- the deck is the screen. Filters are gone from the app
- *  entirely: they only ever changed the feed's query key, never its request.
+ *  The five actions own the bottom, the card fills everything between them and
+ *  the top bar, and the page never scrolls. The shell swaps its top bar for
+ *  the Discover one (⋮ · Swaps · bell · You) and drops the tab bar here only;
+ *  the rail's cards live in the ⋮ menu.
  */
 export default function HuntMobile() {
   const h = useHunt()
-  const { t } = useT()
-
-  /** deck_empty_cta: which order the empty deck offers its two ways out.
-   *  Called unconditionally at the top, not inside the empty branch -- a hook
-   *  behind a condition is a rules-of-hooks crash, and the exposure should be
-   *  recorded when someone is IN the test, not only once they hit the empty
-   *  state. */
-  const emptyVariant = useExperiment('deck_empty_cta')
+  const ui = useDiscoverUi(h)
+  const deck = React.useRef<DeckControl | null>(null)
 
   return (
     <AppShell>
-      {/* The deck does not scroll.
-       *
-       *  It was `min-h-[calc(100dvh-72px)]`, which subtracted the tab bar but
-       *  not the topbar above it, so the column was always taller than the
-       *  space it had and the whole page drifted under a thumb. A swipe deck
-       *  that moves vertically while you are swiping horizontally fights the
-       *  gesture it exists for.
-       *
-       *  h-full inside a min-h-0 flex parent, with overflow hidden: the card
-       *  is sized by what is left rather than by a guess at the chrome. */}
       <div className="flex h-full min-h-0 flex-col overflow-hidden">
-        {/* overflow-y-auto, and justify-center only while the content FITS.
-            The empty state plus WatchPrompt is taller than the deck it
-            replaces, and a centred flex child that outgrows its box does not
-            shrink -- it bleeds out of both ends and runs under whatever comes
-            next. That is what put the wishlist card under the NextStep nudge.
-            justify-center centres a short child; once the content is taller
-            the browser falls back to start-aligned and this simply scrolls. */}
-        {/* The deck gets no padding and does not scroll; everything else
-            keeps the old padded, scrollable column.
-
-            A full-bleed card cannot sit inside px-5 -- that is what made it a
-            340px card in the middle of the screen. The empty state and the
-            wishlist prompt still need the padding and still need to scroll,
-            so the two cases are separated rather than one box compromising
-            for both. */}
-        <section
-          className={cn(
-            'flex min-h-0 flex-1 flex-col',
-            h.top && !h.isLoading
-              ? 'overflow-hidden'
-              : 'items-center justify-center gap-4 overflow-y-auto px-5 pb-4 pt-2',
-          )}
-        >
-          {h.isLoading ? (
-            <T as="p" k="hunt.loading" className="font-body text-sm text-muted-foreground" />
-          ) : h.top ? (
-            <>
-              <HuntStack cards={h.cards} onDecide={h.decide} onUndo={h.rewind} canUndo={h.canRewind} onUndoBlocked={h.rewindBlocked} onSuper={h.superTop} superPrice={h.superPrice} onBoost={h.boostMine} fill />
-            </>
-          ) : (
-            <>
-              {/* deck_empty_cta, variant B: the wishlist prompt comes FIRST.
-                  Widening the radius is the obvious action and does nothing when
-                  there genuinely is nothing nearby -- which is the case that
-                  empties a deck. "Tell me when one turns up" is the one that can
-                  still help, so B tries leading with it. */}
-              {emptyVariant === 'b' && <WatchPrompt />}
-              <EmptyState
-                title="hunt.emptyTitle"
-                body="hunt.emptyBody"
-                bodyValues={{ radius: h.radiusKm }}
-                actionLabel="hunt.widen"
-                actionValues={{ radius: Math.round(h.radiusKm * 2.5) }}
-                onAction={h.widen}
-                secondaryLabel="hunt.reachFurther"
-                onSecondary={h.openReachPitch}
-              />
-              {/* Variant A keeps it below the deck's own actions: widening gets
-                  you cards now, this is for when that did not work either. */}
-              {emptyVariant !== 'b' && <WatchPrompt />}
-            </>
-          )}
-        </section>
-
-        {/* shrink-0: the nudge keeps its height no matter how tall the empty
-            state above gets. Without it the flex parent steals space from it
-            first, which is the other half of the overlap. */}
-        {!h.isLoading && h.cards.length === 0 && (
-          <div className="shrink-0 px-5 pb-4">
-            <NextStep
-              id="hunt-list-first"
-              body="stuck.listFirst"
-              action="onboarding.listFirst"
-              onAction={h.goAdd}
-            />
-          </div>
-        )}
+        <div className="flex min-h-0 flex-1 flex-col px-3 pt-3">
+          <DeckStage
+            cards={h.cards}
+            fitFor={h.fitFor}
+            loading={h.isLoading}
+            onPass={ui.onPass}
+            onWant={ui.onWant}
+            onOfferFit={ui.onOfferFit}
+            onFull={ui.onFull}
+            onReport={ui.onReport}
+            empty={<DeckEmpty h={h} />}
+            control={deck}
+            allowWide={false}
+          />
+        </div>
+        <div className="mt-3 shrink-0 border-t border-input bg-card pb-[env(safe-area-inset-bottom)]">
+          <DeckActions
+            size="compact"
+            bare
+            disabled={!h.top}
+            points={h.points}
+            tier={ui.shell.tier}
+            superPrice={h.superPrice}
+            boostPrice={BOOST_PRICE}
+            canUndo={h.canRewind}
+            onUndo={h.canRewind ? h.rewind : (h.rewindBlocked ?? (() => {}))}
+            onPass={() => deck.current?.pass()}
+            onWant={() => deck.current?.want()}
+            onSuper={ui.onSuper}
+            onBoost={() => void h.boostMine()}
+          />
+        </div>
       </div>
 
-      {/* The match celebration is a sheet over the hunt, never its own page. */}
-      <OfferSheet
-        open={!!h.pendingTarget}
-        targetTitle={h.pendingTarget?.title ?? ''}
-        mine={h.offers}
-        onCancel={h.cancelOffer}
-        onConfirm={h.sendOffer}
-        sending={h.sending}
-        errorKey={h.offerError}
-        onAdd={h.goAdd}
-        points={h.points}
-        superPrice={h.superPrice}
-        multiPrice={h.multiPrice}
-        onConfirmMulti={h.sendMultiOffer}
-        onNeedPoints={h.goPoints}
-        superFirst={h.superIntent}
-      />
-
-      <Sheet open={!!h.matched} onOpenChange={(o) => !o && h.dismissMatch()}>
-        <SheetContent side="bottom" className="rounded-t-hero">
-          <SheetHeader>
-            <SheetTitle data-i18n="hunt.matchTitle" className="font-display text-h2">
-              {t('hunt.matchTitle')}
-            </SheetTitle>
-          </SheetHeader>
-          <T as="p" k="hunt.matchBody" className="pt-1 font-body text-muted-foreground" />
-          {h.matched && (
-            <div className="py-5">
-              <SwapPair
-                mine={{
-                  id: h.selectedOffer?.id ?? 'mine',
-                  // Was the bare string 'Your item'. It is now the find you
-                  // actually chose to offer, and falls back to translated copy
-                  // rather than English in JSX.
-                  title: h.selectedOffer?.title ?? t('hunt.offerMine'),
-                  photoUrl: h.selectedOffer?.photoUrl,
-                  photoColor: 'hsl(var(--illo-denim))',
-                }}
-                theirs={{
-                  id: h.matched.id,
-                  title: h.matched.title,
-                  photoColor: h.matched.photoColor,
-                }}
-              />
-            </div>
-          )}
-          <div className="flex flex-col gap-2">
-            <Button
-              size="lg"
-              fullWidth
-              onClick={() => h.matched && h.openSwap(h.matched.id)}
-              data-i18n="hunt.sayHello"
-            >
-              {t('hunt.sayHello')}
-            </Button>
-            <Button variant="ghost" size="lg" fullWidth onClick={h.dismissMatch} data-i18n="hunt.keepHunting">
-              {t('hunt.keepHunting')}
-            </Button>
-          </div>
-        </SheetContent>
-      </Sheet>
-      {/* The one upgrade moment on this screen: undo pressed with nothing left
-          to undo. Its free route is the truthful one -- the last pass really is
-          always free -- so the sheet just closes. */}
-      <UpgradeSheet
-        open={h.rewindPitch}
-        onOpenChange={(o) => !o && h.dismissRewindPitch()}
-        moment="just_passed"
-      />
-
-      {/* Reach, asked for rather than pushed. The free widen stays the primary
-          action on the empty state itself. */}
-      <UpgradeSheet
-        open={h.reachPitch}
-        onOpenChange={(o) => !o && h.dismissReachPitch()}
-        moment="stack_empty"
-        onFreeRoute={() => {
-          h.dismissReachPitch()
-          h.widen()
-        }}
-      />
-
+      <DiscoverOverlays h={h} ui={ui} />
     </AppShell>
   )
 }

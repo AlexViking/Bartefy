@@ -15,6 +15,8 @@ import type { ShellData } from './useShellData'
 
 export type ShellPlatform = 'phone' | 'tablet' | 'desktop'
 
+export const TOPBAR_CONTEXT_ID = 'shell-topbar-context'
+
 type PanelId = 'streak' | 'points' | 'bell'
 
 const CHIP =
@@ -158,6 +160,12 @@ export function TopBar({
           {phone ? <BrandTile size={40} /> : <BrandLockup withWord={withWord} />}
         </button>
       </div>
+
+      {/* The page's own context (Discover: its name and the area chip). A
+          page fills it with <TopBarContext>; empty everywhere else. Starts on
+          the content's left edge, because the brand slot is as wide as the
+          nav below it. */}
+      {!phone && <div id={TOPBAR_CONTEXT_ID} className="flex min-w-0 flex-1 items-center gap-3 pl-4" />}
 
       <div className={cn('flex shrink-0 items-center', phone ? 'gap-1.5' : 'gap-2')}>
         {ids.map((id) =>

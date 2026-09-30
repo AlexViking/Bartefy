@@ -47,6 +47,12 @@ interface HuntState {
    *  replaced wholesale from the response. Without this, a card you just
    *  offered on reappears, and offering again raises P0004. */
   decided: string[]
+  /** How far the deck reaches, in km. In the store rather than the screen
+   *  because the top bar's area chip (V6) sets it and the deck reads it --
+   *  two components, one number. Not persisted: a session starts at the
+   *  tier's default. */
+  radiusKm: number
+  setRadiusKm: (km: number) => void
   setCardQueue: (queue: CardItem[]) => void
   /** Add the next window to the end of the deck, keeping what is already
    *  there. setCardQueue REPLACES, which is right for a fresh feed and wrong
@@ -76,6 +82,8 @@ export const useHuntStore = create<HuntState>()(
       likeHistory: [],
       lastPassed: null,
       decided: [],
+      radiusKm: 10,
+      setRadiusKm: (radiusKm) => set({ radiusKm }),
       setCardQueue: (cardQueue) =>
         set((state) => ({
           // Anything decided this session stays gone, whatever the server

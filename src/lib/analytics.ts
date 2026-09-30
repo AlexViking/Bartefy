@@ -36,6 +36,8 @@ export const EVENT_NAMES = [
   'offer_sent',
   'offer_accepted',
   'offer_declined',
+  /** A mirror offer completed a pair in Discover: "It's a bartefy!". */
+  'match_made',
   // Chat
   'chat_opened',
   'message_sent',

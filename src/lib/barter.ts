@@ -180,6 +180,24 @@ export async function getSentOffers(userId: string) {
 
 // ── Matches ─────────────────────────────────────────────────────────────────
 
+/** The active match between two finds, if one exists.
+ *
+ *  A mirror offer is matched by a database trigger AFTER the insert (037), so
+ *  make_offer's returned row still says 'pending' even when the match landed.
+ *  Asking for the pair afterwards is the only way the deck can know to show
+ *  "It's a bartefy!". Either order: item_a/item_b are ordered by user id. */
+export async function findMatchForPair(itemX: string | number, itemY: string | number) {
+  const x = Number(itemX)
+  const y = Number(itemY)
+  return supabase
+    .from('barter_matches')
+    .select('id')
+    .eq('status', 'active')
+    .or(`and(item_a.eq.${x},item_b.eq.${y}),and(item_a.eq.${y},item_b.eq.${x})`)
+    .limit(1)
+    .maybeSingle()
+}
+
 /** Every match I am in, newest first.
  *
  *  Archived rows are filtered per side rather than by one shared flag: one

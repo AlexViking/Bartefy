@@ -1,9 +1,10 @@
 import * as React from 'react'
-import { Outlet } from 'react-router'
+import { Outlet, useLocation } from 'react-router'
 
 import { useExperiment } from '@/lib/experiments'
 import { useIsDesktop, useIsTablet } from '@/lib/platform'
 import { YouSheet } from './AccountMenu'
+import { DiscoverPhoneBar } from './DiscoverPhoneBar'
 import { SideNav } from './SideNav'
 import { TabBar } from './TabBar'
 import { TopBar, type ShellPlatform } from './TopBar'
@@ -50,6 +51,7 @@ function ShellFrame({ children }: { children: React.ReactNode }) {
   const data = useShellData()
   const [storedCollapsed, setStoredCollapsed] = React.useState(readCollapsed)
   const [youOpen, setYouOpen] = React.useState(false)
+  const { pathname } = useLocation()
 
   /** Experiment exposure for everyone who opens the app -- being IN an arm is
    *  what exposure means, and the arm is decided the moment the app opens.
@@ -78,9 +80,15 @@ function ShellFrame({ children }: { children: React.ReactNode }) {
       <InShell.Provider value>
         {/* The shell IS the viewport; only <main> scrolls. */}
         <div className="flex h-dvh flex-col overflow-hidden bg-background">
-          <TopBar data={data} platform="phone" navWidth={0} withWord={false} />
+          {/* Discover is layout C: its own top bar, no tab bar -- the deck's
+              five actions own the bottom. Every other page keeps the bar. */}
+          {pathname === '/discover' ? (
+            <DiscoverPhoneBar data={data} onYou={() => setYouOpen(true)} />
+          ) : (
+            <TopBar data={data} platform="phone" navWidth={0} withWord={false} />
+          )}
           <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
-          <TabBar data={data} onYou={() => setYouOpen(true)} youOpen={youOpen} />
+          {pathname !== '/discover' && <TabBar data={data} onYou={() => setYouOpen(true)} youOpen={youOpen} />}
           <YouSheet data={data} open={youOpen} onOpenChange={setYouOpen} />
         </div>
       </InShell.Provider>

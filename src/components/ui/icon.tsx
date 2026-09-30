@@ -9,6 +9,9 @@ import {
   // V6 shell (step 2).
   Handshake, Coins, Flame, CirclePlus, PanelLeftClose, PanelLeftOpen, LogOut, Languages,
   EllipsisVertical, Lock, CircleCheck, GalleryVerticalEnd, ImagePlus, UserPlus, ShieldCheck,
+  // V6 Discover (step 3).
+  Zap, TrendingUp, Undo2, Maximize2, Navigation, Flag, ChevronUp, AlarmClock, Store, Shield,
+  MessageSquareText, ArrowLeftRight,
   type LucideProps,
 } from 'lucide-react'
 
@@ -23,6 +26,8 @@ const ICONS = {
   Shapes, Shirt, Sofa, Sprout,
   Handshake, Coins, Flame, CirclePlus, PanelLeftClose, PanelLeftOpen, LogOut, Languages,
   EllipsisVertical, Lock, CircleCheck, GalleryVerticalEnd, ImagePlus, UserPlus, ShieldCheck,
+  Zap, TrendingUp, Undo2, Maximize2, Navigation, Flag, ChevronUp, AlarmClock, Store, Shield,
+  MessageSquareText, ArrowLeftRight,
 } as const
 
 export type IconName = keyof typeof ICONS

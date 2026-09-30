@@ -86,6 +86,9 @@ const SCREENS = [
   { id: 'settings',      path: '/settings', label: 'Settings' },
   { id: 'blocked',       path: '/settings/blocked', label: 'Blocked people' },
   { id: 'analytics',     path: '/admin/analytics', label: 'Staff analytics' },
+  { id: 'discover-offer', path: '/discover', label: 'Discover — composer', settle: 2500, clickSel: '[data-action="want"]' },
+  { id: 'discover-details', path: '/discover', label: 'Discover — card details', settle: 2500, clickSel: '[data-deck-top] button[aria-label="Details"]' },
+  { id: 'discover-menu', path: '/discover', label: 'Discover phone — ⋮ menu', settle: 2500, clickSel: 'header button[aria-label^="Menu"]' },
   { id: 'shell-streak',  path: '/items', label: 'Top bar — streak open', clickSel: 'header button[aria-label^="Day"]' },
   { id: 'shell-points',  path: '/items', label: 'Top bar — points open', clickSel: 'header button[aria-label$="points"]' },
   { id: 'shell-bell',    path: '/items', label: 'Top bar — bell open', clickSel: 'header button[aria-label*="new"], header button[aria-label="Notifications"]' },
@@ -151,6 +154,10 @@ async function main() {
     },
     [`sb-${REF}-auth-token`, session]
   )
+  // One throwaway signed-in load before the first shot. The first protected
+  // navigation of a run sometimes bounced to /welcome (the seeding raced the
+  // app's first mount); a warm-up absorbs it so shot 01 is real.
+  await page.goto(`${BASE}/matches`, { waitUntil: 'networkidle2', timeout: 45000 }).catch(() => {})
   if (THEME) {
     await page.evaluateOnNewDocument((t) => {
       try { localStorage.setItem('bartefy.theme', t) } catch {}

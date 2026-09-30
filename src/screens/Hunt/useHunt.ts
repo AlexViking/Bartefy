@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { CATEGORIES } from '@/lib/taxonomy'
+import { CATEGORIES, categoryId, splitWants } from '@/lib/taxonomy'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { fetchFeed, getMyItems, recordSwipe } from '@/lib/api'
 import { track } from '@/lib/analytics'
-import { barterErrorKey, makeMultiOffer, makeOffer, makeSuperOffer } from '@/lib/barter'
+import { barterErrorKey, findMatchForPair, makeMultiOffer, makeOffer, makeSuperOffer } from '@/lib/barter'
 import { getBalance, PERK_PRICES, spendOnPerk } from '@/lib/points'
 import { keys, STALE } from '@/lib/cache/queryClient'
 import { warmAhead } from '@/lib/feed/warm'
@@ -28,6 +28,17 @@ export interface OfferOption {
   id: string
   title: string
   photoUrl?: string
+  /** Category id, for "fits what they want" (V6). Absent where a caller
+   *  (Item detail, being cut) builds its own list. */
+  category?: string
+}
+
+/** "It's a bartefy!" -- what the match moment needs to draw. */
+export interface MatchInfo {
+  matchId: string
+  owner: string
+  mine: { title: string; photo?: string }
+  theirs: { title: string; photo?: string }
 }
 
 /** All of Hunt's behaviour, with no layout in it. Both platform layouts call
@@ -58,8 +69,10 @@ export function useHunt() {
    *  changed the query key. fetchFeed was never given them, so toggling one
    *  refetched an identical feed and appeared to do nothing. */
   const tasteIds = CATEGORIES.filter((c) => tastes.includes(c.id)).map((c) => c.id)
-  const [radiusKm, setRadiusKm] = useState(10)
-  const [matched, setMatched] = useState<CardItem | null>(null)
+  // Shared with the top bar's area chip (V6), so it lives in the store.
+  const radiusKm = useHuntStore((s) => s.radiusKm)
+  const setRadiusKm = useHuntStore((s) => s.setRadiusKm)
+  const [matched, setMatched] = useState<MatchInfo | null>(null)
   /** Title of the find an offer was just sent for, for the confirmation. */
   const [sentTitle, setSentTitle] = useState<string | null>(null)
 
@@ -80,6 +93,7 @@ export function useHunt() {
     id: String(it.id),
     title: String(it.title ?? ''),
     photoUrl: Array.isArray(it.images) && it.images.length > 0 ? String(it.images[0]) : undefined,
+    category: String(it.category ?? ''),
   }))
 
   /** Pick the first find by default, and drop a stale choice: an item that has
@@ -234,6 +248,40 @@ export function useHunt() {
   const [sending, setSending] = useState(false)
   const [offerError, setOfferError] = useState<string | null>(null)
 
+  /** After an offer: if it completed a mirror pair, open "It's a bartefy!"
+   *  instead of the sent toast. The owner had already put one of these finds
+   *  on the table for one of mine, so the swap is agreed the moment mine
+   *  lands. A failed lookup is not an error the person can act on -- the
+   *  match still exists and shows in Swaps -- so it falls through to the
+   *  ordinary toast. */
+  const celebrateIfMatched = async (target: CardItem, offeredIds: string[]) => {
+    for (const id of offeredIds) {
+      const { data, error } = await findMatchForPair(id, target.id)
+      if (error || !data) continue
+      const mine = offers.find((o) => o.id === id)
+      track('match_made', { via: 'discover' })
+      setMatched({
+        matchId: String(data.id),
+        owner: target.owner,
+        mine: { title: mine?.title ?? '', photo: mine?.photoUrl },
+        theirs: { title: target.title, photo: target.photos?.[0] ?? target.photoUrl },
+      })
+      void queryClient.invalidateQueries({ queryKey: ['barter'] })
+      void queryClient.invalidateQueries({ queryKey: keys.myItems(userId ?? '') })
+      return true
+    }
+    return false
+  }
+
+  /** Which of my finds fits what this owner wants -- a category they listed.
+   *  Drives the "Your X fits -- offer it" pill on the card. */
+  const fitFor = (card: CardItem | undefined): OfferOption | undefined => {
+    if (!card) return undefined
+    const { categories } = splitWants(card.wants)
+    // Normalised: rows listed before the taxonomy still carry old names.
+    return offers.find((o) => !!o.category && categories.includes(categoryId(o.category)))
+  }
+
   /** A pass is recorded and the card leaves. A want no longer records anything
    *  on its own -- under the locked rule a like IS an offer, so the swipe only
    *  completes once the person has said what they are putting up. */
@@ -346,13 +394,15 @@ export function useHunt() {
     setPendingTarget(null)
     removeCard(target.id)
     setSentTitle(target.title)
+    // The balance changed, and Rewards shares this key.
+    if (asSuper) void queryClient.invalidateQueries({ queryKey: ['points'] })
+    // A mirror offer is matched by a trigger after the insert: ask.
+    if (await celebrateIfMatched(target, [offeredItemId])) return
     // A toast, not a sheet: the offer is sent and the next card is already
     // there, so anything modal would stand between the person and the swipe
     // they were in the middle of. sentTitle was set here before and rendered
     // by neither layout -- so sending an offer looked like nothing happened.
     toast.success(t(asSuper ? 'hunt.superSent' : 'hunt.offerSent', { title: target.title }))
-    // The balance changed, and Rewards shares this key.
-    if (asSuper) void queryClient.invalidateQueries({ queryKey: ['points'] })
   }
 
   /** Several finds for one of theirs, charged once.
@@ -393,8 +443,9 @@ export function useHunt() {
     setPendingTarget(null)
     removeCard(target.id)
     setSentTitle(target.title)
-    toast.success(t('hunt.multiSent', { count: offeredItemIds.length }))
     void queryClient.invalidateQueries({ queryKey: ['points'] })
+    if (await celebrateIfMatched(target, offeredItemIds)) return
+    toast.success(t('hunt.multiSent', { count: offeredItemIds.length }))
   }
 
   /** Whether a free undo has been spent this session. The pitch below is gated
@@ -460,8 +511,10 @@ export function useHunt() {
     radiusKm,
     widen: () => {
       track('deck_widened')
-      setRadiusKm((r) => Math.round(r * 2.5))
+      setRadiusKm(Math.round(radiusKm * 2.5))
     },
+    setRadiusKm,
+    fitFor,
     matched,
     dismissMatch: () => setMatched(null),
     rewind,
