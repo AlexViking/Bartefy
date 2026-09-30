@@ -89,7 +89,8 @@
     "nameLabel": "Your name",
     "namePlaceholder": "Ada",
     "nameHelp": "What other swappers will see. A first name is plenty.",
-    "terms": "By continuing you agree to the terms and privacy notice."
+    "terms": "By continuing you agree to the terms and privacy notice.",
+    "signInSub": "Your old things are someone’s treasure."
   },
   "onboarding": {
     "step1Title": "Welcome to the flea market",

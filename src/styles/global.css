@@ -63,6 +63,16 @@
     padding-right: env(safe-area-inset-right);
   }
 
+  /* The ROOT stays at the browser's 16px. The shorthand above set 17px on
+   * <html> too, which made 1rem = 17px -- and every Tailwind spacing, size and
+   * radius is in rem, so the whole app rendered 6.25% larger than the V6 mock
+   * (a 48px input was 51px). Body copy is still 17px; only the unit everything
+   * else is measured in comes back to 16. After the shorthand, which would
+   * otherwise reset it. */
+  html {
+    font-size: 16px;
+  }
+
   #root {
     height: 100%;
     display: flex;

@@ -16,17 +16,17 @@ export default function AuthMobile() {
   const a = useAuthScreen(useAuthMode())
 
   return (
-    <div className="flex min-h-dvh flex-col bg-background px-5 pb-6 pt-5">
+    <div className="flex min-h-dvh flex-col bg-background px-6 py-8">
       <header className="flex items-center justify-between">
         <BrandLockup withWord />
         <LanguageSwitcher />
       </header>
-      <BrandPanel title="brand.swapLine" compact className="mt-4" />
+      <BrandPanel title="brand.swapLine" compact className="mt-6" />
       <motion.main
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={spring.gentle}
-        className="flex flex-1 flex-col pt-6"
+        className="flex flex-1 flex-col pb-8 pt-6"
       >
         <AuthForm a={a} />
       </motion.main>

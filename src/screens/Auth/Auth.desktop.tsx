@@ -17,8 +17,9 @@ export default function AuthDesktop() {
   const a = useAuthScreen(useAuthMode())
 
   return (
-    <div className="grid min-h-dvh grid-cols-[minmax(420px,5fr)_7fr] bg-background">
-      <main className="relative flex flex-col px-12 py-8">
+    // The mock's split: the form column is min(46%, 640px), the brand the rest.
+    <div className="flex min-h-dvh bg-background">
+      <main className="relative flex w-[min(46%,640px)] shrink-0 flex-col px-16 py-8">
         <div className="flex items-center justify-between">
           <BrandLockup withWord />
           <LanguageSwitcher />
@@ -27,18 +28,18 @@ export default function AuthDesktop() {
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={spring.gentle}
-          className="flex min-h-0 flex-1 flex-col justify-center"
+          className="flex min-h-0 flex-1 flex-col justify-center py-8"
         >
-          <div className="w-full max-w-[400px]">
+          <div className="w-full max-w-[420px]">
             <AuthForm a={a} />
           </div>
         </motion.div>
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
           <OrzomiByline />
           <T as="p" k="auth.terms" className="font-body text-[12px] text-muted-foreground" />
         </div>
       </main>
-      <BrandPanel title="brand.swapLine" />
+      <BrandPanel title="brand.swapLine" className="flex-1" />
     </div>
   )
 }

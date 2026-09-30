@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Check, Mail } from 'lucide-react'
+import { ArrowRight, Check, MailOpen } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Field } from '@/components/ui/field'
@@ -57,6 +57,7 @@ function EmailStep({ a }: { a: ReturnType<typeof useAuthScreen> }) {
       variants={listStagger}
       initial="hidden"
       animate="show"
+      // The mock's rhythm: 24px under the title block, 16px between fields.
       className="flex w-full flex-col gap-4"
       onSubmit={(e) => {
         e.preventDefault()
@@ -69,11 +70,18 @@ function EmailStep({ a }: { a: ReturnType<typeof useAuthScreen> }) {
         void a.send()
       }}
     >
-      <motion.div variants={itemUp}>
+      <motion.div variants={itemUp} className="mb-2">
+        {/* V6 (15-signin-b): a 32px title and one line under it. mb-2 + the
+            form's 16px gap = the mock's 24px. */}
         <T
-          as="h2"
+          as="h1"
           k={isSignUp ? 'auth.signUpTitle' : 'auth.signInTitle'}
-          className="font-display text-h3 text-foreground"
+          className="font-display text-[32px] font-normal leading-10 text-foreground"
+        />
+        <T
+          as="p"
+          k={isSignUp ? 'auth.welcomeBody' : 'auth.signInSub'}
+          className="mt-2 font-body text-body-md text-muted-foreground"
         />
       </motion.div>
 
@@ -156,7 +164,7 @@ function EmailStep({ a }: { a: ReturnType<typeof useAuthScreen> }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={spring.snap}
-            className="font-body text-sm leading-relaxed text-destructive"
+            className="rounded-card bg-coral/25 px-3 py-2.5 font-body text-body-sm text-ink"
           >
             {a.error}
           </motion.p>
@@ -170,8 +178,10 @@ function EmailStep({ a }: { a: ReturnType<typeof useAuthScreen> }) {
           fullWidth
           disabled={!a.valid || a.busy}
           data-i18n={isSignUp ? 'auth.createAccount' : 'auth.sendCode'}
+          className="shadow-[0_6px_18px_rgba(27,107,85,0.28)] disabled:shadow-none"
         >
           {a.busy ? t('common.loading') : t(isSignUp ? 'auth.createAccount' : 'auth.sendCode')}
+          {!a.busy && <ArrowRight className="size-[18px]" aria-hidden="true" />}
         </Button>
       </motion.div>
 
@@ -179,21 +189,18 @@ function EmailStep({ a }: { a: ReturnType<typeof useAuthScreen> }) {
           until the provider is actually configured. A button that cannot work
           is worse than one that is not there yet. */}
 
-      <motion.div variants={itemUp} className="flex items-center justify-center gap-1">
-        <T
-          as="span"
-          k={isSignUp ? 'auth.haveAccount' : 'auth.needAccount'}
-          className="font-body text-sm text-muted-foreground"
-        />
-        <Button
-          variant="ghost"
-          size="sm"
+      {/* An inline link, left-aligned under the button (the mock). */}
+      <motion.p variants={itemUp} className="mt-2 font-body text-body-sm text-muted-foreground">
+        <T as="span" k={isSignUp ? 'auth.haveAccount' : 'auth.needAccount'} />{' '}
+        <button
+          type="button"
           onClick={() => a.switchTo(isSignUp ? 'signin' : 'signup')}
           data-i18n={isSignUp ? 'auth.logIn' : 'auth.signUp'}
+          className="font-body text-label-lg text-primary hover:underline"
         >
           {t(isSignUp ? 'auth.logIn' : 'auth.signUp')}
-        </Button>
-      </motion.div>
+        </button>
+      </motion.p>
     </motion.form>
   )
 }
@@ -231,23 +238,23 @@ function CodeStep({ a }: { a: ReturnType<typeof useAuthScreen> }) {
   const clock = `${Math.floor(a.countdown / 60)}:${String(a.countdown % 60).padStart(2, '0')}`
 
   return (
-    <div className="flex flex-col items-center gap-4 text-center">
-      <motion.span
-        initial={{ scale: 0.6, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={spring.pop}
-        className="flex size-16 items-center justify-center rounded-pill bg-primary/[0.10]"
-      >
-        <Mail className="size-7 text-primary" aria-hidden="true" />
-      </motion.span>
-
-      <T as="h2" k="auth.codeSentTitle" className="font-display text-h3 text-foreground" />
-      <p
-        data-i18n="auth.codeSentBody"
-        className="max-w-[38ch] font-body text-body leading-relaxed text-muted-foreground"
-      >
-        {t('auth.codeSentBody', { email: a.email })}
-      </p>
+    // V6 (15-signin-b #code): left-aligned like the email step, a Mint tile,
+    // the 32px title, six large boxes across the column.
+    <div className="flex flex-col gap-5">
+      <div>
+        <motion.span
+          initial={{ scale: 0.6, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={spring.pop}
+          className="flex size-12 items-center justify-center rounded-2xl bg-mint text-forest"
+        >
+          <MailOpen className="size-6" aria-hidden="true" />
+        </motion.span>
+        <T as="h1" k="auth.codeSentTitle" className="mt-4 font-display text-[32px] font-normal leading-10 text-foreground" />
+        <p data-i18n="auth.codeSentBody" className="mt-2 font-body text-body-md text-muted-foreground">
+          {t('auth.codeSentBody', { email: a.email })}
+        </p>
+      </div>
 
       {/* The shake is driven by a counter, NOT by `key`. Keying this wrapper
           on the error text remounted the OTP input on every rejection, which
@@ -273,14 +280,14 @@ function CodeStep({ a }: { a: ReturnType<typeof useAuthScreen> }) {
         autoComplete="one-time-code"
         inputMode="numeric"
         aria-label={t('auth.codeLabel')}
-        containerClassName="justify-center"
+        containerClassName="w-full"
       >
-        <InputOTPGroup className="gap-2">
+        <InputOTPGroup className="grid w-full grid-cols-6 gap-2">
           {Array.from({ length: CODE_LENGTH }, (_, i) => (
             <InputOTPSlot
               key={i}
               index={i}
-              className="size-12 rounded border-[1.5px] border-border/[0.14] bg-card font-display text-h3 text-foreground first:rounded-l last:rounded-r"
+              className="h-14 w-full rounded-card border border-input bg-card font-display text-[26px] font-semibold text-foreground first:rounded-card last:rounded-card"
             />
           ))}
         </InputOTPGroup>
@@ -295,7 +302,7 @@ function CodeStep({ a }: { a: ReturnType<typeof useAuthScreen> }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={spring.snap}
-            className="font-body text-sm leading-relaxed text-destructive"
+            className="rounded-card bg-coral/25 px-3 py-2.5 font-body text-body-sm text-ink"
           >
             {a.error}
           </motion.p>
@@ -304,16 +311,18 @@ function CodeStep({ a }: { a: ReturnType<typeof useAuthScreen> }) {
 
       {busy && <T as="p" k="common.loading" className="font-body text-sm text-muted-foreground" />}
 
-      <div className="flex flex-col items-center gap-1">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
         <Button
-          variant="ghost"
+          variant="link"
+          size="sm"
+          className="h-auto min-h-0 px-0 text-label-lg"
           onClick={() => void a.send()}
           disabled={!a.canResend}
           data-i18n="auth.resend"
         >
           {a.countdown > 0 ? `${t('auth.resend')} · ${clock}` : t('auth.resend')}
         </Button>
-        <Button variant="ghost" size="sm" onClick={a.reset} data-i18n="auth.wrongEmail">
+        <Button variant="link" size="sm" className="h-auto min-h-0 px-0 text-label-lg text-muted-foreground" onClick={a.reset} data-i18n="auth.wrongEmail">
           {t('auth.wrongEmail')}
         </Button>
       </div>

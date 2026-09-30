@@ -42,34 +42,38 @@ export function BrandPanel({
 
   if (compact) {
     return (
-      <div className={cn('relative flex min-h-[112px] items-end overflow-hidden rounded-2xl bg-green p-5 text-white', className)}>
+      <div className={cn('relative flex h-[168px] items-end overflow-hidden rounded-3xl bg-forest p-5 text-white', className)}>
         {pattern}
-        <T as="p" k={title} className="relative max-w-[16ch] font-display text-[22px] font-bold leading-7" />
+        <T as="p" k={title} className="relative w-[136px] font-display text-[24px] font-semibold leading-[1.08]" />
       </div>
     )
   }
 
   const step = (icon: IconName, t: string, b: string) => (
     <div className="flex flex-col gap-2">
-      <span className="grid size-9 place-items-center rounded-lg bg-white/15">
-        <Icon name={icon} size={18} />
+      <span className="grid size-10 place-items-center rounded-card bg-white/15">
+        <Icon name={icon} size={22} />
       </span>
-      <T as="p" k={t} className="font-body text-label-lg" />
-      <T as="p" k={b} className="font-body text-[13px] leading-5 text-white/75" />
+      <T as="p" k={t} className="font-body text-[15px] leading-5" />
+      <T as="p" k={b} className="font-body text-body-sm text-white/75" />
     </div>
   )
 
+  // Deep Forest under a gradient, the type at the foot, max 640 wide (mock).
   return (
-    <aside className={cn('relative flex flex-col justify-end overflow-hidden bg-green p-12 text-white', className)}>
+    <aside className={cn('relative flex flex-col justify-end overflow-hidden bg-forest text-white', className)}>
       {pattern}
-      <T as="p" k={title} className="relative max-w-[14ch] font-display text-[56px] font-bold leading-[60px]" />
+      <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-forest via-forest/55 to-forest/10" />
+      <div className="relative max-w-[640px] p-12 xl:p-16">
+      <T as="p" k={title} className="font-display text-[56px] font-semibold leading-[1.02] tracking-tight" />
       {steps && (
-        <div className="relative mt-10 grid grid-cols-3 gap-6">
+        <div className="mt-8 grid grid-cols-3 gap-6">
           {step('Store', 'brand.step1', 'brand.step1Body')}
           {step('GalleryVerticalEnd', 'brand.step2', 'brand.step2Body')}
           {step('Handshake', 'brand.step3', 'brand.step3Body')}
         </div>
       )}
+      </div>
     </aside>
   )
 }

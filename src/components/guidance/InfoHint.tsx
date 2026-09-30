@@ -100,15 +100,13 @@ export function LabelWithHint({
       <label
         htmlFor={htmlFor}
         data-i18n={label}
-        className="font-display text-[15px] font-semibold text-foreground"
+        className="font-body text-label-md text-foreground"
       >
         {t(label)}
       </label>
-      {required && (
-        <span aria-label={t('a11y.required')} className="text-muted-foreground">
-          *
-        </span>
-      )}
+      {/* No asterisk (V6 mock): the input carries aria-required, and a form
+          of one or two fields does not need every label marked. */}
+      {required && <span className="sr-only">{t('a11y.required')}</span>}
       {hint && <InfoHint k={hint} />}
     </div>
   )
