@@ -2,7 +2,15 @@
   "brand": {
     "name": "Bartefy",
     "tagline": "Trade what you have for what you want.",
-    "productOf": "A product of ORZOMI"
+    "productOf": "A product of ORZOMI",
+    "swapLine": "Swap what you don’t use.",
+    "onboardLine": "Your thing for their thing.",
+    "step1": "1. Put it on the table",
+    "step1Body": "A photo and what you’d like back.",
+    "step2": "2. Swipe what’s near",
+    "step2Body": "Finds within 10 km, at random.",
+    "step3": "3. Swap in person",
+    "step3Body": "Agree, meet, both confirm. No money."
   },
   "common": {
     "next": "Next",
@@ -80,17 +88,18 @@
     "createAccount": "Create account",
     "nameLabel": "Your name",
     "namePlaceholder": "Ada",
-    "nameHelp": "What other swappers will see. A first name is plenty."
+    "nameHelp": "What other swappers will see. A first name is plenty.",
+    "terms": "By continuing you agree to the terms and privacy notice."
   },
   "onboarding": {
     "step1Title": "Welcome to the flea market",
-    "step1Body": "Bartefy is a straight trade: your thing for their thing. Here is how it works in four quick steps.",
+    "step1Body": "Bartefy is a straight trade: your thing for their thing. Here is how it works.",
     "step2Title": "List a find",
     "step2Body": "Photograph something you no longer need. Say what you would like in return — or leave it open to offers.",
     "step3Title": "Hunt for treasure",
     "step3Body": "Swipe through finds near you. Keep the ones you want; pass on the rest. Nobody is told when you pass.",
     "step4Title": "It's a bartefy!",
-    "step4Body": "When you both want what the other has, a swap opens. Chat, agree a spot, meet up, and rate each other after.",
+    "step4Body": "When they say yes, a chat opens. Agree a spot, meet up, and both confirm the swap. No money changes hands.",
     "cityTitle": "Where are you hunting?",
     "cityBody": "We only show finds you could realistically go and collect.",
     "tasteTitle": "What are you drawn to?",
@@ -1289,5 +1298,12 @@
     "swapsDone": "swaps done",
     "random": "Their finds reach you only through your deck, at random.",
     "missing": "This person is not on Bartefy any more."
+  },
+  "staff": {
+    "title": "Staff tools",
+    "only": "Staff only",
+    "moderation": "Moderation",
+    "analytics": "Analytics",
+    "nothingAuto": "Nothing is decided automatically — every report waits for a person."
   }
 }

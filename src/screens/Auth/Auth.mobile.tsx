@@ -1,76 +1,39 @@
 import { motion } from 'framer-motion'
 
-import { Wordmark } from '@/components/Wordmark'
-import { OrzomiByline } from '@/components/OrzomiByline'
-import { spring } from '@/lib/motion'
-import mapUrl from '@/assets/bartefy-bg-treasure-map.webp'
+import { BrandPanel } from '@/components/BrandPanel'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
+import { OrzomiByline } from '@/components/OrzomiByline'
+import { BrandLockup } from '@/components/shell/BrandMark'
 import { T } from '@/i18n/T'
+import { spring } from '@/lib/motion'
 import { AuthForm } from './AuthForm'
 import { useAuthMode } from './useAuthMode'
 import { useAuthScreen } from './useAuth'
 
-/** Auth, phone shape: one parchment column, brand at the top left, form below.
- *
- *  The green header is gone. The logo is mostly Bartefy green, so on a green
- *  panel the wordmark vanished and only its illustrations survived — and a band
- *  of colour above the fold was spending vertical space on the screen where the
- *  form matters most. The treasure map carries the brand instead.
- */
+/** Sign in / sign up on a phone (15-signin-b): the brand as a green banner,
+ *  then the form. AuthForm is unchanged. */
 export default function AuthMobile() {
   const a = useAuthScreen(useAuthMode())
 
   return (
-    <div
-      className="flex min-h-dvh flex-col"
-      style={{
-        backgroundImage: `url(${mapUrl})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
-    >
-      {/* The wash sits on the whole column rather than on main alone: with no
-          green band above it, a seam partway down would be a line with nothing
-          on either side to justify it. */}
-      <div
-        className="flex min-h-dvh flex-col"
-        style={{ backgroundColor: 'hsl(var(--background) / 0.93)' }}
+    <div className="flex min-h-dvh flex-col bg-background px-5 pb-6 pt-5">
+      <header className="flex items-center justify-between">
+        <BrandLockup withWord />
+        <LanguageSwitcher />
+      </header>
+      <BrandPanel title="brand.swapLine" compact className="mt-4" />
+      <motion.main
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={spring.gentle}
+        className="flex flex-1 flex-col pt-6"
       >
-        {/* Brand block at the top: the Bartefy mark, then whose product it is
-            directly under it. Moved up from the page footer to match shadcn's
-            login-02, where the company mark heads the form column.
-
-            As a footer it sat under the sign-up button -- a link to another
-            company directly below the primary action -- and it moved, because
-            the form changes height between the email and code steps. */}
-        <header className="flex shrink-0 flex-col gap-3 px-6 pt-8">
-          <div className="flex items-start justify-between">
-            <Wordmark />
-            <LanguageSwitcher />
-          </div>
-          <OrzomiByline className="self-start" />
-        </header>
-
-        <motion.main
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={spring.gentle}
-          className="flex flex-1 flex-col gap-5 px-6 pb-8 pt-6"
-        >
-          <T
-            as="h1"
-            k="auth.welcomeTitle"
-            className="max-w-[20ch] font-display text-h2 text-foreground"
-          />
-          <T
-            as="p"
-            k="auth.welcomeBody"
-            className="font-body text-body leading-relaxed text-muted-foreground"
-          />
-          <AuthForm a={a} />
-        </motion.main>
-
-      </div>
+        <AuthForm a={a} />
+      </motion.main>
+      <footer className="flex flex-col gap-2 pt-6">
+        <OrzomiByline className="self-start" />
+        <T as="p" k="auth.terms" className="font-body text-[12px] text-muted-foreground" />
+      </footer>
     </div>
   )
 }

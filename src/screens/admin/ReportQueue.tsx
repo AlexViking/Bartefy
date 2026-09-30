@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AppShell } from '@/components/shell/AppShell'
+import { StaffTabs } from './StaffTabs'
 import { PageBody } from '@/components/shell/PageBody'
 import { PageHeader, PageTabs } from '@/components/shell/PageHeader'
 import { EmptyState } from '@/components/EmptyState'
@@ -78,6 +79,7 @@ export function ReportQueue() {
 
   return (
     <AppShell>
+      <StaffTabs />
       <PageBody variant="wide">
         {/* No back arrow: Moderation is a rail destination like every other
             screen, and the two lists are tabs rather than one page stacked on

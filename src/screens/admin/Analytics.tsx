@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { AppShell } from '@/components/shell/AppShell'
+import { StaffTabs } from './StaffTabs'
 import { PageBody } from '@/components/shell/PageBody'
 import { PageHeader, PageTabs } from '@/components/shell/PageHeader'
 import { Button } from '@/components/ui/button'
@@ -59,6 +60,7 @@ export function Analytics() {
 
   return (
     <AppShell>
+      <StaffTabs />
       <PageBody variant="wide">
         <PageHeader
           title="analytics.title"

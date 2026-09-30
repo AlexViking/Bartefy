@@ -43,8 +43,7 @@ export const ADD_PATH = '/add'
 /** Staff tools, in the account menu and the You sheet. Hidden, not disabled,
  *  for everyone else. */
 export const STAFF_DESTINATIONS = [
-  { id: 'moderation', label: 'nav.moderation', path: '/admin/reports', icon: 'ShieldAlert' as IconName },
-  { id: 'analytics', label: 'nav.analytics', path: '/admin/analytics', icon: 'ChartColumn' as IconName },
+  { id: 'moderation', label: 'staff.title', path: '/admin/reports', icon: 'ShieldAlert' as IconName },
 ]
 
 export function isActive(d: Pick<Destination, 'path' | 'also'>, pathname: string) {

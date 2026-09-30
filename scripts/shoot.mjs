@@ -85,6 +85,7 @@ const SCREENS = [
   { id: 'membership',    path: '/membership', label: 'Membership' },
   { id: 'settings',      path: '/settings', label: 'Settings' },
   { id: 'blocked',       path: '/settings/blocked', label: 'Blocked people' },
+  { id: 'reports',       path: '/admin/reports', label: 'Staff — moderation' },
   { id: 'analytics',     path: '/admin/analytics', label: 'Staff analytics' },
   { id: 'matches-open', path: '/matches', label: 'Swaps — a row opened (phone)', clickSel: '[role=tab]' },
   { id: 'items-open', path: '/items', label: 'My finds — a find opened (phone)', clickSel: 'main button[aria-pressed]' },
