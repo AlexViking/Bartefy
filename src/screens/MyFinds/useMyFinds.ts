@@ -149,6 +149,10 @@ export function useMyFinds() {
     missing: !!findId && !selected && !items.isLoading,
     select: (f: MyFind | null) => navigate(f ? `/items/${f.publicId}${tab === 'paused' ? '?tab=paused' : ''}` : `/items${tab === 'paused' ? '?tab=paused' : ''}`),
     isLoading: items.isLoading,
+    /** The list has actually arrived (or failed). A query that has not
+     *  started yet -- no session in the store -- is not "loading", so
+     *  isLoading alone reads as "done, and empty". */
+    settled: items.isSuccess || items.isError,
     error: items.error,
     leavingSoon: table.filter((f) => f.daysLeft !== null && f.daysLeft <= SOON_DAYS),
     offersWaiting: needs.expiring.length,

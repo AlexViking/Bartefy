@@ -152,6 +152,14 @@ Profile. `Bartefy V5 Pilot.html` (repo root) has the animation vocabulary and
 the real copy. Building from V5's component names instead produced an "Items"
 tab that does not exist in the design.
 
+## V6 — branch `v6-build` (built 2026-09-30, not merged)
+The approved V6 mock (branch `v6-organisms`, `v6-pages/stitch/*`) built into the app. **Brand Book colours only** (tokens.css: the eleven; Outfit + Figtree); the Parchment/Quicksand notes below are pre-V6.
+- **Frame mounts once**: `ShellLayout` is a layout route in router.tsx; a screen's own `<AppShell>` is a pass-through (`hideNav` = full-screen layer). Pages put their title in the top bar with `<TopBarContext>`.
+- Shell: `TopBar` (streak/points/bell popovers → sheets on phone), `SideNav` (256 / 72 rail), `TabBar` (Discover · Swaps · ＋ · Finds · You), `YouSheet`, `DiscoverPhoneBar` (Discover phone = no tab bar, ⋮ drawer). Data: `useShellData`.
+- Screens: Discover `components/deck/*` + `screens/Hunt`; Swaps & offers `screens/Swaps` (`/matches/:swapId?`, `?offer=id`, chat inside); Admirers `screens/Admirers`; My finds `screens/MyFinds` (`/items/:publicId?`); Add `screens/AddItem`; Points & Tiers `screens/Points`; Profile; Person card `/u/:id` (never their finds); Settings (`?s=section`); Staff tools = `StaffTabs` over admin pages.
+- **Cut**: Item detail (`/item/:id` redirects), Browse, Offers/Invite/Membership pages (redirect), PublicProfile, ratings.
+- Traps found building it: `cn()` must list custom font sizes (utils.ts); `profiles` joins are null for non-staff — read `profiles_public`; updates need `.select()` to see RLS refusals; URLs carry `public_id`, never `items.id`.
+
 ## Hard invariants — never regress these
 - **Uploads**: client mints `uploadId` (UUIDv4) once per photo; retries overwrite, never duplicate
 - **Matching**: all swipe→match logic inside `record_swipe_and_match()` — one transaction

@@ -23,7 +23,7 @@ import Person from './screens/Person'
 import Notifications from './screens/Notifications'
 import Swaps from './screens/Swaps/Swaps'
 import Admirers from './screens/Admirers/Admirers'
-import { ItemDetail } from './screens/ItemDetail'
+import ItemRedirect from './screens/ItemRedirect'
 import { Arrange } from './screens/Arrange'
 import { ReportQueue } from './screens/admin/ReportQueue'
 import { Analytics } from './screens/admin/Analytics'
@@ -118,7 +118,8 @@ export function AppRouter() {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile" element={<Profile />} />
 
-          <Route path="/item/:itemId" element={<ItemDetail />} />
+          {/* Item detail is cut (V6): old links redirect. */}
+          <Route path="/item/:itemId" element={<ItemRedirect />} />
           <Route path="/add" element={<AddItem />} />
           <Route path="/matches/:swapId/arrange" element={<Arrange />} />
           {/* Someone else's reviews. Reading them is ALWAYS_FREE. */}
