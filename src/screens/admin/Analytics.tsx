@@ -7,14 +7,15 @@ import { PageHeader, PageTabs } from '@/components/shell/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Slider } from '@/components/ui/slider'
+import { Switch } from '@/components/ui/switch'
 import { Icon } from '@/components/ui/icon'
 import { ToneBadge } from '@/components/ui/tone-badge'
 import { T, useT } from '@/i18n/T'
 import { cn } from '@/lib/utils'
 import { EVENT_NAMES } from '@/lib/analytics'
-import { MIN_PER_ARM, useAnalytics, type Pane } from './useAnalytics'
+import { MIN_PER_ARM, useAnalytics, type ConfigRow, type Pane } from './useAnalytics'
 
-const PANES: Pane[] = ['funnel', 'events', 'experiments']
+const PANES: Pane[] = ['funnel', 'events', 'experiments', 'settings']
 
 /** Back office, second queue: what people actually do.
  *
@@ -274,8 +275,120 @@ export function Analytics() {
             })}
           </div>
         )}
+
+        {/* ── Settings ───────────────────────────────────────────────── */}
+        {a.pane === 'settings' && (
+          <div className="flex flex-col gap-4">
+            {a.configLoading && (
+              <T as="p" k="common.loading" className="font-body text-sm text-muted-foreground" />
+            )}
+            {a.configError && (
+              <p role="alert" className="font-body text-sm text-destructive">{a.configError}</p>
+            )}
+            {a.config.map((row) => (
+              <TtlSetting
+                key={row.key}
+                row={row}
+                busy={a.configSaving}
+                onSave={(value) => a.setConfig({ key: row.key, value })}
+              />
+            ))}
+            {a.setConfigError && (
+              <p role="alert" className="font-body text-sm text-destructive">{a.setConfigError}</p>
+            )}
+          </div>
+        )}
       </PageBody>
     </AppShell>
+  )
+}
+
+/** Keys the settings pane knows how to edit. `never` = null is allowed. A key
+ *  in app_config that is not listed here is not shown: its value may not be
+ *  hours at all, and a generic editor would let it be saved as one. */
+const TTL_KEYS: Record<string, { never: boolean }> = {
+  like_ttl_hours: { never: true },
+  offer_ttl_hours: { never: false },
+}
+
+/** A deadline in hours, or "never" where the setting allows it. The server
+ *  (admin_set_config) re-checks the range; the limits here only stop a typo
+ *  from making a round trip. */
+function TtlSetting({
+  row,
+  busy,
+  onSave,
+}: {
+  row: ConfigRow
+  busy: boolean
+  onSave: (value: number | null) => void
+}) {
+  const { t } = useT()
+  const spec = TTL_KEYS[row.key]
+  const saved = typeof row.value === 'number' ? row.value : null
+  const [expires, setExpires] = useState(saved != null)
+  const [hours, setHours] = useState(String(saved ?? 168))
+
+  // Follow the server after a save or a refetch.
+  useEffect(() => {
+    setExpires(saved != null)
+    if (saved != null) setHours(String(saved))
+  }, [saved])
+
+  if (!spec) return null
+
+  const n = Number(hours)
+  const valid = Number.isFinite(n) && n >= 1 && n <= 8760
+  const next = expires || !spec.never ? n : null
+  const dirty = next !== saved
+
+  return (
+    <section className="flex flex-col gap-3 rounded-card border border-border/[0.14] bg-card p-5">
+      <div className="min-w-0">
+        <T as="h2" k={`analytics.config_${row.key}`} className="font-display text-h3 text-foreground" />
+        <T as="p" k={`analytics.configHelp_${row.key}`} className="font-body text-sm text-muted-foreground" />
+      </div>
+
+      <p className="font-body text-sm text-foreground">
+        <T as="span" k="analytics.configNow" />{' '}
+        <span className="font-semibold">
+          {saved == null ? t('analytics.configNever') : t('analytics.configHours', { n: saved })}
+        </span>
+      </p>
+
+      {spec.never && (
+        <label className="flex items-center gap-3">
+          <Switch checked={expires} onCheckedChange={setExpires} disabled={busy} />
+          <T as="span" k="analytics.configExpires" className="font-body text-sm text-foreground" />
+        </label>
+      )}
+
+      {(expires || !spec.never) && (
+        <label className="flex flex-col gap-1">
+          <T as="span" k="analytics.configHoursLabel" className="font-body text-sm text-muted-foreground" />
+          <Input
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={8760}
+            value={hours}
+            onChange={(e) => setHours(e.target.value)}
+            className="max-w-[160px]"
+          />
+          {!valid && (
+            <T as="span" k="analytics.configRange" className="font-body text-xs text-destructive" />
+          )}
+        </label>
+      )}
+
+      <Button
+        className="self-start"
+        disabled={busy || !dirty || (next != null && !valid)}
+        onClick={() => onSave(next)}
+      >
+        <T as="span" k="analytics.configSave" />
+      </Button>
+    </section>
   )
 }
 

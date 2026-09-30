@@ -26,7 +26,13 @@ export interface VariantResult {
   variant: string; exposed: number; converted: number; conversion: number
 }
 
-export type Pane = 'funnel' | 'events' | 'experiments'
+/** One row of public.app_config (migration 049). `value` is JSON: a number
+ *  of hours, or null for "never". */
+export interface ConfigRow {
+  key: string; value: unknown; note: string | null; updated_at: string
+}
+
+export type Pane = 'funnel' | 'events' | 'experiments' | 'settings'
 
 /** How many users per arm before a difference means anything.
  *
@@ -118,6 +124,36 @@ export function useAnalytics() {
       return (data ?? []) as Experiment[]
     },
     enabled,
+  })
+
+  /** Live settings, read through a staff-gated RPC -- app_config has no
+   *  table policies, so a direct select would come back empty, not refused. */
+  const config = useQuery({
+    queryKey: ['admin', 'config'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('admin_get_config')
+      if (error) throw error
+      return (data ?? []) as ConfigRow[]
+    },
+    enabled: enabled && pane === 'settings',
+  })
+
+  /** Change a setting. The RPC validates the value and, for the like
+   *  deadline, re-stamps every pending like -- no deploy involved. */
+  const setConfig = useMutation({
+    mutationFn: async ({ key, value }: { key: string; value: number | null }) => {
+      const { data, error } = await supabase.rpc('admin_set_config', {
+        p_key: key,
+        p_value: value,
+      })
+      if (error) throw error
+      if (!data || (Array.isArray(data) && data.length === 0)) {
+        throw new Error(`setting ${key} was not saved`)
+      }
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin', 'config'] })
+    },
   })
 
   const activeKey = selectedKey ?? experiments.data?.[0]?.key ?? null
@@ -243,6 +279,14 @@ export function useAnalytics() {
     createError: create.error ? String(create.error.message ?? create.error) : null,
     setSplit: (key: string, split: number) => setSplit.mutate({ key, split }),
     remove: remove.mutate,
+    config: config.data ?? [],
+    configLoading: config.isLoading,
+    configError: config.error ? String(config.error.message ?? config.error) : null,
+    setConfig: setConfig.mutate,
+    setConfigError: setConfig.error
+      ? String(setConfig.error.message ?? setConfig.error)
+      : null,
+    configSaving: setConfig.isPending,
     saving:
       setStatus.isPending || create.isPending || setSplit.isPending || remove.isPending,
   }

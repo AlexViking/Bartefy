@@ -821,6 +821,7 @@
     "tab_funnel": "Funnel",
     "tab_events": "Events",
     "tab_experiments": "Experiments",
+    "tab_settings": "Settings",
     "dau": "Today",
     "wau": "This week",
     "mau": "This month",
@@ -863,7 +864,18 @@
     "remove": "Delete this experiment",
     "splitLabel": "How many people see B",
     "splitValue": "{{a}}% A · {{b}}% B",
-    "notWired": "No one has been put in this test yet. Either nobody has reached the screen since it started, or no code calls useExperiment('{{key}}') — a running experiment that nothing asks for can never collect data."
+    "notWired": "No one has been put in this test yet. Either nobody has reached the screen since it started, or no code calls useExperiment('{{key}}') — a running experiment that nothing asks for can never collect data.",
+    "config_like_ttl_hours": "Free likes",
+    "configHelp_like_ttl_hours": "How long a free like waits for the other person. Changing it applies to every waiting like, counted from when it was made — anything older expires within 15 minutes.",
+    "config_offer_ttl_hours": "Super and multi offers",
+    "configHelp_offer_ttl_hours": "How long a paid offer waits for an answer. Changing it applies to new offers only; waiting ones keep the clock their sender saw.",
+    "configNow": "Now:",
+    "configNever": "never expire",
+    "configHours": "{{n}} hours",
+    "configExpires": "Likes expire",
+    "configHoursLabel": "Hours (168 = 7 days, 720 = 30 days)",
+    "configRange": "Between 1 and 8760 hours (one year).",
+    "configSave": "Save"
   },
   "offers": {
     "expired": "Expired",
