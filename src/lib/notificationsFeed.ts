@@ -16,7 +16,11 @@ export type FeedItem = {
   detail: string
   when: string
   path: string
+  /** The find the row is about -- theirs, where there are two. */
+  photo?: string
 }
+
+const img = (r: Row | null) => (Array.isArray(r?.images) && r!.images.length ? String((r!.images as unknown[])[0]) : undefined)
 
 export const FEED_ICONS: Record<FeedItem['kind'], IconName> = {
   offer: 'Handshake',
@@ -66,7 +70,9 @@ export function useNotificationsFeed() {
           titleKey: 'notif.wishlistTitle',
           detail: `${String(it.title ?? '')} · ${String(it.location_city ?? '')}`,
           when: String(h.created_at ?? ''),
-          path: '/item/' + String(it.public_id ?? ''),
+          // Item detail is cut (V6): a new find is met in the deck.
+          path: '/discover',
+          photo: img(it),
         })
       }
 
@@ -78,6 +84,7 @@ export function useNotificationsFeed() {
           detail: `${title(o.offered)} → ${title(o.wanted)}`,
           when: String(o.created_at ?? ''),
           path: '/matches?offer=' + String(o.id),
+          photo: img(one(o.offered)),
         })
       }
 
@@ -87,6 +94,7 @@ export function useNotificationsFeed() {
         // notification -- that is the opposite of archiving.
         if (isA ? m.a_archived : m.b_archived) continue
 
+        const photo = img(one(isA ? m.itemB : m.itemA))
         const mine = isA ? title(m.itemA) : title(m.itemB)
         const theirs = isA ? title(m.itemB) : title(m.itemA)
         const pair = `${mine} ⇄ ${theirs}`
@@ -97,6 +105,7 @@ export function useNotificationsFeed() {
             id: 'c' + String(m.id), kind: 'completed', titleKey: 'notif.completedTitle',
             detail: pair, when: String(m.completed_at ?? m.created_at ?? ''),
             path: '/matches/' + m.id,
+            photo,
           })
         } else if (status === 'cancelled') {
           feed.push({
@@ -105,12 +114,12 @@ export function useNotificationsFeed() {
               m.cancel_reason === 'item_traded_elsewhere'
                 ? 'notif.goneTitle'
                 : 'notif.cancelledTitle',
-            detail: pair, when: String(m.created_at ?? ''), path: '/matches/' + m.id,
+            detail: pair, when: String(m.created_at ?? ''), path: '/matches/' + m.id, photo,
           })
         } else {
           feed.push({
             id: 'm' + String(m.id), kind: 'match', titleKey: 'notif.matchTitle',
-            detail: pair, when: String(m.created_at ?? ''), path: '/matches/' + m.id,
+            detail: pair, when: String(m.created_at ?? ''), path: '/matches/' + m.id, photo,
           })
         }
       }

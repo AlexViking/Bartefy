@@ -12,21 +12,19 @@ import { Auth } from './screens/Auth'
 // Screens not yet migrated to the platform split. Each moves into its own
 // folder (Screen.mobile.tsx / Screen.desktop.tsx) as the rebuild reaches it.
 import { AddItem } from './screens/AddItem'
-import { Profile } from './screens/Profile'
+import Profile from './screens/Profile'
 import { Settings } from './screens/Settings'
 import { BlockedList } from './screens/BlockedList'
 import { Match } from './screens/Match'
 import { Hunt } from './screens/Hunt'
 import MyFinds from './screens/MyFinds/MyFinds'
-import Invite from './screens/Invite'
-import Rewards from './screens/Rewards'
-import PublicProfile from './screens/PublicProfile'
+import Points from './screens/Points/Points'
+import Person from './screens/Person'
 import Notifications from './screens/Notifications'
 import Swaps from './screens/Swaps/Swaps'
 import Admirers from './screens/Admirers/Admirers'
 import { ItemDetail } from './screens/ItemDetail'
 import { Arrange } from './screens/Arrange'
-import { Membership } from './screens/Membership'
 import { ReportQueue } from './screens/admin/ReportQueue'
 import { Analytics } from './screens/admin/Analytics'
 
@@ -112,9 +110,11 @@ export function AppRouter() {
           <Route path="/matches/:swapId?" element={<Swaps />} />
           {/* Offers live in Swaps & offers now (V6). */}
           <Route path="/offers" element={<Navigate to="/matches" replace />} />
-          <Route path="/invite" element={<Invite />} />
-          <Route path="/points" element={<Rewards />} />
-          <Route path="/u/:userId" element={<PublicProfile />} />
+          {/* Invite and Membership fold into Points & Tiers (V6). */}
+          <Route path="/invite" element={<Navigate to="/points?tab=earn" replace />} />
+          <Route path="/points" element={<Points />} />
+          {/* Someone else: the person card only -- never their finds (V6). */}
+          <Route path="/u/:userId" element={<Person />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile" element={<Profile />} />
 
@@ -122,7 +122,7 @@ export function AppRouter() {
           <Route path="/add" element={<AddItem />} />
           <Route path="/matches/:swapId/arrange" element={<Arrange />} />
           {/* Someone else's reviews. Reading them is ALWAYS_FREE. */}
-          <Route path="/membership" element={<Membership />} />
+          <Route path="/membership" element={<Navigate to="/points?tab=tiers" replace />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/blocked" element={<BlockedList />} />
 

@@ -1,247 +1,273 @@
+import * as React from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router'
-import { useQuery } from '@tanstack/react-query'
+import { toast } from 'sonner'
+
+import { PersonCard } from '@/components/PersonCard'
 import { AppShell } from '@/components/shell/AppShell'
-import { PageBody } from '@/components/shell/PageBody'
-import { PageHeader } from '@/components/shell/PageHeader'
-import { T, useT } from '@/i18n/T'
-import { useIsDesktop } from '@/lib/platform'
+import { TopBarContext } from '@/components/shell/TopBarContext'
+import { useShellData } from '@/components/shell/useShellData'
+import { Button } from '@/components/ui/button'
+import { Field } from '@/components/ui/field'
+import { Icon, type IconName } from '@/components/ui/icon'
+import { ResponsiveSheet } from '@/components/ui/responsive-sheet'
 import { UserAvatar } from '@/components/ui/user-avatar'
-import { ToneBadge } from '@/components/ui/tone-badge'
-import { Stat } from '@/components/ui/stat'
-import { useMembershipStore } from '@/store/membership'
-import { useAuthStore } from '@/store/auth'
+import { T, useT } from '@/i18n/T'
+import { getProfile, updateProfile } from '@/lib/api'
+import { getMyMatches } from '@/lib/barter'
+import { keys } from '@/lib/cache/queryClient'
 import { tierOf } from '@/lib/membership'
-import { Icon } from '@/components/ui/icon'
-import { resetLocal } from '@/lib/resetLocal'
+import { EARN_RATES, TIER_PRICES } from '@/lib/points'
+import { useIsDesktop } from '@/lib/platform'
 import { cn } from '@/lib/utils'
-import { getProfile, getMyItems, signOut } from '@/lib/api'
-import { getBalance } from '@/lib/points'
-import { keys, STALE } from '@/lib/cache/queryClient'
-import { DEFAULT_CITY } from '@/screens/Onboarding/useOnboarding'
+import { useAuthStore } from '@/store/auth'
 
-/** Who you are, and the way to everything that is not a destination.
- *
- *  Your listings are no longer here -- they are a nav destination of their own
- *  (screens/MyItems), which is where both the wireframe and V5 put them. What
- *  is left is identity, trust, the invite code, the tier, and the hub rows.
- *
- *  Profile came off the tab bar when My Items took its slot; the avatar in the
- *  topbar and at the head of the phone menu is how you get here now.
- */
-const HUB_ROWS = [
-  { path: '/items', label: 'nav.items', icon: 'Package' as const },
-  // Back, now that points exist. It was withheld while the screen would have
-  // said "coming soon", which is worse than no row at all.
-  { path: '/points', label: 'points.title', icon: 'Star' as const },
-  { path: '/invite', label: 'profile.hubInvite', icon: 'Sparkles' as const },
-  { path: '/settings/blocked', label: 'profile.hubBlocked', icon: 'ShieldAlert' as const },
-  { path: '/settings', label: 'profile.hubSettings', icon: 'Settings' as const },
-]
+type Row = Record<string, unknown>
+const one = (v: unknown) => (Array.isArray(v) ? v[0] : v) as Row | null
+const img = (r: Row | null) => (Array.isArray(r?.images) && r!.images.length ? String((r!.images as unknown[])[0]) : undefined)
 
-export function Profile() {
-  const { t } = useT()
-  const isDesktop = useIsDesktop()
+/** Profile (R2): who you are, and how others see you. Left, you -- with a
+ *  box of what only you see (tier, points, your invite code). Middle, the
+ *  person card exactly as anyone else gets it. Right, your finished swaps. */
+export default function Profile() {
+  const { t, lang } = useT()
   const navigate = useNavigate()
-
-  /** Signing out clears the local caches too -- see lib/resetLocal. A browser
-   *  that keeps the previous account's cached feed shows it to whoever signs
-   *  in next. */
-  const handleSignOut = async () => {
-    await resetLocal({ signOut })
-    navigate('/')
-  }
+  const desktop = useIsDesktop()
+  const shell = useShellData()
+  const qc = useQueryClient()
   const userId = useAuthStore((s) => s.session?.user?.id)
-  const tier = useMembershipStore((s) => s.tier)
-  const spec = tierOf(tier)
+  const [editing, setEditing] = React.useState(false)
 
   const { data: me } = useQuery({
     queryKey: keys.profile(userId ?? ''),
     queryFn: async () => {
       const { data, error } = await getProfile(userId!)
       if (error) throw error
-      return data as Record<string, unknown>
+      return data as Row
     },
     enabled: !!userId,
-    staleTime: STALE.mine,
+    staleTime: 5 * 60_000,
   })
 
-  /** Only for the "live finds" stat. The grid itself moved to My Items, but
-   *  the count belongs beside the trust score. */
-  const { data: allItems = [] } = useQuery({
-    queryKey: keys.myItems(userId ?? ''),
+  const { data: done = [] } = useQuery({
+    queryKey: ['barter', 'profile-done', userId ?? ''],
     queryFn: async () => {
-      const { data, error } = await getMyItems(userId!)
+      const { data, error } = await getMyMatches(userId!)
       if (error) throw error
-      return (data ?? []) as Record<string, unknown>[]
-    },
-    enabled: !!userId,
-    staleTime: STALE.mine,
-  })
-
-  const liveCount = allItems.filter((it) => it.status === 'active').length
-
-  /** The wallet, beside the trust score. The wireframe draws these as two
-   *  numbers side by side but deliberately separate: swaps are public trust,
-   *  points are a private balance. PublicProfile shows the first and never
-   *  the second. */
-  const { data: points = 0 } = useQuery({
-    queryKey: ['points', 'balance', userId ?? ''],
-    queryFn: async () => {
-      const { data, error } = await getBalance(userId!)
-      if (error) throw error
-      return Number(data ?? 0)
+      return ((data ?? []) as Row[]).filter((m) => m.status === 'completed')
     },
     enabled: !!userId,
   })
 
-  // Falls back to translated copy rather than a bare English "You" -- the old
-  // literal shipped untranslated to every non-EN user.
-  const profileName = String(me?.name ?? me?.display_name ?? t('profile.you'))
-  // completed_trades is the trust score (migration 015). swap_count is the
-  // old column, kept as a fallback only until it is dropped.
-  const swapCount = Number(me?.completed_trades ?? me?.swap_count ?? 0)
-  const verified = Boolean(me?.verified)
-  const referralCode = me?.referral_code ? String(me.referral_code) : ''
-  const memberSince = me?.created_at ? new Date(String(me.created_at)).getFullYear().toString() : ''
-  const city = String(me?.location_city ?? me?.city ?? DEFAULT_CITY)
+  const name = String(me?.name ?? '') || shell.email
+  const city = me?.home_city ? String(me.home_city) : ''
+  const since = me?.created_at ? new Date(String(me.created_at)).getFullYear().toString() : ''
+  const swaps = Number(me?.completed_trades ?? 0)
+  const code = me?.referral_code ? String(me.referral_code) : ''
+  const spec = tierOf(shell.tier)
+  const swapPts = EARN_RATES.find((r) => r.reason === 'swap_completed')?.points ?? 0
+  const referPts = EARN_RATES.find((r) => r.reason === 'referral_first_swap')?.points ?? 0
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(`https://bartefy.com/signup?invite=${code}`)
+      toast.success(t('pts.copied'))
+    } catch {
+      toast(code)
+    }
+  }
+
+  const privateRow = (icon: IconName, title: string, sub: string, onClick?: () => void, right?: React.ReactNode) => (
+    <div className="flex items-center gap-3 py-2.5">
+      <Icon name={icon} size={20} className="shrink-0 text-muted-foreground" />
+      <button type="button" onClick={onClick} disabled={!onClick} className="min-w-0 flex-1 text-left">
+        <span className="block font-body text-label-lg text-foreground">{title}</span>
+        <span className="block font-body text-[12px] text-muted-foreground">{sub}</span>
+      </button>
+      {right ?? (onClick && <Icon name="ChevronRight" size={18} className="text-muted-foreground" />)}
+    </div>
+  )
+
+  const you = (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-4">
+        <UserAvatar name={name} src={shell.avatar} size="xl" tone="accent" />
+        <div className="min-w-0">
+          {/* A name is user data. */}
+          <p className="truncate font-display text-headline-lg text-foreground">{name}</p>
+          <p className="font-body text-body-sm text-muted-foreground">{[city, since ? t('person.since', { year: since }) : ''].filter(Boolean).join(' · ')}</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-card bg-background px-4 py-3">
+          <p className="font-display text-[28px] font-bold leading-8 tabular-nums text-foreground">{swaps}</p>
+          <T as="p" k="person.swapsDone" className="font-body text-[12px] text-muted-foreground" />
+        </div>
+        <button type="button" onClick={() => navigate('/items')} className="rounded-card bg-background px-4 py-3 text-left hover:bg-secondary">
+          <p className="font-display text-[28px] font-bold leading-8 tabular-nums text-foreground">{shell.liveFinds}</p>
+          <p className="font-body text-[12px] text-muted-foreground">{t('profile.onTable')} ›</p>
+        </button>
+      </div>
+      <Button variant="ghost" size="sm" className="self-start" onClick={() => setEditing(true)}>
+        <Icon name="Settings" size={16} />
+        <T as="span" k="profile.edit" />
+      </Button>
+      <div className="rounded-card border border-dashed border-input px-4 py-2">
+        <p className="flex items-center gap-2 pt-2 font-body text-label-sm uppercase text-muted-foreground">
+          <Icon name="Lock" size={14} />
+          <T as="span" k="profile.onlyYou" />
+        </p>
+        {privateRow(
+          'Star',
+          t(`shell.tier_${shell.tier}`),
+          spec.radiusKm ? t('rail.km', { n: spec.radiusKm }) : t('rail.noCap'),
+          () => navigate('/points?tab=tiers'),
+        )}
+        {privateRow(
+          'Coins',
+          `${shell.points} ${t('shell.pts')}`,
+          shell.tier === 'hunter' && shell.points < TIER_PRICES.collector ? t('pts.toCollector', { n: TIER_PRICES.collector - shell.points }) : t('shell.nav_points'),
+          () => navigate('/points'),
+        )}
+        {code &&
+          privateRow(
+            'UserPlus',
+            t('profile.inviteCode', { code }),
+            t('profile.inviteSub', { n: referPts }),
+            undefined,
+            <Button variant="ghost" size="sm" onClick={() => void copy()}>
+              <T as="span" k="profile.copy" />
+            </Button>,
+          )}
+      </div>
+    </div>
+  )
+
+  const others = (
+    <div>
+      <T as="p" k="profile.othersSee" className="mb-3 font-body text-label-sm uppercase text-muted-foreground" />
+      <PersonCard name={name} city={city} swaps={swaps} since={since} />
+      <T as="p" k="profile.othersNote" className="mt-3 font-body text-[12px] leading-4 text-muted-foreground" />
+    </div>
+  )
+
+  const history = (
+    <div>
+      <T as="p" k="profile.finished" className="mb-3 font-body text-label-sm uppercase text-muted-foreground" />
+      {done.length === 0 ? (
+        <T as="p" k="profile.noFinished" className="font-body text-body-sm text-muted-foreground" />
+      ) : (
+        <ul className="divide-y divide-input">
+          {done.map((m) => {
+            const isA = String(m.user_a) === userId
+            const mine = one(isA ? m.itemA : m.itemB)
+            const theirs = one(isA ? m.itemB : m.itemA)
+            const other = one(isA ? m.userB : m.userA)
+            return (
+              <li key={String(m.id)} className="flex items-center gap-2 py-2.5">
+                <Thumb src={img(mine)} />
+                <Icon name="ArrowLeftRight" size={14} className="text-muted-foreground" />
+                <Thumb src={img(theirs)} />
+                <span className="min-w-0 flex-1 pl-1">
+                  <span className="block truncate font-body text-label-md text-foreground">{String(theirs?.title ?? '')}</span>
+                  <span className="block truncate font-body text-[12px] text-muted-foreground">
+                    {[other?.name ? t('profile.with', { who: String(other.name) }) : '', m.completed_at ? new Date(String(m.completed_at)).toLocaleDateString(lang, { month: 'short', year: 'numeric' }) : '']
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                </span>
+                <span className="font-display text-[13px] font-bold text-primary">+{swapPts}</span>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+      <T as="p" k="profile.onlyYouList" className="mt-2 font-body text-[12px] text-muted-foreground" />
+    </div>
+  )
 
   return (
     <AppShell>
-      <PageBody variant="wide">
-        <PageHeader title="nav.profile" />
-
-        {/* Identity */}
-        <div className={cn(
-            'flex flex-col gap-4 rounded border border-border/[0.14] bg-card p-5 shadow-card',
-            isDesktop && 'flex-row items-center',
-          )}>
-          <UserAvatar name={profileName} size="xl" tone="accent" verified={verified} />
-          <div className="flex min-w-0 flex-1 flex-col gap-1">
-            <div className="flex items-center gap-2.5">
-              {/* h2, not h1: the page's heading is the PageHeader above. A
-                  name is what this card is ABOUT, not what the page is. */}
-              <h2 className="font-display text-h3 text-foreground">{profileName}</h2>
-              {verified && <ToneBadge tone="green">{t('profile.verified')}</ToneBadge>}
-            </div>
-            {/* No stars. Trust is the count of finished swaps, shown in the
-                stat row beside -- peer ratings are cut from the product. */}
-            <div className="flex items-center gap-2">
-              <span className="font-body text-sm text-muted-foreground">
-                {city}
-                {memberSince ? ` · ${t('profile.memberSince', { date: memberSince })}` : ''}
-              </span>
-            </div>
-          </div>
-          {/* Two stats, not three. "Eyeing" counted a list that was never
-              fetched, so it read 0 for everyone forever. */}
-          <div className="flex gap-6">
-            <Stat value={swapCount} label={t('profile.statSwaps')} />
-            <Stat value={liveCount} label={t('profile.statLive')} />
-            <Stat value={points} label={t('points.title')} />
+      <TopBarContext>
+        <T as="h1" k="nav.profile" className="shrink-0 font-display text-headline-md text-foreground" />
+      </TopBarContext>
+      {desktop ? (
+        <div className="flex min-h-full gap-6 px-6 py-4 lg:px-8">
+          <div className="w-[360px] shrink-0 self-start rounded-card bg-card p-5 ring-1 ring-input">{you}</div>
+          <div className={cn('grid min-w-0 flex-1 gap-6 self-start rounded-card bg-card p-5 ring-1 ring-input', 'grid-cols-[minmax(240px,300px)_1fr]')}>
+            {others}
+            {history}
           </div>
         </div>
-
-        {/* Your invite code. Migration 012 has given every profile one since
-            6 September and nothing in the app showed it, so the whole referral
-            feature was inert -- there was no way to invite anyone.
-
-            The reward lands on the invitee's first real trade, never at
-            signup: paying at signup is what makes fake accounts worth farming.
-            profiles_own_read (migration 008) lets me read my own row in full,
-            and the code is correctly absent from profiles_public -- someone
-            else's invite code is not public data. */}
-        {referralCode && (
-          <div className="mt-3 flex items-center gap-3 rounded-card border-[1.5px] border-accent/50 bg-accent/[0.12] p-3.5">
-            <span className="min-w-0 flex-1">
-              <T
-                as="span"
-                k="profile.inviteTitle"
-                className="block font-display text-[15px] font-semibold text-foreground"
-              />
-              <T
-                as="span"
-                k="profile.inviteBody"
-                className="block font-body text-sm text-muted-foreground"
-              />
-            </span>
-            {/* data-selectable: global.css turns selection off app-wide, and a
-                code you cannot select is a code you cannot share. */}
-            <code
-              data-selectable
-              className="shrink-0 rounded-card-sm bg-card px-2.5 py-1.5 font-display text-[15px] font-bold tracking-wider text-foreground"
-            >
-              {referralCode}
-            </code>
-          </div>
-        )}
-
-        {/* Membership row. Every string here was English in JSX -- the tier
-            name, the radius line and the call to action all shipped
-            untranslated. The tier name is data, so it stays as it is; the
-            sentence around it is now a key with values. */}
-        <button
-          type="button"
-          onClick={() => navigate('/membership')}
-          className="mt-3 flex w-full items-center gap-3 rounded-sm border border-border/[0.14] bg-popover p-3.5 text-left hover:bg-secondary"
-        >
-          <span className="min-w-0 flex-1">
-            <span
-              data-i18n="profile.membershipRow"
-              className="block font-display text-[15px] font-semibold"
-            >
-              {t('profile.membershipRow', { tier: spec.name })}
-            </span>
-            <span className="block font-body text-sm text-muted-foreground">
-              {spec.radiusKm
-                ? t('profile.membershipRadius', { radius: spec.radiusKm })
-                : t('profile.membershipNoRadius')}
-              {' · '}
-              {spec.liveFinds
-                ? t('profile.membershipFinds', { count: spec.liveFinds })
-                : t('profile.membershipUnlimited')}
-            </span>
-          </span>
-          <span
-            data-i18n={tier === 'hunter' ? 'profile.seePlans' : 'profile.managePlan'}
-            className="font-body text-sm text-primary"
-          >
-            {t(tier === 'hunter' ? 'profile.seePlans' : 'profile.managePlan')}
-          </span>
-        </button>
-
-        {/* The hub, per the wireframe: rows, not chips. These are
-            destinations, and My Items leads the list because it is the one
-            people come here looking for. */}
-        <nav className="mt-6 overflow-hidden rounded-card border-[1.5px] border-border/[0.14] bg-card">
-          {HUB_ROWS.map((row, i) => (
-            <button
-              key={row.path}
-              type="button"
-              onClick={() => navigate(row.path)}
-              className={cn(
-                'flex min-h-hit w-full items-center gap-3 px-4 py-3.5 text-left',
-                'transition-colors duration-fast ease-brand hover:bg-secondary',
-                i > 0 && 'border-t border-border/[0.14]',
-              )}
-            >
-              <Icon name={row.icon} size={18} className="shrink-0 text-muted-foreground" />
-              <span data-i18n={row.label} className="flex-1 font-body text-body text-foreground">
-                {t(row.label)}
-              </span>
-              <Icon name="ChevronRight" size={16} className="shrink-0 text-muted-foreground" />
-            </button>
-          ))}
-        </nav>
-
-        <button
-          type="button"
-          onClick={handleSignOut}
-          data-i18n="settings.signOut"
-          className="mt-4 min-h-hit w-full font-body text-body text-muted-foreground transition-colors hover:text-destructive"
-        >
-          {t('settings.signOut')}
-        </button>
-      </PageBody>
+      ) : (
+        <div className="flex flex-col gap-6 px-4 pb-6 pt-4">
+          {you}
+          {others}
+          {history}
+        </div>
+      )}
+      <EditProfileSheet
+        open={editing}
+        onOpenChange={setEditing}
+        name={String(me?.name ?? '')}
+        onSaved={() => void qc.invalidateQueries({ queryKey: ['profile'] })}
+      />
     </AppShell>
+  )
+}
+
+function Thumb({ src }: { src?: string }) {
+  return src ? <img alt="" className="size-11 shrink-0 rounded-lg object-cover" src={src} /> : <span className="size-11 shrink-0 rounded-lg bg-secondary" />
+}
+
+/** The name people see. Photos come later -- profiles_public has no photo
+ *  column, so a photo set here would show to nobody but you. */
+function EditProfileSheet({ open, onOpenChange, name, onSaved }: { open: boolean; onOpenChange: (o: boolean) => void; name: string; onSaved: () => void }) {
+  const { t } = useT()
+  const userId = useAuthStore((s) => s.session?.user?.id)
+  const [value, setValue] = React.useState(name)
+  const [saving, setSaving] = React.useState(false)
+  const [failed, setFailed] = React.useState(false)
+  React.useEffect(() => {
+    if (open) {
+      setValue(name)
+      setFailed(false)
+    }
+  }, [open, name])
+
+  const save = async () => {
+    if (!userId || !value.trim() || saving) return
+    setSaving(true)
+    const { data, error } = await updateProfile(userId, { name: value.trim() })
+    setSaving(false)
+    if (error || !data || data.length === 0) {
+      setFailed(true)
+      return
+    }
+    onOpenChange(false)
+    onSaved()
+  }
+
+  return (
+    <ResponsiveSheet
+      open={open}
+      onOpenChange={onOpenChange}
+      title="profile.editTitle"
+      footer={
+        <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            <T as="span" k="common.cancel" />
+          </Button>
+          <Button onClick={() => void save()} disabled={!value.trim() || saving}>
+            {saving ? t('common.loading') : t('common.save')}
+          </Button>
+        </div>
+      }
+    >
+      <div className="flex flex-col gap-3">
+        <Field label="profile.nameLabel" help="profile.nameHelp" value={value} onChange={(e) => setValue(e.target.value)} />
+        {failed && <T as="p" k="finds.editFailed" className="rounded-card bg-coral px-3 py-2 font-body text-body-sm text-ink" />}
+      </div>
+    </ResponsiveSheet>
   )
 }

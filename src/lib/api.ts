@@ -88,8 +88,10 @@ export async function getProfile(userId: string) {
   return supabase.from('profiles').select('*').eq('id', userId).single()
 }
 
+/** `.select()`: an update RLS refuses returns no error and no rows, so a
+ *  caller has to be able to see that nothing was written. */
 export async function updateProfile(userId: string, patch: Record<string, unknown>) {
-  return supabase.from('profiles').update(patch).eq('id', userId)
+  return supabase.from('profiles').update(patch).eq('id', userId).select('id')
 }
 
 // ── Items ───────────────────────────────────────────────────────────────────

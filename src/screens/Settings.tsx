@@ -1,402 +1,379 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router'
-import { ChevronRight } from 'lucide-react'
+import * as React from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useLocation, useNavigate } from 'react-router'
+import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 
-import { AppShell } from '@/components/shell/AppShell'
-import { OrzomiByline } from '@/components/OrzomiByline'
-import { PageBody, PageColumns } from '@/components/shell/PageBody'
-import { PageHeader } from '@/components/shell/PageHeader'
 import { CityPicker } from '@/components/CityPicker'
-import { LanguageSwitcher } from '@/components/LanguageSwitcher'
-import { InfoHint } from '@/components/guidance/InfoHint'
+import { OrzomiByline } from '@/components/OrzomiByline'
 import { resetNudges } from '@/components/guidance/NextStep'
+import { AppShell } from '@/components/shell/AppShell'
+import { TopBarContext } from '@/components/shell/TopBarContext'
+import { useShellData } from '@/components/shell/useShellData'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+import { Icon, type IconName } from '@/components/ui/icon'
 import { ResponsiveSheet } from '@/components/ui/responsive-sheet'
-import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
-import { ToneBadge } from '@/components/ui/tone-badge'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { SUPPORTED_LANGUAGES, loadLanguage } from '@/i18n'
 import { T, useT } from '@/i18n/T'
 import { getProfile, signOut, updateProfile } from '@/lib/api'
+import { keys } from '@/lib/cache/queryClient'
+import { useIsDesktop } from '@/lib/platform'
 import { resetLocal } from '@/lib/resetLocal'
+import { supabase } from '@/lib/supabase'
+import { useTheme, type ThemePref } from '@/lib/theme'
+import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth'
 import { useOnboardingStore } from '@/store/onboarding'
 
-interface ProfileSettings {
-  notif_match: boolean
-  notif_push: boolean
-  notif_email: boolean
-  home_city: string
-  tier: string | null
-}
+type Row = Record<string, unknown>
+type SectionId = 'account' | 'notifications' | 'language' | 'appearance' | 'privacy' | 'membership' | 'help'
+const SECTIONS: { id: SectionId; icon: IconName }[] = [
+  { id: 'account', icon: 'User' },
+  { id: 'notifications', icon: 'Bell' },
+  { id: 'language', icon: 'Languages' },
+  { id: 'appearance', icon: 'Moon' },
+  { id: 'privacy', icon: 'ShieldCheck' },
+  { id: 'membership', icon: 'Star' },
+  { id: 'help', icon: 'Info' },
+]
 
-/** Settings is one column on both platforms — a list of rows reads the same
- *  everywhere, so it is width-constrained rather than platform-split.
+/** Settings (proposal B): seven sections. Desktop shows the list and the
+ *  picked section side by side; a phone opens a section full screen.
+ *
+ *  Every switch writes through at once (a Save button invites leaving without
+ *  pressing it) -- and says so when it did NOT: the old screen logged a failed
+ *  save to the console and left the switch looking saved.
  */
 export function Settings() {
-  const navigate = useNavigate()
   const { t } = useT()
+  const navigate = useNavigate()
+  const desktop = useIsDesktop()
+  const qc = useQueryClient()
+  const shell = useShellData()
   const userId = useAuthStore((s) => s.session?.user?.id)
   const email = useAuthStore((s) => s.session?.user?.email) ?? ''
   const setSelectedCity = useAuthStore((s) => s.setSelectedCity)
   const resetOnboarding = useOnboardingStore((s) => s.reset)
+  const { i18n } = useTranslation()
+  const { pref, setPref } = useTheme()
+  const lang = i18n.language?.split('-')[0] ?? 'en'
+  const s = new URLSearchParams(useLocation().search).get('s') as SectionId | null
+  const current: SectionId | null = s && SECTIONS.some((x) => x.id === s) ? s : desktop ? 'account' : null
+  const open = (id: SectionId | null) => navigate(id ? `/settings?s=${id}` : '/settings', { replace: desktop })
 
-  const [notifMatch, setNotifMatch] = useState(true)
-  const [notifPush, setNotifPush] = useState(true)
-  const [notifEmail, setNotifEmail] = useState(false)
-  const [homeCity, setHomeCity] = useState('')
-  const [tier, setTier] = useState<string>('free')
-  const [cityOpen, setCityOpen] = useState(false)
-  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [cityOpen, setCityOpen] = React.useState(false)
+  const [deleteOpen, setDeleteOpen] = React.useState(false)
 
-  useEffect(() => {
-    if (!userId) return
-    let cancelled = false
-    void (async () => {
-      const { data, error } = await getProfile(userId)
-      if (error || cancelled || !data) return
-      const p = data as unknown as ProfileSettings
-      setNotifMatch(p.notif_match ?? true)
-      setNotifPush(p.notif_push ?? true)
-      setNotifEmail(p.notif_email ?? false)
-      setHomeCity(p.home_city ?? '')
-      setTier(p.tier ?? 'free')
-    })()
-    return () => {
-      cancelled = true
+  const { data: me } = useQuery({
+    queryKey: keys.profile(userId ?? ''),
+    queryFn: async () => {
+      const { data, error } = await getProfile(userId!)
+      if (error) throw error
+      return data as Row
+    },
+    enabled: !!userId,
+    staleTime: 60_000,
+  })
+  const { data: blockedN = 0 } = useQuery({
+    queryKey: ['blocks', 'count', userId ?? ''],
+    queryFn: async () => {
+      const { count, error } = await supabase.from('blocks').select('blocked', { count: 'exact', head: true }).eq('blocker', userId!)
+      if (error) throw error
+      return count ?? 0
+    },
+    enabled: !!userId,
+  })
+
+  /** Write one change; on failure say so and put the switch back. */
+  const patch = async (changes: Row) => {
+    if (!userId) return false
+    const { data, error } = await updateProfile(userId, changes)
+    if (error || !data || data.length === 0) {
+      toast.error(t('settings.saveFailed'))
+      void qc.invalidateQueries({ queryKey: keys.profile(userId) })
+      return false
     }
-  }, [userId])
-
-  /** Every toggle writes through immediately — a settings screen with a Save
-   *  button invites people to leave without pressing it. */
-  const patch = async (changes: Record<string, unknown>) => {
-    if (!userId) return
-    const { error } = await updateProfile(userId, changes)
-    if (error) console.error('[settings] save failed', error)
+    qc.setQueryData(keys.profile(userId), (old: Row | undefined) => ({ ...(old ?? {}), ...changes }))
+    return true
   }
 
-  const chooseCity = async (city: string) => {
-    setHomeCity(city)
-    setSelectedCity(city)
-    setCityOpen(false)
-    await patch({ home_city: city })
+  const city = String(me?.home_city ?? '')
+  const langName = SUPPORTED_LANGUAGES.find((l) => l.code === lang)?.nativeLabel ?? lang
+  const summary: Record<SectionId, string> = {
+    account: [email, city].filter(Boolean).join(' · '),
+    notifications: t('settings.notifSummary'),
+    language: langName,
+    appearance: t(`theme.${pref}`),
+    privacy: t('settings.blockedN', { count: blockedN }),
+    membership: t(`shell.tier_${shell.tier}`),
+    help: t('settings.helpSummary'),
   }
 
-  /** Signing out clears the local caches as well as the session.
-   *
-   *  The persisted query cache lives in IndexedDB and outlives a sign-out, so
-   *  without this the next person to sign in on the same browser sees the
-   *  previous account's items and swaps until each query refetches. That was
-   *  always wrong; it became urgent with the V4 wipe, where the cached rows
-   *  refer to records that no longer exist at all.
-   *
-   *  The theme preference deliberately survives -- see lib/resetLocal.
-   */
-  const handleSignOut = async () => {
+  const row = (id: SectionId) => {
+    const sec = SECTIONS.find((x) => x.id === id)!
+    const on = current === id && desktop
+    return (
+      <button
+        key={id}
+        type="button"
+        onClick={() => open(id)}
+        aria-current={on ? 'true' : undefined}
+        className={cn('flex w-full items-center gap-3 rounded-card px-3 py-3 text-left transition-colors', on ? 'bg-selected' : 'hover:bg-background')}
+      >
+        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-background text-muted-foreground">
+          <Icon name={sec.icon} size={18} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <T as="span" k={`settings.sec_${id}`} className="block font-body text-label-lg text-foreground" />
+          <span className="block truncate font-body text-[12px] text-muted-foreground">{summary[id]}</span>
+        </span>
+        <Icon name="ChevronRight" size={18} className="text-muted-foreground" />
+      </button>
+    )
+  }
+
+  const item = (title: string, body: React.ReactNode, control?: React.ReactNode) => (
+    <div className="flex items-center gap-4 border-b border-input py-4 last:border-0">
+      <div className="min-w-0 flex-1">
+        <p className="font-body text-label-lg text-foreground">{title}</p>
+        <div className="font-body text-body-sm text-muted-foreground">{body}</div>
+      </div>
+      {control}
+    </div>
+  )
+
+  const signOutNow = async () => {
     await resetLocal({ signOut })
     navigate('/')
   }
 
-  /** Real deletion needs the service role, so this asks the server and signs
-   *  out. Never pretend an account is gone when it is not. */
-  const handleDelete = async () => {
-    setDeleteOpen(false)
-    await patch({ deletion_requested_at: new Date().toISOString() })
-    await signOut()
-    navigate('/')
-  }
-
-  return (
-    <AppShell>
-      <PageBody>
-        {/* No back arrow: Settings is a destination in the rail, not a page
-            you were pushed onto, so there is nowhere to go back TO. */}
-        <PageHeader title="settings.title" />
-
-        <PageColumns>
-        <Section title="settings.account">
-          <Row label={email} literal />
-          <Separator />
-          <Row
-            label="settings.language"
-            help="settings.languageHelp"
-            control={<LanguageSwitcher />}
-          />
-          <Separator />
-          <Row
-            label="onboarding.cityTitle"
-            control={
+  const pane = (id: SectionId) => {
+    switch (id) {
+      case 'account':
+        return (
+          <>
+            {/* An email and a city are user data. */}
+            {item(t('settings.email'), t('settings.emailBody', { email }))}
+            {item(
+              t('settings.area'),
+              t('settings.areaBody', { city: city || t('settings.noArea') }),
+              <Button variant="ghost" size="sm" onClick={() => setCityOpen(true)}>
+                <T as="span" k="area.change" />
+              </Button>,
+            )}
+            {item(
+              t('settings.nameAndPhoto'),
+              String(me?.name ?? ''),
+              <Button variant="ghost" size="sm" onClick={() => navigate('/profile')}>
+                <T as="span" k="settings.editInProfile" />
+              </Button>,
+            )}
+            {item(
+              t('settings.signOut'),
+              t('settings.signOutBody'),
+              <Button variant="ghost" size="sm" onClick={() => void signOutNow()}>
+                <Icon name="LogOut" size={16} />
+                <T as="span" k="settings.signOut" />
+              </Button>,
+            )}
+            <div className="mt-6 flex items-center gap-4 rounded-card bg-background px-4 py-3">
+              <div className="min-w-0 flex-1">
+                <T as="p" k="settings.deleteAccount" className="font-body text-label-lg text-foreground" />
+                <T as="p" k="settings.deleteSummary" className="font-body text-body-sm text-muted-foreground" />
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => setDeleteOpen(true)}>
+                <T as="span" k="settings.deleteAction" />
+              </Button>
+            </div>
+          </>
+        )
+      case 'notifications':
+        return (
+          <>
+            {(
+              [
+                ['notif_match', 'settings.notifMatch', true],
+                ['notif_push', 'settings.notifMessage', true],
+                ['notif_email', 'settings.notifEmail', false],
+              ] as const
+            ).map(([col, k, def]) =>
+              item(
+                t(k),
+                t(`${k}Help`),
+                <Switch checked={Boolean(me?.[col] ?? def)} onCheckedChange={(v) => void patch({ [col]: v })} aria-label={t(k)} />,
+              ),
+            )}
+            <T as="p" k="settings.pushNote" className="pt-3 font-body text-[12px] text-muted-foreground" />
+          </>
+        )
+      case 'language':
+        return (
+          <div className="flex flex-col gap-1 pt-2">
+            <T as="p" k="settings.languageHelp" className="pb-2 font-body text-body-sm text-muted-foreground" />
+            {SUPPORTED_LANGUAGES.map((l) => (
               <button
+                key={l.code}
                 type="button"
-                onClick={() => setCityOpen(true)}
-                className="flex min-h-hit items-center gap-1 font-body text-muted-foreground hover:text-foreground"
+                role="menuitemradio"
+                aria-checked={l.code === lang}
+                onClick={() => void loadLanguage(l.code)}
+                className="flex h-12 items-center gap-3 rounded-card px-3 text-left hover:bg-background aria-checked:bg-selected"
               >
-                {homeCity || t('common.optional')}
-                <ChevronRight className="size-4" aria-hidden="true" />
+                <span className="w-8 font-body text-[11px] font-bold uppercase text-muted-foreground">{l.code}</span>
+                {/* A language's own name is not translated. */}
+                <span className="flex-1 font-body text-body-md text-foreground">{l.nativeLabel}</span>
+                {l.code === lang && <Icon name="Check" size={18} className="text-primary" />}
               </button>
-            }
-          />
-        </Section>
-
-        <Section title="settings.membership">
-          {/* Label, badge and button do not fit one phone-width row, so this
-              one stacks rather than truncating the label to "Mem…". */}
-          <div className="flex flex-col gap-2 px-4 py-3">
-            <div className="flex items-center gap-2">
-              <T as="p" k="membership.title" className="font-body text-base text-foreground" />
-              <ToneBadge tone={tier === 'free' ? 'quiet' : 'green'}>
-                {t(`membership.tier${tier.charAt(0).toUpperCase()}${tier.slice(1)}`)}
-              </ToneBadge>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/membership')}
-              className="self-start"
-              data-i18n="membership.manage"
-            >
-              {t('membership.manage')}
-            </Button>
+            ))}
           </div>
-          <Separator />
-          <div className="px-4 py-3">
-            <div className="flex items-center gap-1.5">
-              <T
-                as="p"
-                k="membership.alwaysFreeTitle"
-                className="font-display text-[15px] font-semibold text-foreground"
-              />
-              <InfoHint k="help.whyNoMoney" />
-            </div>
-            <T
-              as="p"
-              k="membership.alwaysFreeBody"
-              className="mt-1 font-body text-sm leading-relaxed text-muted-foreground"
-            />
+        )
+      case 'appearance':
+        return (
+          <div className="grid grid-cols-3 gap-3 pt-3">
+            {(['light', 'dark', 'system'] as ThemePref[]).map((p) => (
+              <button key={p} type="button" aria-pressed={pref === p} onClick={() => setPref(p)} className="group flex flex-col gap-2 text-left">
+                <span
+                  className={cn(
+                    'block aspect-[4/3] rounded-card ring-1 ring-input group-aria-pressed:ring-2 group-aria-pressed:ring-primary',
+                    p === 'light' ? 'bg-paper' : p === 'dark' ? 'bg-ink' : 'bg-gradient-to-br from-paper from-50% to-ink to-50%',
+                  )}
+                />
+                <T as="span" k={`theme.${p}`} className="font-body text-label-md text-foreground" />
+              </button>
+            ))}
           </div>
-        </Section>
-
-        <Section title="settings.notifications">
-          <Row
-            label="settings.notifMatch"
-            control={
-              <Switch
-                checked={notifMatch}
-                onCheckedChange={(v) => {
-                  setNotifMatch(v)
-                  void patch({ notif_match: v })
-                }}
-              />
-            }
-          />
-          <Separator />
-          <Row
-            label="settings.notifMessage"
-            control={
-              <Switch
-                checked={notifPush}
-                onCheckedChange={(v) => {
-                  setNotifPush(v)
-                  void patch({ notif_push: v })
-                }}
-              />
-            }
-          />
-          <Separator />
-          <Row
-            label="settings.notifEmail"
-            control={
-              <Switch
-                checked={notifEmail}
-                onCheckedChange={(v) => {
-                  setNotifEmail(v)
-                  void patch({ notif_email: v })
-                }}
-              />
-            }
-          />
-        </Section>
-
-        <Section title="stuck.title">
-          <Row
-            label="settings.replayTips"
-            help="settings.replayTipsHelp"
-            control={
+        )
+      case 'privacy':
+        return (
+          <>
+            {item(t('settings.privacyWho'), t('settings.privacyWhoBody'))}
+            {item(t('settings.privacyArea'), t('settings.privacyAreaBody'))}
+            {item(
+              t('settings.blocked'),
+              t('settings.blockedN', { count: blockedN }),
+              <Button variant="ghost" size="sm" onClick={() => navigate('/settings/blocked')}>
+                <T as="span" k="settings.seeBlocked" />
+              </Button>,
+            )}
+          </>
+        )
+      case 'membership':
+        return (
+          <>
+            {item(
+              t(`shell.tier_${shell.tier}`),
+              t('settings.membershipBody'),
+              <Button size="sm" onClick={() => navigate('/points?tab=tiers')}>
+                <T as="span" k="settings.seeTiers" />
+              </Button>,
+            )}
+            <T as="p" k="pts.alwaysFree" className="pt-3 font-body text-[12px] text-muted-foreground" />
+          </>
+        )
+      case 'help':
+        return (
+          <>
+            {item(
+              t('settings.replayTips'),
+              t('settings.replayTipsHelp'),
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
                   resetNudges()
                   resetOnboarding()
-                  navigate('/welcome')
+                  toast.success(t('settings.tipsBack'))
                 }}
               >
-                {t('settings.replayTipsAction')}
-              </Button>
-            }
-          />
-          <Separator />
-          <Row
-            label="settings.blocked"
-            control={
-              <button
-                type="button"
-                onClick={() => navigate('/settings/blocked')}
-                className="flex min-h-hit items-center text-muted-foreground hover:text-foreground"
-                aria-label={t('settings.blocked')}
-              >
-                <ChevronRight className="size-4" aria-hidden="true" />
-              </button>
-            }
-          />
-        </Section>
-        </PageColumns>
-
-        {/* Sign out and delete stay full width below the columns: they end the
-            page, and a destructive action balanced in a second column reads as
-            just another setting. */}
-        <div className="mt-6 flex flex-col gap-2">
-          <Button variant="ghost" fullWidth onClick={handleSignOut} data-i18n="settings.signOut">
-            {t('settings.signOut')}
-          </Button>
-          <Button
-            variant="ghost"
-            fullWidth
-            onClick={() => setDeleteOpen(true)}
-            className="text-destructive"
-            data-i18n="settings.deleteAccount"
-          >
-            {t('settings.deleteAccount')}
-          </Button>
-        </div>
-
-        <BuildStamp />
-
-        {/* Parent-company credit, under the build stamp: this is already the
-            page's footer, and it is the one place in the app with a settled
-            "about this software" corner. */}
-        <div className="mt-3 flex justify-center">
-          <OrzomiByline />
-        </div>
-      </PageBody>
-
-      <ResponsiveSheet open={cityOpen} onOpenChange={setCityOpen} title="onboarding.cityTitle">
-        <CityPicker value={homeCity} onSelect={chooseCity} />
-      </ResponsiveSheet>
-
-      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent className="rounded-hero">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="font-display text-h3">
-              {t('settings.deleteAccount')}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="font-body text-muted-foreground">
-              {t('error.genericBody')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>{t('common.confirm')}</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </AppShell>
-  )
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  const { t } = useT()
-  return (
-    <section className="mb-6">
-      <h2
-        data-i18n={title}
-        className="mb-2 px-1 font-display text-caption uppercase tracking-[0.18em] text-muted-foreground"
-      >
-        {t(title)}
-      </h2>
-      <Card className="overflow-hidden rounded border-border/[0.14] bg-card">{children}</Card>
-    </section>
-  )
-}
-
-function Row({
-  label,
-  help,
-  literal = false,
-  control,
-}: {
-  /** A translation key, unless `literal` is set. */
-  label: string
-  help?: string
-  /** True when the label is user data (an email, a name) rather than a key.
-   *  Such a row renders the text as-is and carries no data-i18n, so the
-   *  translation sweep does not report it as an untranslated key. */
-  literal?: boolean
-  control?: React.ReactNode
-}) {
-  const { t } = useT()
-  return (
-    <div className="flex min-h-hit items-center justify-between gap-3 px-4 py-3">
-      <div className="min-w-0">
-        <p
-          data-i18n={literal ? undefined : label}
-          className="truncate font-body text-base text-foreground"
-        >
-          {literal ? label : t(label)}
-        </p>
-        {help && (
-          <p data-i18n={help} className="mt-0.5 font-body text-sm text-muted-foreground">
-            {t(help)}
-          </p>
-        )}
-      </div>
-      {control}
-    </div>
-  )
-}
-
-/** Which build is actually in front of you. Quiet by design — it is a
- *  diagnostic, not a feature — but tappable, because the first thing anyone
- *  asks about a bug report is which version it came from.
- *
- *  The values are frozen into the bundle by vite.config.ts, so they describe
- *  the deployed build rather than whatever the client happens to fetch.
- */
-function BuildStamp() {
-  const { t } = useT()
-  const [copied, setCopied] = useState(false)
-  const stamp = `v${__APP_VERSION__} · ${__APP_COMMIT__}`
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(`Bartefy ${stamp} · built ${__APP_BUILT_AT__}`)
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 2000)
-    } catch {
-      // Clipboard is blocked on insecure origins and in some embedded
-      // webviews. The text is on screen either way, so there is nothing to
-      // recover from — the stamp stays readable and copyable by hand.
+                <T as="span" k="settings.replayTipsAction" />
+              </Button>,
+            )}
+            {/* A version string is the same in every language. */}
+            {item(t('settings.buildLabel'), `Bartefy v${__APP_VERSION__} · ${__APP_COMMIT__} · ${__APP_BUILT_AT__}`)}
+            <div className="pt-4">
+              <OrzomiByline />
+            </div>
+          </>
+        )
     }
   }
 
+  const list = <nav className="flex flex-col gap-1">{SECTIONS.map((x) => row(x.id))}</nav>
+
   return (
-    <button
-      type="button"
-      onClick={copy}
-      title={`${t('settings.buildLabel')} — ${__APP_BUILT_AT__}`}
-      className="mx-auto mt-8 block rounded-pill px-3 py-2 font-body text-caption text-muted-foreground/70 transition-colors duration-fast ease-brand hover:text-muted-foreground"
-    >
-      {copied ? t('common.done') : stamp}
-    </button>
+    <AppShell>
+      <TopBarContext>
+        <T as="h1" k="settings.title" className="shrink-0 font-display text-headline-md text-foreground" />
+      </TopBarContext>
+      {desktop ? (
+        <div className="flex min-h-full gap-6 px-6 py-4 lg:px-8">
+          <div className="w-[360px] shrink-0 self-start rounded-card bg-card p-2 ring-1 ring-input">{list}</div>
+          {current && (
+            <div className="min-w-0 max-w-[720px] flex-1 self-start rounded-card bg-card px-6 py-5 ring-1 ring-input">
+              <T as="h2" k={`settings.sec_${current}`} className="mb-2 font-display text-headline-md text-foreground" />
+              {pane(current)}
+            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          <div className="flex flex-col gap-3 px-4 pb-6 pt-3">
+            <T as="h1" k="settings.title" className="font-display text-[24px] font-bold leading-8 text-foreground" />
+            {list}
+          </div>
+          {current && (
+            <div className="fixed inset-0 z-50 flex flex-col bg-card">
+              <header className="flex shrink-0 items-center gap-3 px-4 py-3">
+                <button type="button" onClick={() => open(null)} aria-label={t('common.back')} className="-ml-2 grid size-10 place-items-center rounded-pill hover:bg-secondary">
+                  <Icon name="ArrowLeft" size={22} />
+                </button>
+                <T as="h2" k={`settings.sec_${current}`} className="font-display text-headline-sm text-foreground" />
+              </header>
+              <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6">{pane(current)}</div>
+            </div>
+          )}
+        </>
+      )}
+
+      <ResponsiveSheet open={cityOpen} onOpenChange={setCityOpen} title="onboarding.cityTitle">
+        <CityPicker
+          value={city}
+          onSelect={async (c: string) => {
+            setCityOpen(false)
+            if (await patch({ home_city: c })) setSelectedCity(c)
+          }}
+        />
+      </ResponsiveSheet>
+
+      {/* Honest about what happens (open question, 2026-09-30): real deletion
+          needs a service-role job that does not exist yet, so this RECORDS the
+          request and signs out -- it does not say the account is gone. */}
+      <ResponsiveSheet
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="settings.deleteTitle"
+        description="settings.deleteBody"
+        footer={
+          <div className="flex w-full flex-col gap-2">
+            <Button
+              fullWidth
+              size="lg"
+              onClick={async () => {
+                setDeleteOpen(false)
+                if (await patch({ deletion_requested_at: new Date().toISOString() })) await signOutNow()
+              }}
+            >
+              <T as="span" k="settings.deleteConfirm" />
+            </Button>
+            <Button variant="ghost" fullWidth onClick={() => setDeleteOpen(false)}>
+              <T as="span" k="common.notYet" />
+            </Button>
+          </div>
+        }
+      >
+        <span className="sr-only">{t('settings.deleteBody')}</span>
+      </ResponsiveSheet>
+    </AppShell>
   )
 }
