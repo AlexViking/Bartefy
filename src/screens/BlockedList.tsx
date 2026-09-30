@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { ArrowLeft, ShieldOff } from 'lucide-react'
 
+import { Icon } from '@/components/ui/icon'
 import { AppShell } from '@/components/shell/AppShell'
 import { PageBody } from '@/components/shell/PageBody'
 import { EmptyState } from '@/components/EmptyState'
@@ -121,7 +121,7 @@ export function BlockedList() {
             aria-label={t('common.back')}
             className="flex size-11 items-center justify-center rounded-pill text-foreground hover:bg-foreground/[0.06]"
           >
-            <ArrowLeft className="size-5" aria-hidden="true" />
+            <Icon name="ArrowLeft" className="size-5" aria-hidden="true" />
           </button>
           <T as="h1" k="settings.blockedTitle" className="font-display text-h2 text-foreground" />
         </header>
@@ -142,7 +142,7 @@ export function BlockedList() {
           <EmptyState
             title="settings.blockedEmptyTitle"
             body="settings.blockedEmptyBody"
-            art={<ShieldOff className="size-7 text-muted-foreground" aria-hidden="true" />}
+            art={<Icon name="ShieldOff" className="size-7 text-muted-foreground" aria-hidden="true" />}
           />
         ) : (
           <Card className="overflow-hidden rounded border-border/[0.14] bg-card">

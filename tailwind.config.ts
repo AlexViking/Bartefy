@@ -74,7 +74,12 @@ export default {
       borderRadius: {
         sm: 'var(--radius-card-sm)',
         DEFAULT: 'var(--radius-card)',
-        lg: 'var(--radius-card-lg)',
+        /* 8px: the V6 mocks' scale (Stitch: lg .5rem, xl .75rem), which every
+           V6 screen was ported from. This was 16px, so each thumbnail, tile
+           and row copied as rounded-lg drew twice as round as the mock --
+           44px thumbnails came out as circles. 16px is rounded-2xl or
+           rounded-card-lg. */
+        lg: 'var(--radius-card-sm)',
         hero: 'var(--radius-hero)',
         pill: 'var(--radius-pill)',
         /* `rounded-card`, `rounded-card-sm` and `rounded-card-lg` are written

@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { ArrowRight, X } from 'lucide-react'
 
+import { Icon } from '@/components/ui/icon'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/i18n/T'
 import { cn } from '@/lib/utils'
@@ -101,7 +101,7 @@ export function NextStep({
             data-i18n={action}
           >
             {t(action)}
-            <ArrowRight aria-hidden="true" />
+            <Icon name="ArrowRight" aria-hidden="true" />
           </Button>
         )}
       </div>
@@ -115,7 +115,7 @@ export function NextStep({
           'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45',
         )}
       >
-        <X className="size-4" aria-hidden="true" />
+        <Icon name="X" className="size-4" aria-hidden="true" />
       </button>
     </aside>
   )

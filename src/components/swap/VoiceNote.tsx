@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Pause, Play } from 'lucide-react'
 
+import { Icon } from '@/components/ui/icon'
 import { useT } from '@/i18n/T'
 import { cn } from '@/lib/utils'
 import { formatDuration } from '@/lib/voice'
@@ -136,9 +136,9 @@ export function VoiceNote({
         )}
       >
         {playing ? (
-          <Pause className="size-4" aria-hidden="true" />
+          <Icon name="Pause" className="size-4" aria-hidden="true" />
         ) : (
-          <Play className="size-4 translate-x-px" aria-hidden="true" />
+          <Icon name="Play" className="size-4 translate-x-px" aria-hidden="true" />
         )}
       </button>
 

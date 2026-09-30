@@ -31,7 +31,7 @@ function useBox<T extends HTMLElement>() {
  *  it the action bar. I do not want to scroll down to reach the action bar."
  *
  *  The card is sized from the SPACE, not the page: it fills the height this
- *  stage is given, and its width follows (a 0.78 portrait). The action bar is
+ *  stage is given, and its width follows (a 0.78 portrait, 520px at least). The action bar is
  *  the caller's, below the stage, so card + actions always fit the window.
  *
  *  When the column is wide enough (860px) the card turns landscape with the
@@ -82,8 +82,11 @@ export function DeckStage({
   const top = cards[0]
   const next = cards[1]
 
-  // Width from the height: a 0.78 portrait, never wider than the column.
-  const photoW = Math.max(280, box.h * 0.78)
+  // Width from the height: a 0.78 portrait, but never under 520px (the mock's
+  // --photo-w) -- on a short window the card gets squarer instead of
+  // narrower, so the action bar under it keeps its full width. Never wider
+  // than the column.
+  const photoW = Math.max(520, box.h * 0.78)
   const wide = allowWide && box.w >= 860
   const panelW = box.w >= 1200 ? 420 : 360
   const cardW = Math.min(box.w, wide ? photoW + panelW : allowWide ? photoW : box.w)

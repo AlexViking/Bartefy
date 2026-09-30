@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router'
 import { Icon } from '@/components/ui/icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { T, useT } from '@/i18n/T'
+import { tierOf } from '@/lib/membership'
 import { cn } from '@/lib/utils'
 import { ADD_PATH, DESTINATIONS, isActive, type Destination } from '@/navigation/destinations'
 import { cap, type ShellData } from './useShellData'
@@ -21,8 +22,11 @@ function badgeFor(d: Destination, data: ShellData, t: (k: string, v?: Record<str
     return n > 0 ? { text: t('shell.badgeNew', { n: cap(n) }), tone: 'bg-coral text-ink', dot: 'bg-coral' } : null
   }
   if (d.badge === 'finds') {
+    // Against the tier's cap where there is one: "6/6 Live" (the mock).
     const n = data.liveFinds
-    return n > 0 ? { text: t('shell.badgeLive', { n: cap(n) }), tone: 'bg-mint text-forest', dot: 'bg-green' } : null
+    const max = tierOf(data.tier).liveFinds
+    const text = max != null ? t('shell.badgeLiveOf', { n: cap(n), max }) : t('shell.badgeLive', { n: cap(n) })
+    return n > 0 ? { text, tone: 'bg-mint text-forest', dot: 'bg-green' } : null
   }
   if (d.badge === 'admirers') {
     const n = data.admirers
@@ -127,7 +131,7 @@ export function SideNav({
             >
               <Icon name={d.icon} size={20} className="shrink-0" />
               <span className="flex min-w-0 flex-1 flex-col">
-                <T as="span" k={d.label} className="truncate" />
+                <T as="span" k={d.side ?? d.label} className="truncate" />
                 {b && (
                   <span className={cn('mt-1 self-start rounded-pill px-1.5 py-0.5 text-[11px] font-bold leading-[14px] tracking-[0.05em]', b.tone)}>
                     {b.text}

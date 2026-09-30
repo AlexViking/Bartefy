@@ -68,7 +68,7 @@ export function StreakPanel({ data, onGo }: { data: ShellData; onGo: (to: string
       <div className="p-4">
         <div className="flex items-start gap-3">
           <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-selected text-primary">
-            <Icon name="Flame" size={22} className="fill-current" />
+            <Icon name="Flame" size={22} filled />
           </span>
           <div className="min-w-0">
             <p className="font-display text-headline-sm text-foreground">{title}</p>
@@ -108,7 +108,8 @@ export function StreakPanel({ data, onGo }: { data: ShellData; onGo: (to: string
                 <Icon
                   name={today ? 'Flame' : done ? 'CircleCheck' : d === 7 ? 'Star' : 'Lock'}
                   size={18}
-                  className={cn(today && 'fill-current', !today && done && 'text-primary')}
+                  filled={today}
+                  className={cn(!today && done && 'text-primary')}
                 />
                 <span className="font-display text-[12px] font-bold leading-none tabular-nums">
                   +{value(d)}

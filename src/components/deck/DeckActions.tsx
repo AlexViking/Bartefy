@@ -51,6 +51,10 @@ export function DeckActions({
   const { t } = useT()
   const phone = size === 'compact'
 
+  // The phone dock (layout C): circles graded toward the middle, the one
+  // loud action biggest -- circle and icon px per action, from the mock.
+  const DOCK: Record<string, [number, number]> = { undo: [56, 26], pass: [60, 28], want: [68, 32], super: [60, 28], boost: [56, 26] }
+
   const btn = ({
     id,
     label,
@@ -83,28 +87,33 @@ export function DeckActions({
       aria-label={title ?? label}
       title={title ?? label}
       className={cn(
-        'group flex flex-col items-center gap-1.5 outline-none disabled:cursor-not-allowed disabled:opacity-40',
-        phone ? 'w-[66px]' : 'w-20',
+        // min-w-0: the five may shrink below 80px so the row always fits the
+        // card (the mock's buttons do; ours overflowed at 1404px).
+        'group flex min-w-0 flex-col items-center outline-none disabled:cursor-not-allowed disabled:opacity-40',
+        phone ? 'gap-1' : 'w-20 gap-1.5',
         dim && 'opacity-55',
       )}
     >
       <span
         className={cn(
-          'relative grid place-items-center rounded-pill transition-[transform,box-shadow] duration-200 ease-brand',
+          'relative grid shrink-0 place-items-center rounded-pill transition-[transform,box-shadow] duration-200 ease-brand',
           'group-hover:-translate-y-0.5 group-active:translate-y-0 group-active:scale-95 group-focus-visible:ring-[3px] group-focus-visible:ring-ring/40',
-          phone ? 'size-[52px]' : 'size-16',
+          !phone && 'size-16',
           loud
             ? 'bg-primary text-primary-foreground shadow-[0_6px_18px_rgba(27,107,85,0.32)] group-hover:shadow-[0_10px_24px_rgba(27,107,85,0.38)]'
-            : 'bg-card shadow-[0_2px_8px_rgba(31,27,24,0.08)] ring-1 ring-input group-hover:shadow-[0_8px_18px_rgba(31,27,24,0.14)]',
+            : phone
+              ? 'bg-card shadow-[0_4px_14px_rgba(31,27,24,0.16)] ring-1 ring-input'
+              : 'bg-card shadow-[0_2px_8px_rgba(31,27,24,0.08)] ring-1 ring-input group-hover:shadow-[0_8px_18px_rgba(31,27,24,0.14)]',
         )}
+        style={phone ? { width: DOCK[id][0], height: DOCK[id][0] } : undefined}
       >
-        <Icon name={icon} size={phone ? 24 : 28} className={loud ? undefined : tone} />
+        <Icon name={icon} size={phone ? DOCK[id][1] : 28} className={loud ? undefined : tone} />
         {badge}
       </span>
       <span
         className={cn(
           'whitespace-nowrap',
-          phone ? 'text-[11px] font-semibold leading-[14px]' : 'font-body text-label-md',
+          phone ? 'text-[12px] font-semibold leading-4' : 'font-body text-label-md',
           loud ? 'font-bold text-primary' : 'text-muted-foreground',
         )}
       >
@@ -139,18 +148,21 @@ export function DeckActions({
 
   return (
     <div
-      className={cn('w-full', !bare && 'rounded-card bg-card shadow-md', phone ? 'px-2 py-3' : 'px-8 py-4')}
+      className={cn('w-full', !bare && 'rounded-card bg-card shadow-md', phone ? 'px-1 py-3' : 'px-6 py-4')}
       data-organism="deck_actions"
       data-variant={size}
     >
-      <div role="group" aria-label={t('deck.actionsLabel')} className={cn('flex items-start justify-center', phone ? 'gap-1' : 'gap-6')}>
+      <div
+        role="group"
+        aria-label={t('deck.actionsLabel')}
+        className={cn(phone ? 'grid grid-cols-5 items-end' : 'flex items-start justify-center gap-6')}
+      >
         {btn({
           id: 'undo',
           label: t('deck.undo'),
           icon: 'Undo2',
           tone: canUndo ? 'text-foreground' : 'text-muted-foreground',
           badge: hunter ? badge(<Icon name="Lock" size={12} />, 'bg-sun text-ink') : undefined,
-          dim: !canUndo,
           title: hunter ? t('deck.undoPerk') : canUndo ? t('deck.undo') : t('deck.undoNothing'),
           onClick: onUndo,
         })}

@@ -36,7 +36,7 @@ export default function HuntDesktop() {
         <AreaChip city={city} tier={ui.shell.tier} />
       </TopBarContext>
 
-      <div className="flex h-full min-h-0 gap-6 px-6 py-4 lg:px-8">
+      <div className="flex h-full min-h-0 gap-6 px-6 pb-[26px] pt-4 lg:gap-8 lg:px-8">
         <section aria-label={h.top?.title ?? ''} className="flex min-w-0 flex-1 flex-col">
           <DeckStage
             cards={h.cards}
@@ -69,7 +69,7 @@ export default function HuntDesktop() {
         </section>
 
         {wide && (
-          <aside className="flex w-[320px] shrink-0 flex-col gap-3 overflow-y-auto pb-2 xl:w-[360px]">
+          <aside className="flex w-[clamp(320px,22vw,400px)] shrink-0 flex-col gap-3 overflow-y-auto pb-2">
             <ExpiringCard offers={needs.expiring} />
             <TableCard offersOn={needs.offersOn} />
             <TierCard activeSwaps={needs.activeSwaps} />

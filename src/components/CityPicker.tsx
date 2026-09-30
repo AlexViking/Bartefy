@@ -1,5 +1,4 @@
-import { MapPin } from 'lucide-react'
-
+import { Icon } from '@/components/ui/icon'
 import { Chip } from '@/components/ui/tone-badge'
 import { CITY_OPTIONS } from '@/screens/Onboarding/useOnboarding'
 import { useT } from '@/i18n/T'
@@ -22,7 +21,7 @@ export function CityPicker({
   return (
     <div className={cn('flex flex-col gap-3', className)}>
       <div className="flex items-center gap-1.5 text-muted-foreground">
-        <MapPin className="size-4" aria-hidden="true" />
+        <Icon name="MapPin" className="size-4" aria-hidden="true" />
         <span data-i18n="onboarding.cityTitle" className="font-body text-sm">
           {t('onboarding.cityTitle')}
         </span>

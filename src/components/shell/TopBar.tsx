@@ -87,7 +87,7 @@ export function TopBar({
         className={cn(CHIP, chipTone(open === 'streak'))}
         onClick={phone ? () => setOpen('streak') : undefined}
       >
-        <Icon name="Flame" size={18} className="fill-current text-primary" />
+        <Icon name="Flame" size={18} filled className="text-primary" />
         <span className="font-display text-ticker tabular-nums text-foreground">{data.streakDays}</span>
         {!phone && (
           <span className="ml-0.5 flex items-center gap-1" aria-hidden="true">

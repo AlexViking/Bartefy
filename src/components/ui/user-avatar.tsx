@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { BadgeCheck } from 'lucide-react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Icon } from '@/components/ui/icon'
 import { useT } from '@/i18n/T'
 import { cn } from '@/lib/utils'
 
@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
  *  shadcn's Avatar stays untouched underneath; this only composes it.
  */
 const SIZES = {
+  xs: 'size-7 text-[11px]',
   sm: 'size-8 text-[13px]',
   md: 'size-10 text-[15px]',
   lg: 'size-12 text-base',
@@ -59,8 +60,13 @@ export function UserAvatar({
 } & React.HTMLAttributes<HTMLDivElement>) {
   const { t } = useT()
   return (
-    <div className={cn('relative inline-flex shrink-0', className)} {...props}>
-      <Avatar className={cn(SIZES[size], 'border border-border/[0.14]')}>
+    // Round, so a ring passed in className (the deck card's white ring)
+    // draws as a circle, not as a square box around one.
+    // The size sits on this wrapper and the circle fills it, so a caller's
+    // size class (size-6, size-9) resizes the avatar itself -- it used to
+    // resize only the box, leaving a 32px circle spilling out of it.
+    <div className={cn('relative inline-flex shrink-0 rounded-pill', SIZES[size], className)} {...props}>
+      <Avatar className="size-full border border-border/[0.14]">
         {src && <AvatarImage src={src} alt={t('a11y.avatarOf', { name })} />}
         <AvatarFallback
           className={cn(
@@ -78,7 +84,7 @@ export function UserAvatar({
           className="absolute -bottom-0.5 -right-0.5 rounded-pill bg-background p-px"
           title={t('common.moreInfo')}
         >
-          <BadgeCheck className="size-3.5 text-primary" aria-hidden="true" />
+          <Icon name="BadgeCheck" className="size-3.5 text-primary" aria-hidden="true" />
         </span>
       )}
     </div>

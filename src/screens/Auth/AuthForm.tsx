@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowRight, Check, MailOpen } from 'lucide-react'
 
+import { Icon } from '@/components/ui/icon'
 import { Button } from '@/components/ui/button'
 import { Field } from '@/components/ui/field'
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp'
@@ -149,7 +149,7 @@ function EmailStep({ a }: { a: ReturnType<typeof useAuthScreen> }) {
               transition={spring.snap}
               className="mt-1 flex items-center gap-1 font-body text-sm text-primary"
             >
-              <Check className="size-3.5" aria-hidden="true" />
+              <Icon name="Check" className="size-3.5" aria-hidden="true" />
               <T k="auth.inviteFound" />
             </motion.p>
           )}
@@ -181,7 +181,7 @@ function EmailStep({ a }: { a: ReturnType<typeof useAuthScreen> }) {
           className="shadow-[0_6px_18px_rgba(27,107,85,0.28)] disabled:shadow-none"
         >
           {a.busy ? t('common.loading') : t(isSignUp ? 'auth.createAccount' : 'auth.sendCode')}
-          {!a.busy && <ArrowRight className="size-[18px]" aria-hidden="true" />}
+          {!a.busy && <Icon name="ArrowRight" className="size-[18px]" aria-hidden="true" />}
         </Button>
       </motion.div>
 
@@ -248,7 +248,7 @@ function CodeStep({ a }: { a: ReturnType<typeof useAuthScreen> }) {
           transition={spring.pop}
           className="flex size-12 items-center justify-center rounded-2xl bg-mint text-forest"
         >
-          <MailOpen className="size-6" aria-hidden="true" />
+          <Icon name="MailOpen" className="size-6" aria-hidden="true" />
         </motion.span>
         <T as="h1" k="auth.codeSentTitle" className="mt-4 font-display text-[32px] font-normal leading-10 text-foreground" />
         <p data-i18n="auth.codeSentBody" className="mt-2 font-body text-body-md text-muted-foreground">

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Mic, Trash2 } from 'lucide-react'
 
+import { Icon } from '@/components/ui/icon'
 import { Button } from '@/components/ui/button'
 import { T, useT } from '@/i18n/T'
 import { cn } from '@/lib/utils'
@@ -128,7 +128,7 @@ export function VoiceRecorderButton({
           onClick={begin}
           aria-label={t('chat.voiceRecord')}
         >
-          <Mic className="size-5" />
+          <Icon name="Mic" className="size-5" />
         </Button>
         {denied && (
           <T as="span" k="chat.voiceDenied" className="sr-only" />
@@ -148,7 +148,7 @@ export function VoiceRecorderButton({
         onClick={drop}
         aria-label={t('chat.voiceDiscard')}
       >
-        <Trash2 className="size-5 text-destructive" />
+        <Icon name="Trash2" className="size-5 text-destructive" />
       </Button>
 
       {/* The live level, so it is visibly listening. A recorder that does not
@@ -177,7 +177,7 @@ export function VoiceRecorderButton({
       </div>
 
       <Button size="icon" pill onClick={finish} aria-label={t('chat.voiceSend')}>
-        <Mic className="size-5" />
+        <Icon name="Mic" className="size-5" />
       </Button>
     </div>
   )

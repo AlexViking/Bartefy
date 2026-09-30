@@ -136,7 +136,7 @@ function RailCard({
         aria-expanded={open}
         className="flex h-14 w-full items-center gap-2.5 px-4 text-left transition-colors hover:bg-background"
       >
-        <Icon name={icon} size={20} className={cn('shrink-0', iconTone)} />
+        <Icon name={icon} size={20} filled className={cn('shrink-0', iconTone)} />
         <span className="min-w-0 flex-1">
           <span className="block font-body text-label-lg text-foreground">{title}</span>
           <span className="block truncate font-body text-[12px] leading-4 text-muted-foreground">{summary}</span>
@@ -233,9 +233,15 @@ function NextEnds({ at }: { at: string }) {
   return <>{t('rail.nextEnds', { left: formatLeft(left, t) })}</>
 }
 
+/** One row: the mock's six tiles. Past six, the last tile counts the rest. */
+const TABLE_TILES = 6
+
 export function TableCard({ offersOn }: { offersOn: Record<string, number> }) {
   const { t } = useT()
+  const navigate = useNavigate()
   const items = useShellData().table
+  const more = items.length > TABLE_TILES ? items.length - (TABLE_TILES - 1) : 0
+  const shown = more ? items.slice(0, TABLE_TILES - 1) : items
   const withOffers = items.filter((i) => offersOn[i.id]).length
   return (
     <RailCard
@@ -250,56 +256,94 @@ export function TableCard({ offersOn }: { offersOn: Record<string, number> }) {
         <T as="p" k="rail.tableEmpty" className="px-4 pb-3 font-body text-body-sm text-muted-foreground" />
       ) : (
         <div className="grid grid-cols-6 gap-1.5 px-4 pb-3">
-          {items.slice(0, 12).map((i) => (
-            <span key={i.id} className="relative block aspect-square overflow-hidden rounded-lg bg-secondary" title={i.title}>
-              {i.photo && <img alt="" className="size-full object-cover" src={i.photo} />}
+          {shown.map((i) => (
+            <button
+              key={i.id}
+              type="button"
+              onClick={() => navigate('/items')}
+              // The find's title is user data.
+              title={i.title}
+              className="relative block aspect-square overflow-hidden rounded-lg bg-secondary ring-1 ring-input hover:ring-muted-foreground/40"
+            >
+              {i.photo && <img alt={i.title} className="size-full object-cover" src={i.photo} />}
               {!!offersOn[i.id] && (
-                <span className="absolute right-0.5 top-0.5 grid size-4 place-items-center rounded-pill bg-green text-[10px] font-bold text-white ring-1 ring-white">
+                <span className="absolute right-0.5 top-0.5 grid h-4 min-w-4 place-items-center rounded-pill bg-primary px-1 text-[10px] font-bold leading-none text-primary-foreground">
                   {offersOn[i.id]}
                 </span>
               )}
-            </span>
+            </button>
           ))}
+          {more > 0 && (
+            <button
+              type="button"
+              onClick={() => navigate('/items')}
+              aria-label={t('rail.tableMore', { n: more })}
+              className="grid aspect-square place-items-center rounded-lg bg-secondary font-display text-[13px] font-bold text-muted-foreground ring-1 ring-input hover:text-foreground"
+            >
+              +{more}
+            </button>
+          )}
         </div>
       )}
     </RailCard>
   )
 }
 
-/** The tier, stated as it is. Hunter's listing and swap limits are copy on the
- *  Membership page that the database does not enforce (entitlements() returns
- *  no cap since 023), so this card shows what you have, not a limit that is
- *  not real. The radius IS real: it is what the deck reaches. */
+/** The tier and its limits (the mock): "6 of 6 finds · 3 of 3 swaps", then a
+ *  bar per limit that reads Full when it is reached. A tier with no cap on a
+ *  limit shows the count and "No limit" instead of a bar.
+ *
+ *  The caps are the ones Membership sells (lib/membership.ts). NOTE: the
+ *  database does not enforce them (entitlements() returns no cap since 023),
+ *  so a Hunter can be past a cap -- the bar then stays Full at 100%. */
 export function TierCard({ activeSwaps }: { activeSwaps: number }) {
   const { t } = useT()
   const shell = useShellData()
   const spec = tierOf(shell.tier)
   const radius = spec.radiusKm
+  const reach = radius ? t('rail.km', { n: radius }) : t('rail.noCap')
+  const maxFinds = spec.liveFinds
+  const maxSwaps = spec.activeSwaps
+
+  const bar = (k: string, n: number, max: number | null) => {
+    const full = max != null && n >= max
+    return (
+      <div key={k}>
+        <div className="flex items-center justify-between text-[12px] leading-4">
+          <T as="span" k={k} className="text-muted-foreground" />
+          <span className="font-display text-[12px] font-bold tabular-nums text-foreground">
+            {max != null ? t('rail.ofMax', { n, max }) : n}
+            <span className="ml-1 font-body text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              {max == null ? t('rail.noLimit') : full ? t('rail.full') : ''}
+            </span>
+          </span>
+        </div>
+        {max != null && (
+          <div className="mt-1 h-1.5 overflow-hidden rounded-pill bg-secondary">
+            <div className="h-full rounded-pill bg-muted-foreground" style={{ width: `${Math.min(100, (n / max) * 100)}%` }} />
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <RailCard
       id="tier"
       icon="Shield"
       iconTone="text-muted-foreground"
       title={t(`shell.tier_${shell.tier}`)}
-      summary={t('rail.tierSummary', {
-        finds: shell.liveFinds,
-        swaps: activeSwaps,
-        reach: radius ? t('rail.km', { n: radius }) : t('rail.noCap'),
-      })}
+      summary={
+        maxFinds != null && maxSwaps != null
+          ? t('rail.tierSummaryCapped', { finds: shell.liveFinds, maxFinds, swaps: activeSwaps, maxSwaps, reach })
+          : t('rail.tierSummary', { finds: shell.liveFinds, swaps: activeSwaps, reach })
+      }
       foot={shell.tier === 'hunter' ? { k: 'rail.collector', to: '/points', values: { n: TIER_PRICES.collector } } : undefined}
     >
-      <dl className="grid grid-cols-3 gap-2 px-4 pb-3 text-center">
-        {[
-          [shell.liveFinds, 'rail.statFinds'],
-          [activeSwaps, 'rail.statSwaps'],
-          [radius ?? '∞', 'rail.statKm'],
-        ].map(([n, k]) => (
-          <div key={String(k)} className="rounded-lg bg-background py-2">
-            <dt className="font-display text-headline-sm tabular-nums text-foreground">{n}</dt>
-            <T as="dd" k={String(k)} className="font-body text-[11px] text-muted-foreground" />
-          </div>
-        ))}
-      </dl>
+      <div className="flex flex-col gap-3 px-4 pb-3">
+        {bar('rail.barFinds', shell.liveFinds, spec.liveFinds)}
+        {bar('rail.barSwaps', activeSwaps, spec.activeSwaps)}
+      </div>
     </RailCard>
   )
 }

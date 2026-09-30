@@ -77,7 +77,7 @@ export default function Admirers() {
               </p>
               {a.unlocked && (
                 <span className="inline-flex h-7 items-center gap-1 rounded-pill bg-sun px-2.5 font-body text-label-md text-ink">
-                  <Icon name="Star" size={14} className="fill-current" />
+                  <Icon name="Star" size={14} filled />
                   {t(`shell.tier_${a.shell.tier}`)}
                 </span>
               )}
@@ -121,14 +121,14 @@ export default function Admirers() {
               )}
             >
               <span className="grid size-11 shrink-0 place-items-center rounded-card bg-sun/70 text-ink">
-                <Icon name="Heart" size={22} className="fill-current" />
+                <Icon name="Heart" size={22} filled />
               </span>
               <div className="min-w-0 flex-1">
                 <p className="font-body text-[16px] font-bold text-foreground">{t('admirers.lockTitle', { n: cap(total) })}</p>
                 <T as="p" k="admirers.lockBody" className="font-body text-body-sm text-muted-foreground" />
               </div>
               <Button size="lg" onClick={() => setBuyOpen(true)} className={desktop ? '' : 'w-full'}>
-                <Icon name="Star" size={18} className="fill-current" />
+                <Icon name="Star" size={18} filled />
                 {t('admirers.goCollector', { n: a.price })}
               </Button>
             </div>

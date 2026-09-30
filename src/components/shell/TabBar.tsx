@@ -81,7 +81,7 @@ export function TabBar({ data, onYou, youOpen }: { data: ShellData; onYou: () =>
               youOpen && 'bg-selected',
             )}
           >
-            <UserAvatar name={data.name || data.email} src={data.avatar} size="sm" tone="accent" className="size-7 text-[11px]" />
+            <UserAvatar name={data.name || data.email} src={data.avatar} size="xs" tone="accent" />
             {data.admirers > 0 && (
               <span className="absolute -top-1 right-1.5 grid h-[18px] min-w-[18px] place-items-center rounded-pill bg-coral px-1 text-[10px] font-bold leading-none text-ink ring-2 ring-card">
                 {cap(data.admirers)}

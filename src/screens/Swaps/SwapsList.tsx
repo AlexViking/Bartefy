@@ -58,7 +58,7 @@ function OfferRow({ o, on, onPick }: { o: OfferItem; on: boolean; onPick: () => 
         <span className="flex items-center gap-1.5 font-body text-label-lg text-foreground">
           {/* Titles and names are user data. */}
           <span className="truncate">{o.theirs.title}</span>
-          {o.isSuper && <Icon name="Zap" size={16} className="shrink-0 fill-current" />}
+          {o.isSuper && <Icon name="Zap" size={16} filled className="shrink-0" />}
         </span>
         <span className="block truncate font-body text-body-sm text-muted-foreground">
           {o.box === 'in' ? t('desk.forYour', { who: o.who.name, title: o.mine.title }) : t('desk.youOffered', { title: o.mine.title })}
@@ -184,7 +184,7 @@ function Group({ id, items, selected, onPick, carousel, alone }: {
                 </span>
                 {o.isSuper && (
                   <span className="absolute right-2.5 top-2.5 grid size-7 place-items-center rounded-pill bg-sun text-ink">
-                    <Icon name="Zap" size={16} className="fill-current" />
+                    <Icon name="Zap" size={16} filled />
                   </span>
                 )}
                 <span className="absolute inset-x-0 bottom-0 flex flex-col gap-1.5 bg-gradient-to-t from-black/85 via-black/50 to-transparent p-3 pt-10 text-white">

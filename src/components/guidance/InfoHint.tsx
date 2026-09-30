@@ -1,5 +1,4 @@
-import { Info } from 'lucide-react'
-
+import { Icon } from '@/components/ui/icon'
 import {
   Tooltip,
   TooltipContent,
@@ -44,7 +43,7 @@ export function InfoHint({
         className,
       )}
     >
-      <Info className="size-[15px]" aria-hidden="true" />
+      <Icon name="Info" className="size-[15px]" aria-hidden="true" />
     </button>
   )
 

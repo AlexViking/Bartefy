@@ -51,8 +51,8 @@
     "matches": "Matches",
     "items": "My items",
     "moderation": "Moderation",
-    "collapse": "Collapse menu",
-    "expand": "Expand menu",
+    "collapse": "Collapse",
+    "expand": "Expand",
     "analytics": "Analytics"
   },
   "auth": {
@@ -981,6 +981,8 @@
     "nav_finds": "My finds",
     "nav_admirers": "Admirers",
     "nav_points": "Points & Tiers",
+    "side_discover": "Discover Deck",
+    "side_swaps": "Active Swaps & Offers",
     "tab_discover": "Discover",
     "tab_swaps": "Swaps",
     "tab_add": "Add",
@@ -988,6 +990,7 @@
     "tab_you": "You",
     "badgeNew": "{{n}} new",
     "badgeLive": "{{n}} live",
+    "badgeLiveOf": "{{n}}/{{max}} Live",
     "badgeAdmirers": "{{n}} admirers",
     "streakTip": "Day {{day}} · +{{pts}} pts claimed today",
     "streakTipWaiting": "Day {{day}} is waiting",
@@ -1056,7 +1059,8 @@
     "fitsPill": "Your {{title}} fits — offer it",
     "fitsTitle": "Your {{title}} fits",
     "fitsBody": "It’s on {{name}}’s list — offer it",
-    "noFit": "None of your finds fits {{name}}’s list — you can still put one on the table."
+    "noFit": "None of your finds fits {{name}}’s list — you can still put one on the table.",
+    "aboutPerson": "About {{name}}"
   },
   "composer": {
     "title": "Put it on the table",
@@ -1091,18 +1095,22 @@
     "expiring_other": "{{count}} offers expiring",
     "nextEnds": "Next ends in {{left}}",
     "forYour": "{{who}} · for your {{title}}",
-    "review": "Review in Swaps & offers",
+    "review": "Review on Active Swaps",
     "table": "My table",
     "tableSummary": "{{live}} live · {{offers}} with offers",
     "tableEmpty": "Nothing on your table yet.",
     "manage": "Manage my finds",
     "tierSummary": "{{finds}} finds live · {{swaps}} swaps on the go · {{reach}}",
-    "statFinds": "finds live",
-    "statSwaps": "swaps on the go",
-    "statKm": "km reach",
     "km": "{{n}} km",
     "noCap": "no distance cap",
-    "collector": "Collector — 50 km · {{n}} pts"
+    "collector": "Collector — unlimited, 50 km · {{n}} pts",
+    "tierSummaryCapped": "{{finds}} of {{maxFinds}} finds · {{swaps}} of {{maxSwaps}} swaps · {{reach}}",
+    "barFinds": "Live finds",
+    "barSwaps": "Swaps on the go",
+    "ofMax": "{{n}} / {{max}}",
+    "full": "Full",
+    "noLimit": "No limit",
+    "tableMore": "{{n}} more on your table"
   },
   "area": {
     "label": "Area: {{city}}, within {{km}} km",

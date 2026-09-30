@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useNavigate } from 'react-router'
 
 import { Icon } from '@/components/ui/icon'
 import { UserAvatar } from '@/components/ui/user-avatar'
@@ -51,6 +52,9 @@ export function DeckCard({
   onDetails: (open: boolean) => void
 }) {
   const { t } = useT()
+  const navigate = useNavigate()
+  // A name opens the person card -- swaps done and Block, never their finds.
+  const openPerson = card.ownerId ? () => navigate('/u/' + card.ownerId) : undefined
   const photos = card.photos?.length ? card.photos : card.photoUrl ? [card.photoUrl] : []
   const [photo, setPhoto] = React.useState(0)
   const first = card.owner.split(' ')[0] || card.owner
@@ -98,50 +102,80 @@ export function DeckCard({
     </p>
   )
 
-  const details = (
-    <div className="flex flex-col gap-5">
-      <section>
-        <T as="p" k="deck.about" className="mb-1 font-body text-label-sm uppercase text-muted-foreground" />
-        {/* The owner's own words: user data. */}
-        <p className="whitespace-pre-line font-body text-body-md text-foreground">
-          {card.description || t('deck.noStory')}
-        </p>
-      </section>
-      <section>
-        <p className="mb-1 font-body text-label-sm uppercase text-muted-foreground">{t('deck.wantsOf', { name: first })}</p>
-        {wants.note && <p className="font-body text-body-md text-foreground">{wants.note}</p>}
-        {wantCats.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {wantCats.map((c) => (
-              <span key={c} className="inline-flex h-6 items-center rounded-pill bg-secondary px-2 text-[12px] font-semibold text-muted-foreground">
-                {c}
-              </span>
-            ))}
-          </div>
-        )}
-        {!wants.note && wantCats.length === 0 && (
-          <p className="font-body text-body-md text-muted-foreground">{t('deck.wantsAnything', { name: first })}</p>
-        )}
-      </section>
-      <button
-        type="button"
-        onClick={onReport}
-        className="inline-flex items-center gap-1.5 self-start text-[13px] text-muted-foreground hover:text-foreground"
-      >
-        <Icon name="Flag" size={16} />
-        <T as="span" k="deck.report" />
-      </button>
-    </div>
+  const about = (
+    <section>
+      <T as="p" k="deck.about" className="mb-1 font-body text-label-sm uppercase text-muted-foreground" />
+      {/* The owner's own words: user data. */}
+      <p className="whitespace-pre-line font-body text-body-md text-foreground">
+        {card.description || t('deck.noStory')}
+      </p>
+    </section>
   )
 
-  const owner = (
-    <div className="flex items-center gap-3 rounded-card bg-background p-3">
-      <UserAvatar name={card.owner} size="md" />
-      <span className="min-w-0 flex-1">
-        <span className="block truncate font-body text-label-lg text-foreground">{card.owner}</span>
-        <span className="block text-[13px] text-muted-foreground">{t('deck.swapsDone', { n: card.swapCount ?? 0 })}</span>
-      </span>
-    </div>
+  const wantsBlock = (
+    <section>
+      <p className="mb-1 font-body text-label-sm uppercase text-muted-foreground">{t('deck.wantsOf', { name: first })}</p>
+      {wants.note && <p className="font-body text-body-md text-foreground">{wants.note}</p>}
+      {wantCats.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {wantCats.map((c) => (
+            <span key={c} className="inline-flex h-6 items-center rounded-pill bg-secondary px-2 text-[12px] font-semibold text-muted-foreground">
+              {c}
+            </span>
+          ))}
+        </div>
+      )}
+      {!wants.note && wantCats.length === 0 && (
+        <p className="font-body text-body-md text-muted-foreground">{t('deck.wantsAnything', { name: first })}</p>
+      )}
+    </section>
+  )
+
+  const report = (
+    <button
+      type="button"
+      onClick={onReport}
+      className="inline-flex items-center gap-1.5 self-start text-[13px] text-muted-foreground hover:text-foreground"
+    >
+      <Icon name="Flag" size={16} />
+      <T as="span" k="deck.report" />
+    </button>
+  )
+
+  const ownerName = (
+    <span className="min-w-0 flex-1">
+      {/* A name is user data. */}
+      <span className="block truncate font-body text-label-lg text-foreground">{card.owner}</span>
+      <span className="block text-[13px] text-muted-foreground">{t('deck.swapsDone', { n: card.swapCount ?? 0 })}</span>
+    </span>
+  )
+
+  // Wide panel: the whole row opens the person card (the mock's chevron row).
+  const ownerRow = (
+    <button
+      type="button"
+      onClick={openPerson}
+      disabled={!openPerson}
+      aria-label={t('deck.aboutPerson', { name: first })}
+      className="flex w-full items-center gap-3 rounded-card bg-background p-3 text-left transition-colors hover:bg-secondary disabled:hover:bg-background"
+    >
+      <UserAvatar name={card.owner} size="md" className="size-11" />
+      {ownerName}
+      {openPerson && <Icon name="ChevronRight" size={22} className="text-muted-foreground" />}
+    </button>
+  )
+
+  // Portrait sheet: a plain row with an "About Julian" link at the end.
+  const ownerLine = (
+    <section className="flex items-center gap-3">
+      <UserAvatar name={card.owner} size="md" className="size-11" />
+      {ownerName}
+      {openPerson && (
+        <button type="button" onClick={openPerson} className="font-body text-label-md text-primary hover:underline">
+          {t('deck.aboutPerson', { name: first })}
+        </button>
+      )}
+    </section>
   )
 
   return (
@@ -237,7 +271,7 @@ export function DeckCard({
               {card.title}
             </button>
             <div className="flex min-w-0 items-center gap-2">
-              <UserAvatar name={card.owner} size="sm" className="size-7 text-[11px] ring-2 ring-white/70" />
+              <UserAvatar name={card.owner} size="xs" className="ring-2 ring-white/70" />
               <span className="font-body text-label-lg">{card.owner}</span>
               <span className="text-[13px] text-white/75">· {t('deck.swapsN', { n: card.swapCount ?? 0 })}</span>
             </div>
@@ -290,8 +324,10 @@ export function DeckCard({
                 </p>
               )}
             </div>
-            {owner}
-            {details}
+            {ownerRow}
+            {wantsBlock}
+            {about}
+            {report}
           </div>
           <div className="shrink-0 border-t border-input px-6 py-4">{fitRow}</div>
         </aside>
@@ -321,9 +357,10 @@ export function DeckCard({
             </button>
           </div>
           <div className="flex flex-col gap-5 px-5 py-4">
-            {details}
-            {owner}
-            {fitRow}
+            {about}
+            {wantsBlock}
+            {ownerLine}
+            {report}
           </div>
         </div>
       )}

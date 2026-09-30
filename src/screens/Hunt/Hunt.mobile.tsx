@@ -21,7 +21,7 @@ export default function HuntMobile() {
   return (
     <AppShell>
       <div className="flex h-full min-h-0 flex-col overflow-hidden">
-        <div className="flex min-h-0 flex-1 flex-col px-3 pt-3">
+        <div className="flex min-h-0 flex-1 flex-col px-4 pt-7">
           <DeckStage
             cards={h.cards}
             fitFor={h.fitFor}
@@ -36,7 +36,7 @@ export default function HuntMobile() {
             allowWide={false}
           />
         </div>
-        <div className="mt-3 shrink-0 border-t border-input bg-card pb-[env(safe-area-inset-bottom)]">
+        <div className="mt-2 shrink-0 border-t border-input bg-card pb-[env(safe-area-inset-bottom)]">
           <DeckActions
             size="compact"
             bare

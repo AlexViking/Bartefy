@@ -13,8 +13,10 @@ import type { IconName } from '@/components/ui/icon'
  */
 export interface Destination {
   id: 'discover' | 'swaps' | 'finds' | 'admirers' | 'points'
-  /** i18n key for the side nav row. */
+  /** i18n key for the row (phone drawer, account menu, rail tooltip). */
   label: string
+  /** The desktop side nav's longer name, where the mock has one. */
+  side?: string
   /** i18n key for the phone tab, where there is room for one word. */
   tab?: string
   path: string
@@ -26,8 +28,8 @@ export interface Destination {
 }
 
 export const DESTINATIONS: Destination[] = [
-  { id: 'discover', label: 'shell.nav_discover', tab: 'shell.tab_discover', path: '/discover', icon: 'GalleryVerticalEnd' },
-  { id: 'swaps', label: 'shell.nav_swaps', tab: 'shell.tab_swaps', path: '/matches', icon: 'Handshake', badge: 'swaps', also: ['/offers'] },
+  { id: 'discover', label: 'shell.nav_discover', side: 'shell.side_discover', tab: 'shell.tab_discover', path: '/discover', icon: 'GalleryVerticalEnd' },
+  { id: 'swaps', label: 'shell.nav_swaps', side: 'shell.side_swaps', tab: 'shell.tab_swaps', path: '/matches', icon: 'Handshake', badge: 'swaps', also: ['/offers'] },
   { id: 'finds', label: 'shell.nav_finds', tab: 'shell.tab_finds', path: '/items', icon: 'Package', badge: 'finds' },
   // Who put a find on the table for yours, for free. Collector only.
   { id: 'admirers', label: 'shell.nav_admirers', path: '/admirers', icon: 'Heart', badge: 'admirers' },

@@ -1,4 +1,3 @@
-import { Check } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -48,7 +47,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
             className="flex items-center justify-between gap-3 font-body"
           >
             <span>{lang.nativeLabel}</span>
-            {current === lang.code && <Check className="size-4 text-primary" aria-hidden="true" />}
+            {current === lang.code && <Icon name="Check" className="size-4 text-primary" aria-hidden="true" />}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
