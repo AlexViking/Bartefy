@@ -64,7 +64,7 @@ export function OnboardingLayout({ wide }: { wide: boolean }) {
 
   const top = (
     <div className="flex items-center justify-between gap-3">
-      <BrandLockup withWord />
+      <BrandLockup withWord wordWidth={110} />
       <div className="flex items-center gap-1">
         <LanguageSwitcher />
         <button type="button" onClick={() => void o.skip()} className="min-h-hit whitespace-nowrap px-2 font-body text-label-lg text-muted-foreground hover:text-foreground">

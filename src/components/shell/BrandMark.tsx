@@ -53,7 +53,7 @@ export function BrandTile({ size = 48 }: { size?: 40 | 48 }) {
  *  An exception to Brand Book §04 ("don't place the symbol next to the
  *  wordmark") that Alex chose on 2026-09-27; the hairline keeps it from
  *  reading "BBartefy". The wordmark is 100px wide, above the 80px minimum. */
-export function BrandLockup({ withWord }: { withWord: boolean }) {
+export function BrandLockup({ withWord, wordWidth = 100 }: { withWord: boolean; wordWidth?: number }) {
   return (
     <span className="flex items-center gap-4">
       <BrandTile size={48} />
@@ -63,8 +63,9 @@ export function BrandLockup({ withWord }: { withWord: boolean }) {
           <Mask
             src={wordmarkUrl}
             className="text-[hsl(var(--brand-word))]"
-            // 353x96 -> 100px wide.
-            style={{ width: 100, height: 100 * (96 / 353) }}
+            // 353x96. 100px in the top bar; 110px on Sign in / Onboarding
+            // (both as the mocks draw them).
+            style={{ width: wordWidth, height: wordWidth * (96 / 353) }}
           />
         </>
       )}

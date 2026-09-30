@@ -18,7 +18,7 @@ export default function AuthMobile() {
   return (
     <div className="flex min-h-dvh flex-col bg-background px-6 py-8">
       <header className="flex items-center justify-between">
-        <BrandLockup withWord />
+        <BrandLockup withWord wordWidth={110} />
         <LanguageSwitcher />
       </header>
       <BrandPanel title="brand.swapLine" compact className="mt-6" />

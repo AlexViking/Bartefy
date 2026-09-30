@@ -21,7 +21,7 @@ export default function AuthDesktop() {
     <div className="flex min-h-dvh bg-background">
       <main className="relative flex w-[min(46%,640px)] shrink-0 flex-col px-16 py-8">
         <div className="flex items-center justify-between">
-          <BrandLockup withWord />
+          <BrandLockup withWord wordWidth={110} />
           <LanguageSwitcher />
         </div>
         <motion.div
