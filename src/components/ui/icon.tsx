@@ -6,6 +6,9 @@ import {
   // Category icons — one per entry in CATEGORIES, see lib/taxonomy.ts.
   Armchair, Baby, Bike, Book, CookingPot, Gem, Hammer, Laptop, Music, Palette,
   Shapes, Shirt, Sofa, Sprout,
+  // V6 shell (step 2).
+  Handshake, Coins, Flame, CirclePlus, PanelLeftClose, PanelLeftOpen, LogOut, Languages,
+  EllipsisVertical, Lock, CircleCheck, GalleryVerticalEnd, ImagePlus, UserPlus, ShieldCheck,
   type LucideProps,
 } from 'lucide-react'
 
@@ -18,6 +21,8 @@ const ICONS = {
   Settings, ShieldAlert, Sparkles, Star, Sun, Moon, Trash2, User, X, Layers, Menu, ChartColumn,
   Armchair, Baby, Bike, Book, CookingPot, Gem, Hammer, Laptop, Music, Palette,
   Shapes, Shirt, Sofa, Sprout,
+  Handshake, Coins, Flame, CirclePlus, PanelLeftClose, PanelLeftOpen, LogOut, Languages,
+  EllipsisVertical, Lock, CircleCheck, GalleryVerticalEnd, ImagePlus, UserPlus, ShieldCheck,
 } as const
 
 export type IconName = keyof typeof ICONS

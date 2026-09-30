@@ -86,6 +86,11 @@ const SCREENS = [
   { id: 'settings',      path: '/settings', label: 'Settings' },
   { id: 'blocked',       path: '/settings/blocked', label: 'Blocked people' },
   { id: 'analytics',     path: '/admin/analytics', label: 'Staff analytics' },
+  { id: 'shell-streak',  path: '/items', label: 'Top bar — streak open', clickSel: 'header button[aria-label^="Day"]' },
+  { id: 'shell-points',  path: '/items', label: 'Top bar — points open', clickSel: 'header button[aria-label$="points"]' },
+  { id: 'shell-bell',    path: '/items', label: 'Top bar — bell open', clickSel: 'header button[aria-label*="new"], header button[aria-label="Notifications"]' },
+  { id: 'shell-account', path: '/items', label: 'Top bar — account open', clickSel: 'header button[aria-label="Profile"]' },
+  { id: 'shell-you',     path: '/items', label: 'Tab bar — You sheet', clickSel: 'nav button[aria-expanded]' },
   { id: 'analytics-settings', path: '/admin/analytics', label: 'Staff analytics — Settings tab', click: 'Settings' },
   { id: 'itemdetail',    path: null, label: 'Item detail', dynamic: 'item' },
   { id: 'publicprofile', path: null, label: 'Someone else’s profile', dynamic: 'user' },
@@ -178,6 +183,17 @@ async function main() {
     await page.goto(`${BASE}${target}`, { waitUntil: 'networkidle2', timeout: 45000 }).catch(() => {})
     await sleep(s.settle ?? 1400)
     // `click`: press the button or tab whose visible text is exactly this.
+    // `clickSel`: press the first element matching a CSS selector.
+    if (s.clickSel) {
+      const ok = await page.evaluate((sel) => {
+        const el = document.querySelector(sel)
+        el?.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerType: 'mouse', button: 0 }))
+        el?.click()
+        return !!el
+      }, s.clickSel)
+      if (!ok) console.log(`  ! nothing matches "${s.clickSel}"`)
+      await sleep(1200)
+    }
     if (s.click) {
       const ok = await page.evaluate((txt) => {
         // Tabs first: a page tab and a nav link often share a word ("Settings").

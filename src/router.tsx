@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router'
 
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { ShellLayout } from './components/shell/AppShell'
 import { useAuthStore } from './store/auth'
 import { useOnboardingStore } from './store/onboarding'
 
@@ -80,8 +81,6 @@ function AuthRoute() {
   return <Auth />
 }
 
-const guard = (el: React.ReactNode) => <Protected>{el}</Protected>
-
 export function AppRouter() {
   return (
     <BrowserRouter>
@@ -101,31 +100,38 @@ export function AppRouter() {
         {/* /register predates the split and is still in old links. */}
         <Route path="/register" element={<Navigate to="/signup" replace />} />
 
-        {/* Four destinations, matching TabBar and TopNav exactly */}
-        <Route path="/discover" element={guard(<Hunt />)} />
-        <Route path="/items" element={guard(<MyItems />)} />
-        <Route path="/matches" element={guard(<SwapsInbox />)} />
-        <Route path="/offers" element={guard(<Offers />)} />
-        <Route path="/invite" element={guard(<Invite />)} />
-        <Route path="/points" element={guard(<Rewards />)} />
-        <Route path="/u/:userId" element={guard(<PublicProfile />)} />
-        <Route path="/notifications" element={guard(<Notifications />)} />
-        <Route path="/profile" element={guard(<Profile />)} />
+        {/* Every signed-in screen, inside the V6 frame. The frame is a layout
+            route, so it mounts once and survives navigation -- only the
+            Outlet changes. Protected wraps the layout, which checks the
+            session once for all of them. */}
+        <Route element={<Protected><ShellLayout /></Protected>}>
+          <Route path="/discover" element={<Hunt />} />
+          <Route path="/items" element={<MyItems />} />
+          <Route path="/matches" element={<SwapsInbox />} />
+          <Route path="/offers" element={<Offers />} />
+          <Route path="/invite" element={<Invite />} />
+          <Route path="/points" element={<Rewards />} />
+          <Route path="/u/:userId" element={<PublicProfile />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/profile" element={<Profile />} />
 
-        <Route path="/item/:itemId" element={guard(<ItemDetail />)} />
-        <Route path="/add" element={guard(<AddItem />)} />
-        {/* Desktop renders the inbox here so the swap list stays beside the
-            thread; mobile renders Chat full-screen. See SwapThread. */}
-        <Route path="/matches/:swapId" element={guard(<SwapThread />)} />
-        <Route path="/matches/:swapId/arrange" element={guard(<Arrange />)} />
-        {/* Someone else's reviews. Reading them is ALWAYS_FREE. */}
-        <Route path="/membership" element={guard(<Membership />)} />
-        <Route path="/settings" element={guard(<Settings />)} />
-        <Route path="/settings/blocked" element={guard(<BlockedList />)} />
+          <Route path="/item/:itemId" element={<ItemDetail />} />
+          <Route path="/add" element={<AddItem />} />
+          {/* Desktop renders the inbox here so the swap list stays beside the
+              thread; mobile renders Chat full-screen. See SwapThread. */}
+          <Route path="/matches/:swapId" element={<SwapThread />} />
+          <Route path="/matches/:swapId/arrange" element={<Arrange />} />
+          {/* Someone else's reviews. Reading them is ALWAYS_FREE. */}
+          <Route path="/membership" element={<Membership />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/settings/blocked" element={<BlockedList />} />
 
-        {/* Internal. The staff check lives inside ReportQueue, not just here. */}
-        <Route path="/admin/reports" element={guard(<ReportQueue />)} />
-        <Route path="/admin/analytics" element={guard(<Analytics />)} />
+          {/* Internal. The staff check lives inside ReportQueue, not just here. */}
+          <Route path="/admin/reports" element={<ReportQueue />} />
+          <Route path="/admin/analytics" element={<Analytics />} />
+          {/* Admirers is V6 step 5. Until it exists, My finds. */}
+          <Route path="/admirers" element={<Navigate to="/items" replace />} />
+        </Route>
 
         {/* Retired routes kept as redirects so old links and notifications work.
             Match is a sheet over Hunt; Cancel is the TroubleSheet; Rate is
@@ -147,7 +153,7 @@ export function AppRouter() {
         <Route path="/chat/:swapId" element={<RedirectSwap />} />
         <Route path="/cancel/:swapId" element={<RedirectSwap />} />
         {/* Deep-link fallbacks for push notifications that predate the sheets */}
-        <Route path="/match/:matchId" element={guard(<Match />)} />
+        <Route path="/match/:matchId" element={<Protected><Match /></Protected>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

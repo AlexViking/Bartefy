@@ -1,120 +1,101 @@
 import { useLocation, useNavigate } from 'react-router'
 
 import { Icon } from '@/components/ui/icon'
-import { TAB_DESTINATIONS, ADD_DESTINATION } from '@/navigation/destinations'
+import { UserAvatar } from '@/components/ui/user-avatar'
 import { useT } from '@/i18n/T'
 import { cn } from '@/lib/utils'
+import { ADD_PATH, TAB_DESTINATIONS, isActive } from '@/navigation/destinations'
+import { cap, type ShellData } from './useShellData'
 
-/** The phone's navigation: Discover, Matches, the brass Add, My Items.
+const TAB = 'group flex h-full flex-col items-center justify-center gap-1 outline-none'
+
+/** V6 phone tab bar: Discover · Swaps · ＋Add · Finds · You.
  *
- *  Four slots with Add third, which is how the wireframe draws it. The
- *  previous bar had three destinations with Add appended fourth and sitting
- *  off to one side -- not a styling problem but a counting one: an odd number
- *  of destinations has no middle to put a centre action in. Profile moved
- *  behind the avatar to make the count even, and Add now centres with no
- *  spacer column and no special case.
- *
- *  Everything that is not one of these four -- Profile, Settings, Moderation,
- *  language, theme, signing out -- is in the menu behind the burger.
+ *  Add is the raised Coral circle in the middle -- the one action that makes
+ *  something rather than going somewhere. "You" is the avatar and opens the
+ *  You sheet (account, Points & Tiers, Admirers, Profile, Settings, language,
+ *  theme, sign out). Every other phone page keeps this bar; Discover's own
+ *  phone layout (no bar, ⋮ menu) arrives with the deck in step 3.
  */
-export function TabBar({
-  unreadSwaps = 0,
-  offers = 0,
-}: {
-  unreadSwaps?: number
-  offers?: number
-}) {
+export function TabBar({ data, onYou, youOpen }: { data: ShellData; onYou: () => void; youOpen: boolean }) {
+  const { t } = useT()
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  const { t } = useT()
+  const [discover, swaps, finds] = TAB_DESTINATIONS
+  const swapsN = data.offers + data.unread
 
-  const tab = (d: (typeof TAB_DESTINATIONS)[number]) => {
-    // Exact match, or a child path. startsWith alone lit Discover up on
-    // every route beginning with "/d", and marked two tabs active at once
-    // wherever one destination's path prefixed another's.
-    const active = pathname === d.path || pathname.startsWith(d.path + '/')
-
-    /** Offers are a decision waiting on you; unread messages are not. The bar
-     *  has room for one mark per tab, so an offer wins: it is the one that
-     *  goes stale. */
-    const waitingOffers = d.badge === 'unread' ? offers : 0
-    const waitingUnread = d.badge === 'unread' ? unreadSwaps : 0
-    const marked = waitingOffers + waitingUnread > 0
-
+  const tab = (d: typeof discover, badge?: number) => {
+    const on = isActive(d, pathname)
     return (
       <button
         key={d.id}
         type="button"
         onClick={() => navigate(d.path)}
-        aria-label={t(d.label)}
-        aria-current={active ? 'page' : undefined}
-        className={cn(
-          // flex-1 basis-0 so every tab claims the same width whatever its
-          // label says. Sized by content, "Discover" pushes the others aside
-          // and the whole row leans.
-          'relative flex h-11 flex-1 basis-0 flex-col items-center justify-center gap-px rounded-pill px-0.5',
-          'transition-colors duration-fast ease-brand',
-          active ? 'bg-primary-foreground/[0.16]' : 'bg-transparent',
-        )}
+        aria-current={on ? 'page' : undefined}
+        className={TAB}
       >
-        <Icon
-          name={d.icon}
-          size={21}
-          className={active ? 'text-primary-foreground' : 'text-primary-foreground/60'}
-        />
         <span
-          data-i18n={d.label}
           className={cn(
-            // Truncate rather than clip: a label out of room should end in an
-            // ellipsis, not be sliced mid-letter.
-            'max-w-full truncate font-display text-[10px] font-semibold leading-none',
-            active ? 'text-primary-foreground' : 'text-primary-foreground/60',
+            'relative grid h-8 w-14 place-items-center rounded-pill transition-colors duration-fast ease-brand',
+            on ? 'bg-selected text-primary' : 'text-muted-foreground group-active:bg-secondary',
           )}
         >
-          {t(d.label)}
+          <Icon name={d.icon} size={24} />
+          {!!badge && (
+            <span className="absolute -top-1 right-1.5 grid h-[18px] min-w-[18px] place-items-center rounded-pill bg-coral px-1 text-[10px] font-bold leading-none text-ink ring-2 ring-card">
+              {cap(badge)}
+            </span>
+          )}
         </span>
-        {marked && (
-          <span
-            className={cn(
-              // Anchored to the icon, not the tab box. Pinned to the tab's
-              // right edge it drifted into the gap beside the Add button and
-              // read as belonging to neither -- a flex-1 tab is much wider
-              // than the glyph it centres.
-              'absolute left-1/2 top-0.5 ml-2 rounded-pill',
-              // An offer is a ring around the dot -- readable at 8px without
-              // needing a second colour the palette does not have.
-              waitingOffers > 0
-                ? 'size-2.5 bg-accent ring-2 ring-primary'
-                : 'size-2 bg-primary-foreground/70',
-            )}
-            aria-label={
-              waitingOffers > 0
-                ? t('swaps.offersWaiting', { count: waitingOffers })
-                : t('swaps.unread', { count: waitingUnread })
-            }
-          />
-        )}
+        <span
+          data-i18n={d.tab}
+          className={cn('text-[11px] leading-[14px]', on ? 'font-bold text-primary' : 'font-semibold text-muted-foreground')}
+        >
+          {t(d.tab!)}
+        </span>
       </button>
     )
   }
 
   return (
-    <div className="px-4 pb-[max(8px,env(safe-area-inset-bottom))] pt-1.5">
-      <nav className="flex items-center gap-1 rounded-pill bg-primary px-2 py-1.5 shadow-float">
-        {/* The three destinations, then Add at the end. Add is not a
-            destination -- it opens a flow and comes back -- and its size and
-            colour already say so, so it reads as the row's action rather than
-            a fourth place to be. */}
-        {TAB_DESTINATIONS.map(tab)}
-        <button
-          type="button"
-          onClick={() => navigate(ADD_DESTINATION.path)}
-          aria-label={t('nav.add')}
-          className="flex size-12 shrink-0 items-center justify-center rounded-pill bg-accent text-accent-foreground shadow-card"
-        >
-          <Icon name="Plus" size={24} />
+    <nav
+      aria-label={t('shell.navLabel')}
+      className="z-40 shrink-0 bg-card pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_12px_rgba(0,0,0,0.07)]"
+    >
+      <div className="grid h-16 grid-cols-5">
+        {tab(discover)}
+        {tab(swaps, swapsN)}
+        <button type="button" onClick={() => navigate(ADD_PATH)} aria-label={t('shell.addFind')} className={TAB}>
+          <span className="-mt-6 grid size-14 place-items-center rounded-pill bg-coral text-ink shadow-[0_6px_16px_rgba(238,139,106,0.4)] ring-4 ring-card">
+            <Icon name="Plus" size={28} />
+          </span>
+          <span data-i18n="shell.tab_add" className="text-[11px] font-semibold leading-[14px] text-muted-foreground">
+            {t('shell.tab_add')}
+          </span>
         </button>
-      </nav>
-    </div>
+        {tab(finds)}
+        <button type="button" onClick={onYou} aria-expanded={youOpen} className={TAB}>
+          <span
+            className={cn(
+              'relative grid h-8 w-14 place-items-center rounded-pill transition-colors duration-fast ease-brand',
+              youOpen && 'bg-selected',
+            )}
+          >
+            <UserAvatar name={data.name || data.email} src={data.avatar} size="sm" tone="accent" className="size-7 text-[11px]" />
+            {data.admirers > 0 && (
+              <span className="absolute -top-1 right-1.5 grid h-[18px] min-w-[18px] place-items-center rounded-pill bg-coral px-1 text-[10px] font-bold leading-none text-ink ring-2 ring-card">
+                {cap(data.admirers)}
+              </span>
+            )}
+          </span>
+          <span
+            data-i18n="shell.tab_you"
+            className={cn('text-[11px] leading-[14px]', youOpen ? 'font-bold text-primary' : 'font-semibold text-muted-foreground')}
+          >
+            {t('shell.tab_you')}
+          </span>
+        </button>
+      </div>
+    </nav>
   )
 }
