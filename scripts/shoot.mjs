@@ -86,6 +86,7 @@ const SCREENS = [
   { id: 'settings',      path: '/settings', label: 'Settings' },
   { id: 'blocked',       path: '/settings/blocked', label: 'Blocked people' },
   { id: 'analytics',     path: '/admin/analytics', label: 'Staff analytics' },
+  { id: 'matches-open', path: '/matches', label: 'Swaps — a row opened (phone)', clickSel: '[role=tab]' },
   { id: 'discover-offer', path: '/discover', label: 'Discover — composer', settle: 2500, clickSel: '[data-action="want"]' },
   { id: 'discover-details', path: '/discover', label: 'Discover — card details', settle: 2500, clickSel: '[data-deck-top] button[aria-label="Details"]' },
   { id: 'discover-menu', path: '/discover', label: 'Discover phone — ⋮ menu', settle: 2500, clickSel: 'header button[aria-label^="Menu"]' },

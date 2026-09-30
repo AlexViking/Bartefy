@@ -88,10 +88,13 @@ function shape(m: Row): MatchMessage {
   }
 }
 
-export function useMatchChat() {
+/** `id` picks the thread; without it the route's :swapId does. The V6 Swaps
+ *  screen passes the selected row, so one mounted chat follows the list. */
+export function useMatchChat(id?: string) {
   const navigate = useNavigate()
   const qc = useQueryClient()
-  const { swapId: matchId } = useParams<{ swapId: string }>()
+  const { swapId } = useParams<{ swapId: string }>()
+  const matchId = id ?? swapId
   const userId = useAuthStore((s) => s.session?.user?.id)
 
   const [messages, setMessages] = useState<MatchMessage[]>([])
@@ -102,6 +105,16 @@ export function useMatchChat() {
   const [errorKey, setErrorKey] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const bottomRef = useRef<HTMLDivElement>(null)
+
+  // Switching threads: drop the last one's lines at once, so another
+  // conversation never shows under this header while the new one loads.
+  useEffect(() => {
+    setMessages([])
+    setCtx(null)
+    setLoading(true)
+    setErrorKey(null)
+    setInput('')
+  }, [matchId])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })

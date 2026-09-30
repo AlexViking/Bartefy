@@ -77,7 +77,7 @@ export function useNotificationsFeed() {
           titleKey: 'notif.offerTitle',
           detail: `${title(o.offered)} → ${title(o.wanted)}`,
           when: String(o.created_at ?? ''),
-          path: '/offers',
+          path: '/matches?offer=' + String(o.id),
         })
       }
 

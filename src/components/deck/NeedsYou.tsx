@@ -193,14 +193,14 @@ export function ExpiringCard({ offers }: { offers: ExpiringOffer[] }) {
       iconTone={Date.parse(next.expiresAt) - Date.now() < URGENT_MS ? 'text-coral' : 'text-muted-foreground'}
       title={t('rail.expiring', { count: offers.length })}
       summary={<NextEnds at={next.expiresAt} />}
-      foot={{ k: 'rail.review', to: '/offers' }}
+      foot={{ k: 'rail.review', to: '/matches' }}
     >
       <ul className="flex flex-col pb-1">
         {offers.slice(0, 4).map((o) => (
           <li key={o.id}>
             <button
               type="button"
-              onClick={() => navigate('/offers')}
+              onClick={() => navigate('/matches?offer=' + o.id)}
               className="flex w-full items-center gap-3 px-4 py-2 text-left hover:bg-background"
             >
               {o.theirPhoto ? (

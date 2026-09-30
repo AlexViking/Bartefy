@@ -18,13 +18,11 @@ import { BlockedList } from './screens/BlockedList'
 import { Match } from './screens/Match'
 import { Hunt } from './screens/Hunt'
 import MyItems from './screens/MyItems'
-import { SwapsInbox } from './screens/SwapsInbox'
-import Offers from './screens/Offers/Offers'
 import Invite from './screens/Invite'
 import Rewards from './screens/Rewards'
 import PublicProfile from './screens/PublicProfile'
 import Notifications from './screens/Notifications'
-import { SwapThread } from './screens/Chat'
+import Swaps from './screens/Swaps/Swaps'
 import { ItemDetail } from './screens/ItemDetail'
 import { Arrange } from './screens/Arrange'
 import { Membership } from './screens/Membership'
@@ -107,8 +105,11 @@ export function AppRouter() {
         <Route element={<Protected><ShellLayout /></Protected>}>
           <Route path="/discover" element={<Hunt />} />
           <Route path="/items" element={<MyItems />} />
-          <Route path="/matches" element={<SwapsInbox />} />
-          <Route path="/offers" element={<Offers />} />
+          {/* One route, optional id: picking a row must not remount the
+              screen (the list would lose its scroll and folds). */}
+          <Route path="/matches/:swapId?" element={<Swaps />} />
+          {/* Offers live in Swaps & offers now (V6). */}
+          <Route path="/offers" element={<Navigate to="/matches" replace />} />
           <Route path="/invite" element={<Invite />} />
           <Route path="/points" element={<Rewards />} />
           <Route path="/u/:userId" element={<PublicProfile />} />
@@ -117,9 +118,6 @@ export function AppRouter() {
 
           <Route path="/item/:itemId" element={<ItemDetail />} />
           <Route path="/add" element={<AddItem />} />
-          {/* Desktop renders the inbox here so the swap list stays beside the
-              thread; mobile renders Chat full-screen. See SwapThread. */}
-          <Route path="/matches/:swapId" element={<SwapThread />} />
           <Route path="/matches/:swapId/arrange" element={<Arrange />} />
           {/* Someone else's reviews. Reading them is ALWAYS_FREE. */}
           <Route path="/membership" element={<Membership />} />
