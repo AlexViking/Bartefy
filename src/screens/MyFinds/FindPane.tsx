@@ -16,6 +16,8 @@ import { updateItemDetails } from '@/lib/api'
 import { CATEGORIES, CONDITIONS, categoryLabel, conditionAt, WANT_NOTE_PREFIX } from '@/lib/taxonomy'
 import { cn } from '@/lib/utils'
 import { TimerPill } from '@/screens/Swaps/SwapsList'
+import { PhotosSection } from '@/screens/AddItem/sections'
+import { usePhotoSlots } from '@/screens/AddItem/usePhotoSlots'
 import { SOON_DAYS, type MyFind } from './useMyFinds'
 
 const LISTING_DAYS = 30
@@ -219,6 +221,9 @@ const PILL =
  *  new upload with its own id. */
 function EditFindSheet({ open, onOpenChange, f, onSaved }: { open: boolean; onOpenChange: (o: boolean) => void; f: MyFind; onSaved: () => void }) {
   const { t } = useT()
+  // The find's photos, editable through the same upload path as Add a find.
+  const current = React.useMemo(() => f.photos.map((url, i) => ({ url, w: f.photoMeta[i]?.w, h: f.photoMeta[i]?.h })), [f.photos, f.photoMeta])
+  const ph = usePhotoSlots({ initial: current })
   const [title, setTitle] = React.useState(f.title)
   const [story, setStory] = React.useState(f.description)
   const [cats, setCats] = React.useState<string[]>(f.categories)
@@ -230,6 +235,7 @@ function EditFindSheet({ open, onOpenChange, f, onSaved }: { open: boolean; onOp
 
   React.useEffect(() => {
     if (!open) return
+    ph.reset(current)
     setTitle(f.title)
     setStory(f.description)
     setCats(f.categories)
@@ -237,15 +243,24 @@ function EditFindSheet({ open, onOpenChange, f, onSaved }: { open: boolean; onOp
     setWants(f.wantsCats)
     setNote(f.wantsNote)
     setError(false)
-  }, [open, f])
+    // ph.reset is stable; re-running on `ph` itself would wipe a pick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, f, current])
 
   const toggle = (list: string[], set: (v: string[]) => void, id: string) => set(list.includes(id) ? list.filter((x) => x !== id) : [...list, id])
 
+  // Photos changed: a different set, or the same set in another order (a
+  // new cover). Only then are images written -- an edit of the words leaves
+  // them exactly as they were.
+  const photosChanged = ph.images.join('\n') !== f.photos.join('\n')
+  const canSave = !!title.trim() && ph.hasPhoto && !ph.uploading && !saving
+
   const save = async () => {
-    if (!title.trim() || saving) return
+    if (!canSave) return
     setSaving(true)
     setError(false)
     const { data, error: e } = await updateItemDetails(f.id, {
+      ...(photosChanged ? { images: ph.images, photo_meta: ph.photoMeta } : {}),
       title: title.trim(),
       description: story.trim(),
       category: cats[0] ?? 'other',
@@ -274,13 +289,18 @@ function EditFindSheet({ open, onOpenChange, f, onSaved }: { open: boolean; onOp
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             <T as="span" k="common.cancel" />
           </Button>
-          <Button onClick={() => void save()} disabled={!title.trim() || saving}>
+          <Button onClick={() => void save()} disabled={!canSave}>
             {saving ? t('common.loading') : t('common.save')}
           </Button>
         </div>
       }
     >
       <div className="flex max-h-[60dvh] flex-col gap-5 overflow-y-auto pr-1">
+        <div className="flex flex-col gap-2">
+          <T as="p" k="finds.editPhotos" className="font-body text-label-lg text-foreground" />
+          <PhotosSection a={ph} intro={false} compact />
+          {!ph.hasPhoto && <T as="p" k="finds.editNeedsPhoto" className="font-body text-body-sm text-muted-foreground" />}
+        </div>
         <Field label="add.nameIt" value={title} onChange={(e) => setTitle(e.target.value)} />
         <TextField label="add.storyOptional" value={story} onChange={(e) => setStory(e.target.value)} />
         <div className="flex flex-col gap-2">

@@ -1,17 +1,16 @@
-import { useCallback, useRef, useState } from 'react'
+import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
 
-import type { PhotoState } from '@/components/ui/photo-well'
-import { getR2UploadUrls, insertItem } from '@/lib/api'
+import { insertItem } from '@/lib/api'
 import { PERK_PRICES, pointsErrorKey, spendOnPerk } from '@/lib/points'
 import { useT } from '@/i18n/T'
 import { toast } from 'sonner'
-import { toWebP } from '@/lib/images'
 import { DEFAULT_CONDITION, WANT_NOTE_PREFIX } from '@/lib/taxonomy'
 import { useAuthStore } from '@/store/auth'
 import { useMembershipStore } from '@/store/membership'
 import { useOnboardingStore } from '@/store/onboarding'
+import { usePhotoSlots } from './usePhotoSlots'
 
 
 /** items.expires_at is NOT NULL with no default — an insert that omits it is
@@ -31,27 +30,6 @@ export const ADD_STEPS = [
   { id: 'details', label: 'add.stepDetails' },
   { id: 'wants', label: 'add.stepWants' },
 ] as const
-
-interface PhotoSlot {
-  state: PhotoState
-  swatch?: string
-  /** Object URL for the local preview, shown while the upload is in flight
-   *  and after it lands — the R2 object is not readable back immediately. */
-  previewUrl?: string
-  /** Public R2 URL, set once the PUT succeeds. Only slots that have one are
-   *  written to items.images. */
-  url?: string
-  /** Encoded pixel dimensions, from toWebP. Written to items.photo_meta so a
-   *  grid can reserve the right box before the photo loads. */
-  width?: number
-  height?: number
-  progress?: number
-  /** Minted once per photo and reused on retry, so a retry overwrites the
-   *  same key rather than duplicating it — see the upload invariant. */
-  uploadId?: string
-  /** Kept so retry can re-encode without asking the user to pick again. */
-  file?: File
-}
 
 /** Listing a find, with no layout in it.
  *
@@ -76,7 +54,6 @@ export function useAddItem() {
   const city = selectedCity || onboardingCity
 
   const [step, setStep] = useState(0)
-  const [photos, setPhotos] = useState<PhotoSlot[]>([{ state: 'empty' }])
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   /** A find is often genuinely two things — a camera bag is bags and cameras.
@@ -96,12 +73,9 @@ export function useAddItem() {
   const [boosting, setBoosting] = useState(false)
   const [publishError, setPublishError] = useState(false)
 
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
-  /** Which slot the open file dialog is filling. */
-  const pickingFor = useRef<number>(0)
-
-  const hasPhoto = photos.some((p) => p.state === 'ready')
-  const uploading = photos.some((p) => p.state === 'uploading')
+  // The photos: one upload path, shared with Edit on My finds.
+  const ph = usePhotoSlots({ onCapped: () => setCapped(true) })
+  const { photos, hasPhoto, uploading } = ph
 
   /** What each step needs before it can be left.
    *
@@ -130,136 +104,6 @@ export function useAddItem() {
    *  the step gate: back-navigation can empty a field after its step passed. */
   const canPublish = detailsComplete && hasPhoto && !uploading
 
-  const patchSlot = useCallback((index: number, patch: Partial<PhotoSlot>) => {
-    setPhotos((ps) => ps.map((p, i) => (i === index ? { ...p, ...patch } : p)))
-  }, [])
-
-  /** Encode, mint an upload URL, PUT it to R2. One photo, start to finish. */
-  const uploadInto = useCallback(
-    async (index: number, file: File, existingUploadId?: string) => {
-      const uploadId = existingUploadId ?? crypto.randomUUID()
-      const previewUrl = URL.createObjectURL(file)
-
-      patchSlot(index, { state: 'uploading', progress: 0.1, uploadId, file, previewUrl })
-
-      try {
-        const { blob, width, height } = await toWebP(file)
-        patchSlot(index, { progress: 0.4 })
-
-        const { data, error } = await getR2UploadUrls([uploadId])
-        if (error) throw error
-
-        const target = (data?.urls ?? []).find(
-          (u: { uploadId: string }) => u.uploadId === uploadId,
-        )
-        if (!target) throw new Error('no upload url returned')
-        patchSlot(index, { progress: 0.6 })
-
-        const res = await fetch(target.uploadUrl, {
-          method: 'PUT',
-          body: blob,
-          // The blob's own type, not a hardcoded one. toWebP falls back to
-          // JPEG where WebP encoding is unavailable, and declaring webp for a
-          // JPEG makes R2 serve it with the wrong content type.
-          headers: { 'Content-Type': blob.type || 'image/webp' },
-        })
-        if (!res.ok) throw new Error(`upload failed: ${res.status}`)
-
-        // The encoded dimensions ride along to the row. photo_meta has
-        // existed since migration 005 and nothing has ever written to it,
-        // which is why every grid had to guess 4:3 and reflow once the real
-        // photo arrived.
-        patchSlot(index, { state: 'ready', progress: 1, url: target.publicUrl, width, height })
-      } catch (err) {
-        // 402 means the listing cap was hit — that is the upgrade sheet's
-        // job, not a failed photo. FunctionsHttpError carries the response on
-        // `context`, so read the status from either shape.
-        const e = err as {
-          context?: { status?: number; clone?: () => Response }
-          status?: number
-        }
-        const status = e?.context?.status ?? e?.status
-        if (status === 402) {
-          setCapped(true)
-          patchSlot(index, { state: 'empty', progress: 0 })
-          return
-        }
-        // FunctionsHttpError carries the Response on `context` but never
-        // reads it, so the function's own message is otherwise lost and every
-        // cause looks identical. Read it before giving up.
-        let detail = ''
-        try {
-          const body = e?.context?.clone?.()
-          if (body) detail = await body.text()
-        } catch {
-          /* the body is optional; the status below is the part that matters */
-        }
-        console.error('[add] photo upload failed', { status, detail, err })
-        patchSlot(index, { state: 'failed', progress: 0 })
-      }
-    },
-    [patchSlot],
-  )
-
-  /** Opens the file dialog. The actual work starts in onFilePicked. */
-  const addPhoto = useCallback(
-    (index?: number) => {
-      pickingFor.current = index ?? photos.findIndex((p) => p.state === 'empty')
-      if (pickingFor.current < 0) pickingFor.current = photos.length - 1
-      fileInputRef.current?.click()
-    },
-    [photos],
-  )
-
-  const onFilePicked = useCallback(
-    (file: File | undefined) => {
-      // Clear the input so picking the same file twice still fires a change.
-      if (fileInputRef.current) fileInputRef.current.value = ''
-      if (!file) return
-
-      const index = pickingFor.current
-      setPhotos((ps) => {
-        // Keep exactly one trailing empty slot to tap.
-        const next = [...ps]
-        if (index === next.length - 1) next.push({ state: 'empty' })
-        return next
-      })
-      void uploadInto(index, file)
-    },
-    [uploadInto],
-  )
-
-  const retryPhoto = useCallback(
-    (index: number) => {
-      const slot = photos[index]
-      if (!slot?.file) return addPhoto(index)
-      void uploadInto(index, slot.file, slot.uploadId)
-    },
-    [photos, uploadInto, addPhoto],
-  )
-
-  const removePhoto = (i: number) =>
-    setPhotos((ps) => {
-      const slot = ps[i]
-      if (slot?.previewUrl) URL.revokeObjectURL(slot.previewUrl)
-      const next = ps.filter((_, x) => x !== i)
-      // There must always be an empty slot to add the next photo into.
-      return next.some((p) => p.state === 'empty') ? next : [...next, { state: 'empty' }]
-    })
-
-  /** "Make cover": move a photo to the front -- the first image is the card
-   *  in every deck. Only while nothing is uploading: uploads report back by
-   *  slot INDEX, and reordering under one would land its URL on the wrong
-   *  photo. */
-  const makeCover = (i: number) => {
-    if (uploading || i <= 0) return
-    setPhotos((ps) => {
-      const slot = ps[i]
-      if (!slot || slot.state !== 'ready') return ps
-      return [slot, ...ps.filter((_, x) => x !== i)]
-    })
-  }
-
   const toggleWant = (w: string) =>
     setWants((f) => (f.includes(w) ? f.filter((x) => x !== w) : [...f, w]))
 
@@ -272,15 +116,14 @@ export function useAddItem() {
     if (!can('add_find')) return setCapped(true)
     if (!userId || publishing) return
 
-    const ready = photos.filter((p) => p.state === 'ready' && p.url)
-    const images = ready.map((p) => p.url as string)
+    const images = ph.images
     /** Dimensions per photo, in the same order as `images`.
      *
      *  items.photo_meta has existed since migration 005 and nothing has ever
      *  written to it, so every grid had to assume 4:3 and then reflow when the
      *  real photo loaded -- the orange boxes that resize. With this stored,
      *  the box is correct on first paint. */
-    const photoMeta = ready.map((p) => ({ w: p.width ?? null, h: p.height ?? null }))
+    const photoMeta = ph.photoMeta
     // The last line of defence. insertItem would otherwise happily write
     // title: '' — which is how a nameless find got into production.
     if (images.length === 0 || !canPublish) return
@@ -371,14 +214,14 @@ export function useAddItem() {
     isFirst: step === 0,
     isLast: step === ADD_STEPS.length - 1,
     photos,
-    makeCover,
-    addPhoto,
-    retryPhoto,
-    removePhoto,
+    makeCover: ph.makeCover,
+    addPhoto: ph.addPhoto,
+    retryPhoto: ph.retryPhoto,
+    removePhoto: ph.removePhoto,
     hasPhoto,
     uploading,
-    fileInputRef,
-    onFilePicked,
+    fileInputRef: ph.fileInputRef,
+    onFilePicked: ph.onFilePicked,
     title,
     setTitle,
     description,

@@ -11,8 +11,11 @@ import { CATEGORIES, CONDITIONS } from '@/lib/taxonomy'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth'
 import type { useAddItem } from './useAddItem'
+import type { PhotoSlots } from './usePhotoSlots'
 
 type Add = ReturnType<typeof useAddItem>
+/** What the photo section needs -- Add a find and the Edit sheet both have it. */
+type Photos = Pick<PhotoSlots, 'photos' | 'uploading' | 'fileInputRef' | 'addPhoto' | 'onFilePicked' | 'retryPhoto' | 'removePhoto' | 'makeCover'>
 
 /** Add a find, proposal B (approved 2026-09-30). Sections shared by the
  *  desktop page (all at once) and the phone's three steps. */
@@ -24,7 +27,7 @@ const PILL_IDLE = 'bg-card text-muted-foreground ring-input hover:bg-background'
 
 /** "Show it. One photo is enough to start." The first photo is the cover --
  *  large, marked; every other photo can be made the cover. */
-export function PhotosSection({ a }: { a: Add }) {
+export function PhotosSection({ a, intro = true, compact = false }: { a: Photos; intro?: boolean; compact?: boolean }) {
   const { t } = useT()
   const ready = a.photos.filter((p) => p.state !== 'empty')
   const empty = a.photos.findIndex((p) => p.state === 'empty')
@@ -42,25 +45,45 @@ export function PhotosSection({ a }: { a: Add }) {
           onPick={() => a.addPhoto(i)}
           onRetry={() => a.retryPhoto(i)}
           onRemove={() => a.removePhoto(i)}
-          className={cn('w-full rounded-card', cover ? 'aspect-[4/3]' : 'aspect-square')}
+          className={cn('w-full rounded-card', cover && !compact ? 'aspect-[4/3]' : 'aspect-square')}
         />
       )
     }
     return (
-      <div key={i} className={cn('relative w-full overflow-hidden rounded-card bg-secondary', cover ? 'aspect-[4/3]' : 'aspect-square')}>
+      <div key={i} className={cn('relative w-full overflow-hidden rounded-card bg-secondary', cover && !compact ? 'aspect-[4/3]' : 'aspect-square')}>
         <img alt="" className="size-full object-cover" src={p.previewUrl ?? p.url} />
         <button
           type="button"
           onClick={() => a.removePhoto(i)}
           aria-label={t('add.removePhoto')}
-          className="absolute right-3 top-3 grid size-8 place-items-center rounded-pill bg-black/55 text-white hover:bg-black/70"
+          className={cn(
+            'absolute grid place-items-center rounded-pill bg-black/55 text-white hover:bg-black/70',
+            compact ? 'right-1.5 top-1.5 size-7' : 'right-3 top-3 size-8',
+          )}
         >
           <Icon name="X" size={16} />
         </button>
         {cover ? (
-          <span className="absolute left-3 top-3 inline-flex h-6 items-center rounded-pill bg-white/95 px-2 text-[11px] font-bold text-ink">
+          <span
+            className={cn(
+              'absolute inline-flex h-6 items-center rounded-pill bg-white/95 px-2 text-[11px] font-bold text-ink',
+              compact ? 'bottom-1.5 left-1.5' : 'left-3 top-3',
+            )}
+          >
             <T as="span" k="add.cover" />
           </span>
+        ) : compact ? (
+          // A small tile has no room for the words: the star alone, named.
+          <button
+            type="button"
+            onClick={() => a.makeCover(i)}
+            disabled={a.uploading}
+            aria-label={t('add.makeCover')}
+            title={t('add.makeCover')}
+            className="absolute bottom-1.5 left-1.5 grid size-7 place-items-center rounded-pill bg-white/95 text-ink shadow disabled:opacity-60"
+          >
+            <Icon name="Star" size={16} />
+          </button>
         ) : (
           <button
             type="button"
@@ -78,10 +101,12 @@ export function PhotosSection({ a }: { a: Add }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div>
-        <T as="p" k="add.showIt" className="font-body text-body-lg text-foreground" />
-        <T as="p" k="add.photoStepHelp" className="font-body text-body-sm text-muted-foreground" />
-      </div>
+      {intro && (
+        <div>
+          <T as="p" k="add.showIt" className="font-body text-body-lg text-foreground" />
+          <T as="p" k="add.photoStepHelp" className="font-body text-body-sm text-muted-foreground" />
+        </div>
+      )}
       {/* The one real file input. `capture` is deliberately not set, so a
           phone offers both the camera and the library. */}
       <input
@@ -93,7 +118,23 @@ export function PhotosSection({ a }: { a: Add }) {
         aria-hidden="true"
         onChange={(e) => a.onFilePicked(e.target.files?.[0])}
       />
-      {ready.length === 0 ? (
+      {compact ? (
+        // Edit: every photo a square in one grid, the cover first -- the
+        // name and the rest of the form stay in view.
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+          {a.photos.map((p, i) => (p.state === 'empty' ? null : tile(i, i === 0)))}
+          {empty >= 0 && (
+            <button
+              type="button"
+              onClick={() => a.addPhoto(empty)}
+              className="flex aspect-square w-full flex-col items-center justify-center gap-1 rounded-card border-2 border-dashed border-input text-muted-foreground hover:bg-background"
+            >
+              <Icon name="Plus" size={22} />
+              <T as="span" k={ready.length ? 'add.addAnother' : 'add.addPhoto'} className="px-1 text-center font-body text-label-md" />
+            </button>
+          )}
+        </div>
+      ) : ready.length === 0 ? (
         <button
           type="button"
           onClick={() => a.addPhoto(0)}

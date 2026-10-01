@@ -353,7 +353,17 @@ export async function setItemStatus(itemId: string, status: 'active' | 'reserved
  *  new upload, with its own id (the upload invariant). */
 export async function updateItemDetails(
   itemId: string,
-  patch: { title: string; description: string; category: string; categories: string[]; condition: number; wants_in_return: string[] },
+  patch: {
+    title: string
+    description: string
+    category: string
+    categories: string[]
+    condition: number
+    wants_in_return: string[]
+    /** Only when the photos changed (Edit on My finds). */
+    images?: string[]
+    photo_meta?: { w: number | null; h: number | null }[]
+  },
 ) {
   return supabase.from('items').update(patch).eq('id', itemId).select('id')
 }

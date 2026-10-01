@@ -23,6 +23,8 @@ export interface MyFind {
   categories: string[]
   condition: number
   photos: string[]
+  /** items.photo_meta, in the same order as photos -- sizes when stored. */
+  photoMeta: { w?: number | null; h?: number | null }[]
   status: 'active' | 'paused' | 'reserved'
   expiresAt: string | null
   /** Whole days until it leaves the deck; null for paused or in a swap. */
@@ -89,6 +91,7 @@ export function useMyFinds() {
         categories: Array.isArray(it.categories) ? (it.categories as string[]).map(String) : [String(it.category ?? 'other')],
         condition: Number(it.condition ?? 4),
         photos: Array.isArray(it.images) ? (it.images as unknown[]).map(String) : [],
+        photoMeta: Array.isArray(it.photo_meta) ? (it.photo_meta as { w?: number | null; h?: number | null }[]) : [],
         status,
         expiresAt: it.expires_at ? String(it.expires_at) : null,
         daysLeft: status === 'active' && Number.isFinite(exp) ? Math.max(0, Math.ceil((exp - now) / DAY)) : null,
