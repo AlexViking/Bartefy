@@ -1,7 +1,7 @@
 {
   "name": "bartefy",
   "private": true,
-  "version": "3.0.2",
+  "version": "6.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
