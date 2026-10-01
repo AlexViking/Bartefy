@@ -50,6 +50,11 @@ const ICONS = {
   Play: 'play_arrow',
   Pause: 'pause',
   Pencil: 'edit',
+  Copy: 'content_copy',
+  Eye: 'visibility',
+  Contrast: 'contrast',
+  Award: 'workspace_premium',
+  CircleHelp: 'help',
   BadgeCheck: 'verified',
   Dot: 'circle',
   // Categories -- one per entry in CATEGORIES (lib/taxonomy.ts).

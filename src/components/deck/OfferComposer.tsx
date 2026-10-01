@@ -248,7 +248,7 @@ export function OfferComposer({
         <div className={cn('flex gap-3', desktop ? 'items-center' : 'flex-col')}>
           <div className="flex gap-2">
             <label className={cn('flex flex-1 cursor-pointer items-center rounded-card py-2 ring-1 ring-input', desktop ? 'gap-3 px-3' : 'gap-2 px-2.5')}>
-              <Switch checked={asSuper || multi} disabled={multi} onCheckedChange={setSuperMode} />
+              <Switch size="sm" checked={asSuper || multi} disabled={multi} onCheckedChange={setSuperMode} />
               <span>
                 <span className="flex items-center gap-1 whitespace-nowrap font-body text-label-lg text-foreground">
                   <Icon name="Zap" size={16} />
@@ -258,7 +258,7 @@ export function OfferComposer({
               </span>
             </label>
             <label className={cn('flex flex-1 cursor-pointer items-center rounded-card py-2 ring-1 ring-input', desktop ? 'gap-3 px-3' : 'gap-2 px-2.5')}>
-              <Switch checked={multi} onCheckedChange={setMultiMode} />
+              <Switch size="sm" checked={multi} onCheckedChange={setMultiMode} />
               <span>
                 <span className="flex items-center gap-1 whitespace-nowrap font-body text-label-lg text-foreground">
                   <Icon name="Layers" size={16} />

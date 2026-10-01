@@ -493,14 +493,24 @@ export async function unblockUser(blocker: string, blocked: string) {
 
 /** Everyone this person has blocked, newest first. RLS scopes `blocks` to the
  *  blocker, so the filter here is belt and braces rather than load-bearing.
- *  The profile join is a plain read: profiles_public_read allows it.
+ *
+ *  Names come from profiles_public in a second read. A join on `profiles`
+ *  returns null for anyone but staff (that table's RLS is own-row + staff), so
+ *  every blocked person showed up nameless -- invisible to staff, who see all
+ *  rows. Same `profile` shape as the old join, so callers are unchanged.
  */
 export async function listBlocked(blocker: string) {
-  return supabase
+  const blocks = await supabase
     .from('blocks')
-    .select('blocked, created_at, reason, profile:profiles!blocked(id, name)')
+    .select('blocked, created_at, reason')
     .eq('blocker', blocker)
     .order('created_at', { ascending: false })
+  if (blocks.error || !blocks.data?.length) return { data: blocks.data?.map((r) => ({ ...r, profile: null })) ?? null, error: blocks.error }
+  const ids = blocks.data.map((r) => r.blocked as string)
+  const names = await supabase.from('profiles_public').select('id, name').in('id', ids)
+  if (names.error) return { data: null, error: names.error }
+  const byId = new Map((names.data ?? []).map((p) => [p.id as string, p]))
+  return { data: blocks.data.map((r) => ({ ...r, profile: byId.get(r.blocked as string) ?? null })), error: null }
 }
 
 // ── Membership ──────────────────────────────────────────────────────────────

@@ -8,13 +8,13 @@ import fs from 'node:fs'
 const OUTLINE = `
 add add_a_photo add_circle add_photo_alternate alarm apparel arrow_back arrow_forward
 auto_awesome autorenew bar_chart bolt chair chat chat_bubble check check_circle chevron_left
-chevron_right child_care circle close cooking dark_mode delete devices diamond drafts edit
-expand_less expand_more explore extension favorite flag group_add handshake handyman info
+chevron_right child_care circle close content_copy contrast cooking dark_mode delete devices diamond drafts edit
+expand_less expand_more explore extension favorite flag group_add handshake handyman help info
 inventory_2 language layers left_panel_close left_panel_open light_mode local_fire_department
 location_on lock logout mail menu menu_book mic more_vert museum music_note near_me
 notifications open_in_full palette pause pedal_bike person photo_camera play_arrow
 remove remove_moderator schedule search settings shield shield_person star style sync_alt
-table_restaurant toll translate trending_up undo verified verified_user weekend yard
+table_restaurant toll translate trending_up undo verified verified_user visibility weekend workspace_premium yard
 `.split(/\s+/).filter(Boolean)
 
 /** Drawn filled somewhere in the V6 mocks (font-variation-settings 'FILL' 1). */
