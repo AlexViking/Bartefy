@@ -39,6 +39,12 @@ function isReadingMatch(matchId: string | undefined): boolean {
   return window.location.pathname.startsWith('/matches/' + matchId)
 }
 
+/** A channel that fails to join says so. It used to fail silently, and the
+ *  only symptom was "it shows up after a refresh". */
+const report = (name: string) => (status: string, err?: Error) => {
+  if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') console.error(`[realtime] ${name} channel ${status}`, err?.message ?? '')
+}
+
 export function useRealtime(userId: string | undefined) {
   const qc = useQueryClient()
 
@@ -63,7 +69,9 @@ export function useRealtime(userId: string | undefined) {
           // Your own message is not unread, and echoes back over the same
           // socket you sent it on.
           if (row.sender_id === userId) return
-          qc.invalidateQueries({ queryKey: keys.swaps(userId) })
+          // The Swaps desk's last-message previews and order (V6), and every
+          // unread count (['unread', id] is the prefix of the per-swap one).
+          qc.invalidateQueries({ queryKey: ['barter', 'desk'] })
           qc.invalidateQueries({ queryKey: keys.unread(userId) })
           /* A dot on the nav is easy to miss while you are reading something
              else; the toast is the part people actually notice. Suppressed
@@ -73,16 +81,6 @@ export function useRealtime(userId: string | undefined) {
           if (!isReadingMatch(row.match_id)) {
             toast(i18n.t(row.kind === 'audio' ? 'notif.voiceTitle' : 'notif.messageTitle'))
           }
-        },
-      )
-
-      // Swap status: agreed, arranged, received, frozen, closed.
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'swaps' },
-        ({ new: row }: { new: { id: string; public_id?: string } }) => {
-          qc.setQueryData(keys.swaps(userId), (prev: unknown) => patchById(prev, row))
-          qc.invalidateQueries({ queryKey: keys.thread(row.id) })
         },
       )
 
@@ -158,34 +156,16 @@ export function useRealtime(userId: string | undefined) {
         },
       )
 
-      // My items changing status - reserved by an agreement, paused, gone.
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'items', filter: 'user_id=eq.' + userId },
-        ({ new: row }: { new: { id: string; public_id?: string } }) => {
-          // setQueryData needs an EXACT key, unlike invalidateQueries, so
-          // both scopes are patched by name. Patching only the default one
-          // left My Items showing a find as live seconds after it was
-          // paused -- the row it renders lives under the 'all' entry.
-          qc.setQueryData(keys.myItems(userId, 'active'), (prev: unknown) => patchById(prev, row))
-          qc.setQueryData(keys.myItems(userId, 'all'), (prev: unknown) => patchById(prev, row))
-          // The detail cache is keyed by the PUBLIC token since migration 029.
-          // Postgres sends the bigint in `id`, so the token has to come from
-          // the row's own public_id -- passing row.id here invalidated nothing.
-          if (row.public_id) qc.invalidateQueries({ queryKey: keys.item(row.public_id) })
-        },
-      )
+      .subscribe(report('user'))
 
-      // Someone started eyeing one of my finds.
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'saves' },
-        ({ new: row }: { new: { item_id: string } }) => {
-          qc.invalidateQueries({ queryKey: keys.eyeing(row.item_id) })
-        },
-      )
-
-      .subscribe()
+    /* Only tables on the supabase_realtime publication may be listened to
+       here (036: barter_offers, barter_matches, barter_messages). Supabase
+       rejects the WHOLE channel if one listener names any other table -- and
+       this one did: `saves` (a cut feature), `swaps` (the V3 table) and
+       `items` were on it, the join failed with "Unable to subscribe to
+       changes with given parameters", and no offer, match or message arrived
+       live for anyone until a refresh (2026-10-01). Before listening to a new
+       table, add it to the publication in SQL first. */
 
     return () => {
       supabase.removeChannel(channel)
@@ -218,9 +198,4 @@ export function useFeedFreshness({
       supabase.removeChannel(channel)
     }
   }, [city, idle, onStale])
-}
-
-function patchById(prev: unknown, row: { id: string }) {
-  if (!Array.isArray(prev)) return prev
-  return prev.map((r: { id: string }) => (r.id === row.id ? { ...r, ...row } : r))
 }

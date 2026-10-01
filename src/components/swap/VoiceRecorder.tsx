@@ -17,6 +17,11 @@ import {
  *  Deliberately NOT press-and-hold. Hold-to-talk is a 60-second thumb cramp,
  *  it is unusable one-handed while walking, and it has no keyboard equivalent
  *  at all. Tap/tap works with a thumb, a mouse and a keyboard for free.
+ *
+ *  Every button here is type="button": the recorder sits inside the chat's
+ *  <form>, and a button with no type submits it. Enter in the message box
+ *  "clicked" the first one -- the mic -- and started recording instead of
+ *  sending (2026-10-01).
  */
 export function VoiceRecorderButton({
   onRecorded,
@@ -121,6 +126,7 @@ export function VoiceRecorderButton({
     return (
       <div className="flex flex-col items-center">
         <Button
+          type="button"
           variant="ghost"
           size="icon"
           pill
@@ -142,6 +148,7 @@ export function VoiceRecorderButton({
   return (
     <div className="flex flex-1 items-center gap-2">
       <Button
+        type="button"
         variant="ghost"
         size="icon"
         pill
@@ -176,7 +183,7 @@ export function VoiceRecorderButton({
         />
       </div>
 
-      <Button size="icon" pill onClick={finish} aria-label={t('chat.voiceSend')}>
+      <Button type="button" size="icon" pill onClick={finish} aria-label={t('chat.voiceSend')}>
         <Icon name="Mic" className="size-5" />
       </Button>
     </div>
