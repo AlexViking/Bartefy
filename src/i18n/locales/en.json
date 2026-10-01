@@ -407,7 +407,12 @@
     "onlyYouList": "Only you see this list.",
     "editTitle": "Edit profile",
     "nameLabel": "Your name",
-    "nameHelp": "This is what people see on your card and in chats."
+    "nameHelp": "This is what people see on your card and in chats.",
+    "findsOf": "{{n}} of {{max}} finds",
+    "findsN_one": "{{count}} find",
+    "findsN_other": "{{count}} finds",
+    "swapTitle": "{{mine}} for {{theirs}}",
+    "withPre": "with"
   },
   "membership": {
     "title": "Membership",
@@ -1319,7 +1324,8 @@
     "since": "On Bartefy since {{year}}",
     "swapsDone": "swaps done",
     "random": "Their finds reach you only through your deck, at random.",
-    "missing": "This person is not on Bartefy any more."
+    "missing": "This person is not on Bartefy any more.",
+    "randomSelf": "Your finds reach people only through their deck, at random."
   },
   "staff": {
     "title": "Staff tools",

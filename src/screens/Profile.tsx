@@ -19,7 +19,6 @@ import { keys } from '@/lib/cache/queryClient'
 import { tierOf } from '@/lib/membership'
 import { EARN_RATES, TIER_PRICES } from '@/lib/points'
 import { useIsDesktop } from '@/lib/platform'
-import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth'
 
 type Row = Record<string, unknown>
@@ -36,6 +35,9 @@ export default function Profile() {
   const shell = useShellData()
   const qc = useQueryClient()
   const userId = useAuthStore((s) => s.session?.user?.id)
+  // profiles has no created_at; the sign-in account does. Yours only --
+  // profiles_public has no date, so the card others see never claims one.
+  const joined = useAuthStore((s) => s.session?.user?.created_at)
   const [editing, setEditing] = React.useState(false)
 
   const { data: me } = useQuery({
@@ -61,7 +63,7 @@ export default function Profile() {
 
   const name = String(me?.name ?? '') || shell.email
   const city = me?.home_city ? String(me.home_city) : ''
-  const since = me?.created_at ? new Date(String(me.created_at)).getFullYear().toString() : ''
+  const since = joined ? new Date(joined).getFullYear().toString() : ''
   const swaps = Number(me?.completed_trades ?? 0)
   const code = me?.referral_code ? String(me.referral_code) : ''
   const spec = tierOf(shell.tier)
@@ -77,50 +79,63 @@ export default function Profile() {
     }
   }
 
-  const privateRow = (icon: IconName, title: string, sub: string, onClick?: () => void, right?: React.ReactNode) => (
-    <div className="flex items-center gap-3 py-2.5">
-      <Icon name={icon} size={20} className="shrink-0 text-muted-foreground" />
-      <button type="button" onClick={onClick} disabled={!onClick} className="min-w-0 flex-1 text-left">
-        <span className="block font-body text-label-lg text-foreground">{title}</span>
-        <span className="block font-body text-[12px] text-muted-foreground">{sub}</span>
+  const privateRow = (icon: IconName, title: React.ReactNode, sub: string, onClick?: () => void, right?: React.ReactNode) => {
+    const inner = (
+      <>
+        <Icon name={icon} size={20} className="shrink-0 text-muted-foreground" />
+        <span className="min-w-0 flex-1 text-left">
+          <span className="block font-body text-label-lg text-foreground">{title}</span>
+          <span className="block font-body text-[12px] text-muted-foreground">{sub}</span>
+        </span>
+        {right ?? (onClick && <Icon name="ChevronRight" size={20} className="text-muted-foreground" />)}
+      </>
+    )
+    return onClick ? (
+      <button type="button" onClick={onClick} className="-mx-2 flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-background">
+        {inner}
       </button>
-      {right ?? (onClick && <Icon name="ChevronRight" size={18} className="text-muted-foreground" />)}
-    </div>
-  )
+    ) : (
+      <div className="-mx-2 flex items-center gap-3 px-2 py-1.5">{inner}</div>
+    )
+  }
 
   const you = (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <div className="flex items-center gap-4">
-        <UserAvatar name={name} src={shell.avatar} size="xl" tone="accent" />
+        <UserAvatar name={name} src={shell.avatar} size="xl" tone="accent" className="size-20 text-2xl" />
         <div className="min-w-0">
-          {/* A name is user data. */}
-          <p className="truncate font-display text-headline-lg text-foreground">{name}</p>
-          <p className="font-body text-body-sm text-muted-foreground">{[city, since ? t('person.since', { year: since }) : ''].filter(Boolean).join(' · ')}</p>
+          {/* A name and a city are user data. */}
+          <p className="truncate font-display text-[28px] font-bold leading-8 text-foreground">{name}</p>
+          {city && <p className="font-body text-body-sm text-muted-foreground">{city}</p>}
+          {since && <p className="font-body text-[12px] text-muted-foreground">{t('person.since', { year: since })}</p>}
         </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-card bg-background px-4 py-3">
-          <p className="font-display text-[28px] font-bold leading-8 tabular-nums text-foreground">{swaps}</p>
-          <T as="p" k="person.swapsDone" className="font-body text-[12px] text-muted-foreground" />
+          <p className="font-display text-[32px] font-semibold leading-9 tabular-nums text-foreground">{swaps}</p>
+          <T as="p" k="person.swapsDone" className="font-body text-body-sm text-muted-foreground" />
         </div>
         <button type="button" onClick={() => navigate('/items')} className="rounded-card bg-background px-4 py-3 text-left hover:bg-secondary">
-          <p className="font-display text-[28px] font-bold leading-8 tabular-nums text-foreground">{shell.liveFinds}</p>
-          <p className="font-body text-[12px] text-muted-foreground">{t('profile.onTable')} ›</p>
+          <p className="font-display text-[32px] font-semibold leading-9 tabular-nums text-foreground">{shell.liveFinds}</p>
+          <p className="font-body text-body-sm text-muted-foreground">{t('profile.onTable')} ›</p>
         </button>
       </div>
-      <Button variant="ghost" size="sm" className="self-start" onClick={() => setEditing(true)}>
-        <Icon name="Settings" size={16} />
+      <Button variant="ghost" className="h-10 gap-1.5 self-start rounded-card px-3.5 font-body text-label-lg text-foreground" onClick={() => setEditing(true)}>
+        <Icon name="Pencil" size={18} />
         <T as="span" k="profile.edit" />
       </Button>
-      <div className="rounded-card border border-dashed border-input px-4 py-2">
-        <p className="flex items-center gap-2 pt-2 font-body text-label-sm uppercase text-muted-foreground">
-          <Icon name="Lock" size={14} />
+      <div className="flex flex-col gap-3 rounded-card border border-dashed border-muted-foreground/40 p-4">
+        <p className="flex items-center gap-2 font-body text-label-sm uppercase tracking-wider text-muted-foreground">
+          <Icon name="Lock" size={16} />
           <T as="span" k="profile.onlyYou" />
         </p>
         {privateRow(
-          'Star',
+          'Award',
           t(`shell.tier_${shell.tier}`),
-          spec.radiusKm ? t('rail.km', { n: spec.radiusKm }) : t('rail.noCap'),
+          [
+            spec.liveFinds != null ? t('profile.findsOf', { n: shell.liveFinds, max: spec.liveFinds }) : t('profile.findsN', { count: shell.liveFinds }),
+            spec.radiusKm ? t('rail.km', { n: spec.radiusKm }) : t('rail.noCap'),
+          ].join(' · '),
           () => navigate('/points?tab=tiers'),
         )}
         {privateRow(
@@ -135,7 +150,7 @@ export default function Profile() {
             t('profile.inviteCode', { code }),
             t('profile.inviteSub', { n: referPts }),
             undefined,
-            <Button variant="ghost" size="sm" onClick={() => void copy()}>
+            <Button variant="ghost" className="h-8 rounded-lg px-3 font-body text-label-md text-primary" onClick={() => void copy()}>
               <T as="span" k="profile.copy" />
             </Button>,
           )}
@@ -145,15 +160,17 @@ export default function Profile() {
 
   const others = (
     <div>
-      <T as="p" k="profile.othersSee" className="mb-3 font-body text-label-sm uppercase text-muted-foreground" />
-      <PersonCard name={name} city={city} swaps={swaps} since={since} />
+      <T as="p" k="profile.othersSee" className="mb-3 font-body text-label-sm uppercase tracking-wider text-muted-foreground" />
+      {/* Exactly what others get: built from what profiles_public holds, so
+          no join date here -- they cannot see one. */}
+      <PersonCard name={name} city={city} swaps={swaps} self />
       <T as="p" k="profile.othersNote" className="mt-3 font-body text-[12px] leading-4 text-muted-foreground" />
     </div>
   )
 
   const history = (
     <div>
-      <T as="p" k="profile.finished" className="mb-3 font-body text-label-sm uppercase text-muted-foreground" />
+      <T as="p" k="profile.finished" className="mb-2 font-body text-label-sm uppercase tracking-wider text-muted-foreground" />
       {done.length === 0 ? (
         <T as="p" k="profile.noFinished" className="font-body text-body-sm text-muted-foreground" />
       ) : (
@@ -163,20 +180,33 @@ export default function Profile() {
             const mine = one(isA ? m.itemA : m.itemB)
             const theirs = one(isA ? m.itemB : m.itemA)
             const other = one(isA ? m.userB : m.userA)
+            const otherName = other?.name ? String(other.name) : ''
             return (
-              <li key={String(m.id)} className="flex items-center gap-2 py-2.5">
-                <Thumb src={img(mine)} />
-                <Icon name="ArrowLeftRight" size={14} className="text-muted-foreground" />
-                <Thumb src={img(theirs)} />
-                <span className="min-w-0 flex-1 pl-1">
-                  <span className="block truncate font-body text-label-md text-foreground">{String(theirs?.title ?? '')}</span>
+              <li key={String(m.id)} className="flex items-center gap-3 py-3">
+                <span className="flex shrink-0 items-center gap-1.5">
+                  <Thumb src={img(mine)} />
+                  <Icon name="ArrowLeftRight" size={16} className="text-muted-foreground" />
+                  <Thumb src={img(theirs)} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  {/* Titles and names are user data. */}
+                  <span className="block truncate font-body text-label-lg text-foreground">
+                    {t('profile.swapTitle', { mine: String(mine?.title ?? ''), theirs: String(theirs?.title ?? '') })}
+                  </span>
                   <span className="block truncate font-body text-[12px] text-muted-foreground">
-                    {[other?.name ? t('profile.with', { who: String(other.name) }) : '', m.completed_at ? new Date(String(m.completed_at)).toLocaleDateString(lang, { month: 'short', year: 'numeric' }) : '']
-                      .filter(Boolean)
-                      .join(' · ')}
+                    {otherName && (
+                      <>
+                        {t('profile.withPre')}{' '}
+                        <button type="button" onClick={() => navigate('/u/' + String(isA ? m.user_b : m.user_a))} className="text-primary hover:underline">
+                          {otherName}
+                        </button>
+                      </>
+                    )}
+                    {otherName && m.completed_at ? ' · ' : ''}
+                    {m.completed_at ? new Date(String(m.completed_at)).toLocaleDateString(lang, { month: 'short', year: 'numeric' }) : ''}
                   </span>
                 </span>
-                <span className="font-display text-[13px] font-bold text-primary">+{swapPts}</span>
+                <span className="whitespace-nowrap font-display text-[13px] font-bold text-primary">+{swapPts} {t('shell.pts')}</span>
               </li>
             )
           })}
@@ -192,18 +222,25 @@ export default function Profile() {
         <T as="h1" k="nav.profile" className="shrink-0 font-display text-headline-md text-foreground" />
       </TopBarContext>
       {desktop ? (
-        <div className="flex min-h-full gap-6 px-6 py-4 lg:px-8">
-          <div className="w-[360px] shrink-0 self-start rounded-card bg-card p-5 ring-1 ring-input">{you}</div>
-          <div className={cn('grid min-w-0 flex-1 gap-6 self-start rounded-card bg-card p-5 ring-1 ring-input', 'grid-cols-[minmax(240px,300px)_1fr]')}>
-            {others}
-            {history}
+        // The mock: two cards the window's height, each scrolling on its own.
+        <div className="flex h-full min-h-0 gap-6 px-6 pb-6 pt-6 lg:px-8">
+          <div className="w-[clamp(340px,26vw,420px)] shrink-0 overflow-y-auto rounded-card bg-card p-6 ring-1 ring-input">{you}</div>
+          <div className="min-w-0 flex-1 overflow-y-auto rounded-card bg-card p-6 ring-1 ring-input">
+            <div className="grid grid-cols-[minmax(280px,340px)_1fr] gap-8">
+              {others}
+              {history}
+            </div>
           </div>
         </div>
       ) : (
-        <div className="flex flex-col gap-6 px-4 pb-6 pt-4">
-          {you}
-          {others}
-          {history}
+        // The mock's phone: white blocks with an 8px paper gap between them,
+        // so the paper stat tiles read as tiles.
+        <div className="flex flex-col gap-2">
+          <section className="bg-card p-6">{you}</section>
+          <section className="flex flex-col gap-8 bg-card p-6">
+            {others}
+            {history}
+          </section>
         </div>
       )}
       <EditProfileSheet
@@ -217,7 +254,7 @@ export default function Profile() {
 }
 
 function Thumb({ src }: { src?: string }) {
-  return src ? <img alt="" className="size-11 shrink-0 rounded-lg object-cover" src={src} /> : <span className="size-11 shrink-0 rounded-lg bg-secondary" />
+  return src ? <img alt="" className="size-14 shrink-0 rounded-lg object-cover" src={src} /> : <span className="size-14 shrink-0 rounded-lg bg-secondary" />
 }
 
 /** The name people see. Photos come later -- profiles_public has no photo

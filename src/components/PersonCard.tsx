@@ -19,21 +19,24 @@ export function PersonCard({
   city,
   swaps,
   since,
+  self = false,
   className,
   children,
 }: {
   name: string
   city?: string | null
   swaps: number
-  /** Year joined, when known (your own profile row has it). */
+  /** Year joined, when known. */
   since?: string
+  /** Your own card, previewed on Profile: the note speaks to you as the owner. */
+  self?: boolean
   className?: string
   children?: React.ReactNode
 }) {
   const { t } = useT()
   return (
     <div className={cn('flex flex-col items-center rounded-2xl bg-card px-6 py-6 text-center ring-1 ring-input', className)}>
-      <UserAvatar name={name || '?'} size="xl" />
+      <UserAvatar name={name || '?'} size="xl" className="size-20 text-2xl" />
       {/* A name and a city are user data. */}
       <p className="mt-3 font-display text-headline-md text-foreground">{name || t('desk.someone')}</p>
       {(city || since) && (
@@ -41,11 +44,11 @@ export function PersonCard({
           {[city, since ? t('person.since', { year: since }) : null].filter(Boolean).join(' · ')}
         </p>
       )}
-      <div className="mt-4 w-full rounded-card bg-background py-3">
-        <p className="font-display text-[28px] font-bold leading-8 tabular-nums text-foreground">{swaps}</p>
+      <div className="mt-3 w-full rounded-card bg-background py-3">
+        <p className="font-display text-[32px] font-semibold leading-9 tabular-nums text-foreground">{swaps}</p>
         <T as="p" k="person.swapsDone" className="font-body text-body-sm text-muted-foreground" />
       </div>
-      <T as="p" k="person.random" className="mt-4 max-w-[30ch] font-body text-[12px] leading-4 text-muted-foreground" />
+      <T as="p" k={self ? 'person.randomSelf' : 'person.random'} className="mt-3 font-body text-[12px] text-muted-foreground" />
       {children}
     </div>
   )
