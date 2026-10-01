@@ -46,6 +46,7 @@ const REASON_ICON: Record<string, IconName> = {
   buy_super: 'Rocket',
   buy_multi: 'Stacks',
   backfill: 'Coins',
+  admin_grant: 'Award',
 }
 
 /** Points & tiers (proposal B). Points are the currency until payments exist

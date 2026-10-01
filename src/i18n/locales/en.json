@@ -908,7 +908,8 @@
     "streakBody": "Come back tomorrow for {{points}} points. Miss a day and it starts again.",
     "streakBest": "Best: {{count}} days",
     "reason_buy_super": "Super offer",
-    "reason_buy_multi": "Offer 2 to 4 at once"
+    "reason_buy_multi": "Offer 2 to 4 at once",
+    "reason_admin_grant": "From the Bartefy team"
   },
   "update": {
     "title": "A new version is ready",
