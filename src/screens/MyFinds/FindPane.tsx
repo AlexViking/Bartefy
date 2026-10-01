@@ -20,6 +20,10 @@ import type { MyFind } from './useMyFinds'
 
 const LISTING_DAYS = 30
 
+// The mock's sizes on top of the shadcn Button.
+const QUIET = 'h-11 gap-1.5 rounded-card border-0 bg-transparent px-3.5 font-body text-label-lg text-muted-foreground hover:bg-secondary'
+const LOUD = 'h-11 gap-2 whitespace-nowrap rounded-card px-5 font-body text-label-lg shadow-[0_6px_18px_rgba(27,107,85,0.28)]'
+
 /** One of my finds, in full: the photo, how long it stays on the deck, the
  *  offers for it, what I want back -- and what I can do: Edit, Pause (or put
  *  back), Renew, and Remove behind ⋮. Item detail is cut in V6, so this is
@@ -143,23 +147,34 @@ export function FindPane({
         {errorKey && <p role="alert" className="rounded-card bg-coral px-3 py-2 font-body text-body-sm text-ink">{t(errorKey)}</p>}
       </div>
 
+      {/* The mock's bar (08-my-finds-b): two quiet text buttons, then ONE green
+          action. Leaving the deck soon, Renew wins even with offers waiting
+          (the mock's Fuji); otherwise offers waiting means Review offers (its
+          Marantz), and nothing waiting means Renew. */}
       <footer className="flex shrink-0 items-center gap-1 border-t border-input px-3 py-3 pb-[max(12px,env(safe-area-inset-bottom))]">
-        <Button variant="ghost" size="sm" onClick={() => setEditing(true)} disabled={busy} className="border-0 bg-transparent">
-          <Icon name="Settings" size={16} />
+        <Button variant="ghost" onClick={() => setEditing(true)} disabled={busy} className={QUIET}>
+          <Icon name="Pencil" size={18} />
           <T as="span" k="finds.edit" />
         </Button>
         {f.status !== 'reserved' && (
-          <Button variant="ghost" size="sm" onClick={() => onAct(f.status === 'paused' ? 'resume' : 'pause')} disabled={busy} className="border-0 bg-transparent">
-            <Icon name={f.status === 'paused' ? 'Plus' : 'Clock'} size={16} />
+          <Button variant="ghost" onClick={() => onAct(f.status === 'paused' ? 'resume' : 'pause')} disabled={busy} className={QUIET}>
+            <Icon name={f.status === 'paused' ? 'Play' : 'Pause'} size={18} />
             <T as="span" k={f.status === 'paused' ? 'finds.putBack' : 'finds.pause'} />
           </Button>
         )}
         <span className="flex-1" />
-        {f.status === 'active' && (
-          <Button onClick={() => onAct('renew')} disabled={busy} variant={soon ? 'primary' : 'ghost'}>
-            <Icon name="RotateCcw" size={18} />
-            {t('finds.renew', { n: LISTING_DAYS })}
+        {f.offers.length > 0 && !(soon && f.status === 'active') ? (
+          <Button onClick={() => navigate('/matches?offer=' + f.offers[0].id)} className={LOUD}>
+            <Icon name="Handshake" size={20} />
+            <T as="span" k="finds.reviewOffers" />
           </Button>
+        ) : (
+          f.status === 'active' && (
+            <Button onClick={() => onAct('renew')} disabled={busy} className={LOUD}>
+              <Icon name="RotateCcw" size={20} />
+              {t('finds.renew', { n: LISTING_DAYS })}
+            </Button>
+          )
         )}
       </footer>
 

@@ -8,7 +8,7 @@ import fs from 'node:fs'
 const OUTLINE = `
 add add_a_photo add_circle add_photo_alternate alarm apparel arrow_back arrow_forward
 auto_awesome autorenew bar_chart bolt chair chat chat_bubble check check_circle chevron_left
-chevron_right child_care circle close cooking dark_mode delete devices diamond drafts
+chevron_right child_care circle close cooking dark_mode delete devices diamond drafts edit
 expand_less expand_more explore extension favorite flag group_add handshake handyman info
 inventory_2 language layers left_panel_close left_panel_open light_mode local_fire_department
 location_on lock logout mail menu menu_book mic more_vert museum music_note near_me

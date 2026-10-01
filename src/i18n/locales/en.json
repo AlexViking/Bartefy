@@ -1251,7 +1251,8 @@
     "removeTitle": "Remove this find?",
     "removeBody": "It leaves your table and every deck. Offers on it are closed.",
     "editTitle": "Edit your find",
-    "editFailed": "That did not save. Check your signal and try again."
+    "editFailed": "That did not save. Check your signal and try again.",
+    "reviewOffers": "Review offers"
   },
   "pts": {
     "tab_earn": "Earn",

@@ -49,6 +49,7 @@ const ICONS = {
   Mic: 'mic',
   Play: 'play_arrow',
   Pause: 'pause',
+  Pencil: 'edit',
   BadgeCheck: 'verified',
   Dot: 'circle',
   // Categories -- one per entry in CATEGORIES (lib/taxonomy.ts).
