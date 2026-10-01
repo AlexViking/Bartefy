@@ -13,13 +13,13 @@ expand_less expand_more explore extension favorite flag group_add handshake hand
 inventory_2 language layers left_panel_close left_panel_open light_mode local_fire_department
 location_on lock logout mail menu menu_book mic more_vert museum music_note near_me
 notifications open_in_full palette pause pedal_bike person photo_camera play_arrow
-remove remove_moderator schedule search settings shield shield_person star style sync_alt
+remove remove_moderator rocket_launch schedule search settings shield shield_person stacks star style sync_alt
 table_restaurant toll translate trending_up undo verified verified_user visibility weekend workspace_premium yard
 `.split(/\s+/).filter(Boolean)
 
 /** Drawn filled somewhere in the V6 mocks (font-variation-settings 'FILL' 1). */
 const FILLED = `
-alarm bolt check_circle circle favorite local_fire_department location_on shield star style
+alarm bolt check_circle circle explore favorite local_fire_department location_on rocket_launch shield stacks star style
 table_restaurant verified
 `.split(/\s+/).filter(Boolean)
 

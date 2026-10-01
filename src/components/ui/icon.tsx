@@ -55,6 +55,8 @@ const ICONS = {
   Contrast: 'contrast',
   Award: 'workspace_premium',
   CircleHelp: 'help',
+  Rocket: 'rocket_launch',
+  Stacks: 'stacks',
   BadgeCheck: 'verified',
   Dot: 'circle',
   // Categories -- one per entry in CATEGORIES (lib/taxonomy.ts).

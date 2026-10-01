@@ -41,10 +41,10 @@ const REASON_ICON: Record<string, IconName> = {
   daily_visit: 'Flame',
   buy_tier: 'Star',
   buy_boost: 'Zap',
-  buy_radius: 'MapPin',
+  buy_radius: 'Compass',
   buy_eyeing: 'Heart',
-  buy_super: 'Zap',
-  buy_multi: 'Layers',
+  buy_super: 'Rocket',
+  buy_multi: 'Stacks',
   backfill: 'Coins',
 }
 
@@ -130,6 +130,38 @@ export default function Points() {
   const code = profile?.referral_code ? String(profile.referral_code) : ''
   const link = code ? `https://bartefy.com/signup?invite=${code}` : ''
   const date = (iso: string) => new Date(iso).toLocaleDateString(lang, { weekday: 'short', day: 'numeric', month: 'short' })
+  /** Today, Yesterday, else the date (the mock's history). */
+  const when = (iso: string) => {
+    const d = new Date(iso)
+    const start = new Date()
+    start.setHours(0, 0, 0, 0)
+    if (d >= start) return t('pts.today')
+    if (d.getTime() >= start.getTime() - DAY) return t('pts.yesterday')
+    return date(iso)
+  }
+  // Which of my finds a row is about: list_find's subject is the item id,
+  // a boost's is "itemId:time". Live finds only -- a paused one just shows
+  // the date. Titles are user data.
+  const findTitle = new Map(shell.table.map((f) => [f.id, f.title]))
+  const aboutFind = (r: Row) => {
+    const reason = String(r.reason)
+    if (reason !== 'list_find' && reason !== 'buy_boost') return ''
+    return findTitle.get(String(r.subject ?? '').split(':')[0]) ?? ''
+  }
+  const boostGrant = grants.find((g) => g.perk === 'boost')
+  // "Daily visit · day 4": the day of the run each visit was, counted over
+  // consecutive dates (a visit's subject is its date; a gap starts again).
+  const visitDay = new Map<string, number>()
+  {
+    let prev = 0
+    let run = 0
+    for (const r of ledger.filter((x) => x.reason === 'daily_visit').sort((a, b) => String(a.subject).localeCompare(String(b.subject)))) {
+      const day = Date.parse(String(r.subject))
+      run = prev && day - prev === DAY ? run + 1 : 1
+      prev = day
+      visitDay.set(String(r.id), run)
+    }
+  }
 
   const copyInvite = async () => {
     if (!link) return
@@ -298,48 +330,75 @@ export default function Points() {
     </div>
   )
 
-  // ── right: perks ──
-  const perkCard = (icon: IconName, title: string, body: string, price: number, action: React.ReactNode) => (
-    <div className="flex gap-3 rounded-card p-4 ring-1 ring-input">
-      <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-background text-foreground">
-        <Icon name={icon} size={20} />
+  // ── right: perks ── (the mock: two columns of cards in both sections)
+  const perkCard = (
+    icon: IconName,
+    title: string,
+    body: string,
+    price: number,
+    action: React.ReactNode,
+    opts: { active?: React.ReactNode } = {},
+  ) => (
+    <article className="flex items-start gap-4 rounded-card p-4 ring-1 ring-input">
+      <span className={cn('grid size-11 shrink-0 place-items-center rounded-card', opts.active ? 'bg-sun/70 text-ink' : 'bg-background text-muted-foreground')}>
+        <Icon name={icon} size={22} filled />
       </span>
       <div className="min-w-0 flex-1">
-        <div className="flex justify-between gap-2">
+        <div className="flex items-baseline justify-between gap-2">
           <span className="font-body text-label-lg text-foreground">{title}</span>
-          <span className="whitespace-nowrap font-body text-label-md text-muted-foreground">{t('pts.ptsN', { n: price })}</span>
+          <span className="whitespace-nowrap font-display text-[13px] font-bold text-foreground">{t('pts.ptsN', { n: price })}</span>
         </div>
         <p className="font-body text-body-sm text-muted-foreground">{body}</p>
+        {opts.active}
         <div className="mt-2">{action}</div>
       </div>
-    </div>
+    </article>
   )
+  const boostOn = boostGrant
+    ? (() => {
+        const hours = Math.max(1, Math.round((Date.parse(String(boostGrant.expires_at)) - now) / 3_600_000))
+        const title = findTitle.get(String(boostGrant.subject ?? '').split(':')[0])
+        return (
+          <p className="mt-2 inline-flex h-7 items-center gap-1.5 rounded-pill bg-sun/50 px-2.5 text-[12px] font-semibold text-ink">
+            <Icon name="Clock" size={14} />
+            {title ? t('pts.boostOn', { title, h: hours }) : t('pts.boostOnAny', { h: hours })}
+          </p>
+        )
+      })()
+    : undefined
   const perks = (
     <div className="flex flex-col gap-5">
-      <section>
-        <p className="mb-2 font-body text-label-sm uppercase text-muted-foreground">{t('pts.turnOnHere', { n: PERK_DAYS.radius })}</p>
-        {perkCard(
-          'MapPin',
-          t('pts.huntFurther'),
-          t('pts.huntFurtherBody'),
-          PERK_PRICES.radius,
-          radiusGrant ? (
-            <span className="inline-flex h-8 items-center rounded-pill bg-mint px-3 font-body text-label-md text-forest">
-              {t('pts.onUntil', { date: date(String(radiusGrant.expires_at)) })}
-            </span>
-          ) : (
-            <Button variant="ghost" size="sm" onClick={() => buyRadius.mutate()} disabled={buyRadius.isPending || shell.points < PERK_PRICES.radius}>
-              {shell.points < PERK_PRICES.radius ? t('pts.more', { n: PERK_PRICES.radius - shell.points }) : t('pts.turnOn', { n: PERK_DAYS.radius })}
-            </Button>
-          ),
-        )}
-      </section>
-      <section>
-        <T as="p" k="pts.inTheMoment" className="mb-2 font-body text-label-sm uppercase text-muted-foreground" />
+      <section className="flex flex-col gap-3">
+        <p className="font-body text-label-sm uppercase tracking-wider text-muted-foreground">{t('pts.turnOnHere', { n: PERK_DAYS.radius })}</p>
         <div className={cn('grid gap-3', desktop ? 'grid-cols-2' : 'grid-cols-1')}>
-          {perkCard('Zap', t('pts.boost'), t('pts.boostBody'), PERK_PRICES.boost, <Link k="pts.fromFinds" onClick={() => navigate('/items')} />)}
-          {perkCard('Zap', t('composer.super'), t('pts.superBody'), PERK_PRICES.super, <Link k="pts.whenYouOffer" onClick={() => navigate('/discover')} />)}
-          {perkCard('Layers', t('pts.multi'), t('pts.multiBody'), PERK_PRICES.multi, <Link k="pts.whenYouOffer" onClick={() => navigate('/discover')} />)}
+          {perkCard(
+            'Compass',
+            t('pts.huntFurther'),
+            t('pts.huntFurtherBody'),
+            PERK_PRICES.radius,
+            radiusGrant ? (
+              <span className="inline-flex h-8 items-center rounded-pill bg-mint px-3 font-body text-label-md text-forest">
+                {t('pts.onUntil', { date: date(String(radiusGrant.expires_at)) })}
+              </span>
+            ) : (
+              <Button
+                variant="ghost"
+                className="h-9 min-h-0 rounded-lg border-0 bg-transparent px-3.5 font-body text-label-md text-primary ring-1 ring-inset ring-primary/50 hover:bg-selected"
+                onClick={() => buyRadius.mutate()}
+                disabled={buyRadius.isPending || shell.points < PERK_PRICES.radius}
+              >
+                {shell.points < PERK_PRICES.radius ? t('pts.more', { n: PERK_PRICES.radius - shell.points }) : t('pts.turnOn', { n: PERK_DAYS.radius })}
+              </Button>
+            ),
+          )}
+        </div>
+      </section>
+      <section className="flex flex-col gap-3">
+        <T as="p" k="pts.inTheMoment" className="font-body text-label-sm uppercase tracking-wider text-muted-foreground" />
+        <div className={cn('grid gap-3', desktop ? 'grid-cols-2' : 'grid-cols-1')}>
+          {perkCard('Zap', t('pts.boost'), t('pts.boostBody'), PERK_PRICES.boost, <Link k="pts.fromFinds" onClick={() => navigate('/items')} />, { active: boostOn })}
+          {perkCard('Rocket', t('composer.super'), t('pts.superBody'), PERK_PRICES.super, <Link k="pts.whenYouOffer" onClick={() => navigate('/discover')} />)}
+          {perkCard('Stacks', t('pts.multi'), t('pts.multiBody'), PERK_PRICES.multi, <Link k="pts.whenYouOffer" onClick={() => navigate('/discover')} />)}
         </div>
       </section>
     </div>
@@ -366,22 +425,34 @@ export default function Points() {
       {rows.length === 0 ? (
         <T as="p" k="pts.noHistory" className="py-6 font-body text-body-sm text-muted-foreground" />
       ) : (
-        <ul className="divide-y divide-input">
-          {rows.map((r) => (
-            <li key={String(r.id)} className="flex items-center gap-3 py-2.5">
-              <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-background text-muted-foreground">
-                <Icon name={REASON_ICON[String(r.reason)] ?? 'Coins'} size={18} />
-              </span>
-              <span className="min-w-0 flex-1">
-                <T as="span" k={`points.reason_${String(r.reason)}`} className="block font-body text-label-lg text-foreground" />
-                <span className="block font-body text-[12px] text-muted-foreground">{date(String(r.created_at))}</span>
-              </span>
-              <span className={cn('font-display text-ticker tabular-nums', Number(r.delta) > 0 ? 'text-primary' : 'text-muted-foreground')}>
-                {Number(r.delta) > 0 ? '+' : '−'}
-                {Math.abs(Number(r.delta))} {t('shell.pts')}
-              </span>
-            </li>
-          ))}
+        // The mock: one bordered list; earned rows wear Mint with a Forest
+        // icon and a green amount, spent rows stay grey.
+        <ul className="flex flex-col divide-y divide-input rounded-card ring-1 ring-input">
+          {rows.map((r) => {
+            const earned = Number(r.delta) > 0
+            const about = aboutFind(r)
+            return (
+              <li key={String(r.id)} className="flex items-center gap-3 px-4 py-3">
+                <span className={cn('grid size-9 shrink-0 place-items-center rounded-lg', earned ? 'bg-mint text-forest' : 'bg-background text-muted-foreground')}>
+                  <Icon name={REASON_ICON[String(r.reason)] ?? 'Coins'} size={18} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-body text-label-lg text-foreground" data-i18n={`points.reason_${String(r.reason)}`}>
+                    {visitDay.has(String(r.id))
+                      ? t('pts.historyVisitDay', { n: visitDay.get(String(r.id)) ?? 1 })
+                      : t(`points.reason_${String(r.reason)}`)}
+                  </span>
+                  <span className="block truncate font-body text-[12px] text-muted-foreground">
+                    {[when(String(r.created_at)), about].filter(Boolean).join(' · ')}
+                  </span>
+                </span>
+                <span className={cn('whitespace-nowrap font-display text-[14px] font-bold tabular-nums', earned ? 'text-primary' : 'text-muted-foreground')}>
+                  {earned ? '+' : '−'}
+                  {Math.abs(Number(r.delta))} {t('shell.pts')}
+                </span>
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>
@@ -417,7 +488,7 @@ export default function Points() {
       </TopBarContext>
       {desktop ? (
         <div className="flex h-full min-h-0 gap-6 px-6 py-4 lg:px-8">
-          <div className="w-[360px] shrink-0 overflow-y-auto rounded-card bg-card ring-1 ring-input xl:w-[400px]">{wallet}</div>
+          <div className="w-[clamp(340px,26vw,420px)] shrink-0 overflow-y-auto rounded-card bg-card ring-1 ring-input">{wallet}</div>
           <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-card bg-card ring-1 ring-input">
             <div className="shrink-0 px-5 pt-4">{tabBar}</div>
             <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-5">
