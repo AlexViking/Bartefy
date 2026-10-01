@@ -115,7 +115,8 @@ const FOLDED: GroupId[] = ['wait', 'sent', 'archive']
 
 function useFold(id: GroupId, force: boolean) {
   const key = `bartefy.desk.${id}`
-  const [stored, setOpen] = React.useState(() => {
+  const [open, setOpen] = React.useState(() => {
+    if (force) return true
     try {
       const v = localStorage.getItem(key)
       return v === null ? !FOLDED.includes(id) : v === '1'
@@ -123,6 +124,13 @@ function useFold(id: GroupId, force: boolean) {
       return !FOLDED.includes(id)
     }
   })
+  // Opens BY ITSELF when it becomes the only group or comes to hold the row
+  // being shown -- folded there it reads as an empty page or a lost
+  // selection. But it is never locked open: every group folds (the mock;
+  // Alex, 2026-10-01 -- Archive had no chevron because of this lock).
+  React.useEffect(() => {
+    if (force) setOpen(true)
+  }, [force])
   const toggle = () =>
     setOpen((v) => {
       try {
@@ -132,9 +140,7 @@ function useFold(id: GroupId, force: boolean) {
       }
       return !v
     })
-  // Forced open when it is the only group, or holds the row being shown --
-  // a folded group there reads as an empty page or a lost selection.
-  return [stored || force, toggle, force] as const
+  return [open, toggle] as const
 }
 
 function Group({ id, items, selected, onPick, carousel, alone }: {
@@ -147,7 +153,7 @@ function Group({ id, items, selected, onPick, carousel, alone }: {
 }) {
   const { t } = useT()
   const holdsSelected = !!selected && items.some((i) => i.id === selected.id)
-  const [open, toggle, forced] = useFold(id, alone || holdsSelected)
+  const [open, toggle] = useFold(id, alone || holdsSelected)
   if (items.length === 0) return null
   const note = GROUP_NOTE[id]
 
@@ -155,7 +161,7 @@ function Group({ id, items, selected, onPick, carousel, alone }: {
     <section className="flex flex-col">
       <button
         type="button"
-        onClick={forced ? undefined : toggle}
+        onClick={toggle}
         aria-expanded={open}
         className="sticky top-0 z-[1] flex h-11 items-center gap-2 bg-card px-3 text-left"
       >
@@ -163,9 +169,8 @@ function Group({ id, items, selected, onPick, carousel, alone }: {
         <span className="font-body text-label-md text-muted-foreground">{items.length}</span>
         {note && <span className="min-w-0 flex-1 truncate font-body text-[12px] text-muted-foreground">· {t(note)}</span>}
         {!note && <span className="flex-1" />}
-        {!forced && (
-          <Icon name="ChevronDown" size={20} className={cn('shrink-0 text-muted-foreground transition-transform duration-200 ease-brand', open && 'rotate-180')} />
-        )}
+        {/* The mock: down when open, pointing right when folded. */}
+        <Icon name="ChevronDown" size={20} className={cn('ml-auto shrink-0 text-muted-foreground transition-transform duration-200 ease-brand', !open && '-rotate-90')} />
       </button>
       {open &&
         (carousel && id === 'offers' ? (
