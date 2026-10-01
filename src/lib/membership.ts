@@ -25,14 +25,19 @@ export const TIERS: TierSpec[] = [
     blurb: 'The whole loop, at neighbourhood scale. Most people never need more.',
     perks: [
       'Unlimited hunting within 10 km',
-      '6 finds live at a time',
-      '3 swaps on the go',
+      'As many finds live as you like',
+      'As many swaps on the go as you like',
       '1 saved search, daily digest',
       'Chat, meetups, ratings, reporting',
     ],
     radiusKm: 10,
-    liveFinds: 6,
-    activeSwaps: 3,
+    // No caps while Bartefy is gathering people (Alex, 2026-10-01): a free
+    // tier that stops you at 6 finds stops people listing at all. The
+    // database never enforced them either (entitlements(), since 023).
+    // Setting a number here brings the caps back on every screen at once:
+    // the side nav's "n/6 Live", the tier card's bars, its "of" summary.
+    liveFinds: null,
+    activeSwaps: null,
     savedSearches: 1,
     seeEyeing: false,
     spotlightsPerWeek: 0,

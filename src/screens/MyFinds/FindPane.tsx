@@ -16,7 +16,7 @@ import { updateItemDetails } from '@/lib/api'
 import { CATEGORIES, CONDITIONS, categoryLabel, conditionAt, WANT_NOTE_PREFIX } from '@/lib/taxonomy'
 import { cn } from '@/lib/utils'
 import { TimerPill } from '@/screens/Swaps/SwapsList'
-import type { MyFind } from './useMyFinds'
+import { SOON_DAYS, type MyFind } from './useMyFinds'
 
 const LISTING_DAYS = 30
 
@@ -48,7 +48,8 @@ export function FindPane({
   const [editing, setEditing] = React.useState(false)
   const [confirmRemove, setConfirmRemove] = React.useState(false)
   const cover = f.photos[0]
-  const soon = f.daysLeft !== null && f.daysLeft <= 7
+  // One threshold for "leaving soon": the grid's badge and Needs-you chip use it too.
+  const soon = f.daysLeft !== null && f.daysLeft <= SOON_DAYS
 
   return (
     <article className="flex h-full flex-col">

@@ -70,12 +70,12 @@ export default function MyFinds() {
     <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:px-0">
       <T as="span" k="dmenu.needsYou" className="shrink-0 font-body text-label-sm uppercase text-muted-foreground" />
       {m.leavingSoon.length > 0 && (
-        <Nudge tone="bg-sun text-ink" onClick={() => m.select(m.leavingSoon[0])}>
+        <Nudge tone="bg-sun/60 text-ink" onClick={() => m.select(m.leavingSoon[0])}>
           {t('finds.leavingSoon', { count: m.leavingSoon.length })}
         </Nudge>
       )}
       {m.offersWaiting > 0 && (
-        <Nudge tone="bg-coral text-ink" onClick={() => navigate('/matches')}>
+        <Nudge tone="bg-coral/70 text-ink" onClick={() => navigate('/matches')}>
           {t('finds.offersWaiting', { count: m.offersWaiting })}
         </Nudge>
       )}
@@ -142,7 +142,7 @@ export default function MyFinds() {
 
 function Nudge({ tone, onClick, children }: { tone: string; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button type="button" onClick={onClick} className={cn('inline-flex h-8 shrink-0 items-center gap-1 rounded-pill px-3 font-body text-label-md', tone)}>
+    <button type="button" onClick={onClick} className={cn('inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-pill px-3 font-body text-label-md hover:brightness-95', tone)}>
       {children}
       <Icon name="ArrowRight" size={14} />
     </button>
@@ -178,15 +178,15 @@ function Tile({ f, on, onPick }: { f: MyFind; on: boolean; onPick: () => void })
       aria-pressed={on}
       className={cn(
         'flex min-w-0 flex-col rounded-card p-1.5 text-left transition-colors',
-        on ? 'bg-selected ring-2 ring-primary/40' : 'hover:bg-background',
+        on ? 'bg-selected' : 'hover:bg-background',
         f.status === 'paused' && 'opacity-75',
       )}
     >
       <span className="relative block aspect-[4/3] overflow-hidden rounded-lg bg-secondary">
         {f.photos[0] && <img alt="" className="size-full object-cover" src={f.photos[0]} />}
         {badge && (
-          <span className={cn('absolute left-2 top-2 inline-flex h-6 items-center gap-1 rounded-pill px-2 text-[11px] font-bold', badge.tone)}>
-            {badge.icon && <Icon name={badge.icon} size={13} />}
+          <span className={cn('absolute left-2 top-2 inline-flex h-6 items-center gap-1 rounded-pill px-2 text-[12px] font-bold leading-none shadow-sm', badge.tone)}>
+            {badge.icon && <Icon name={badge.icon} size={14} />}
             {badge.text}
           </span>
         )}
