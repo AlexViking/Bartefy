@@ -112,7 +112,10 @@ export function SideNav({
       <button
         type="button"
         onClick={() => navigate(ADD_PATH)}
-        className="mb-2 flex h-11 items-center justify-center gap-2 rounded-card bg-coral font-body text-[14px] font-bold leading-5 tracking-[0.02em] text-ink shadow-sm outline-none transition-[filter] duration-fast ease-brand hover:brightness-95 focus-visible:ring-2 focus-visible:ring-ring/50"
+        // Left-aligned on the rows' own px-3 / gap-3, so the ⊕ sits in the icon
+        // column and the words start where every label starts (Alex,
+        // 2026-10-01; the mock centred them).
+        className="mb-2 flex h-11 items-center gap-3 rounded-card bg-coral px-3 font-body text-[14px] font-bold leading-5 tracking-[0.02em] text-ink shadow-sm outline-none transition-[filter] duration-fast ease-brand hover:brightness-95 focus-visible:ring-2 focus-visible:ring-ring/50"
       >
         <Icon name="CirclePlus" size={20} />
         <T as="span" k="shell.addFind" />
