@@ -1008,7 +1008,8 @@
     "badgeNew": "{{n}} new",
     "badgeLive": "{{n}} live",
     "badgeLiveOf": "{{n}}/{{max}} Live",
-    "badgeAdmirers": "{{n}} admirers",
+    "badgeAdmirers_one": "{{n}} admirer",
+    "badgeAdmirers_other": "{{n}} admirers",
     "streakTip": "Day {{day}} · +{{pts}} pts claimed today",
     "streakTipWaiting": "Day {{day}} is waiting",
     "streakSheet": "Your streak",
@@ -1371,5 +1372,19 @@
     "artDecks": "In decks nearby",
     "artFirst": "Your first find",
     "artOnTable": "On the table"
+  },
+  "boost": {
+    "title": "Boost a find",
+    "body": "Pick one of your finds. It goes first in nearby decks for a day · {{n}} pts.",
+    "pickFirst": "Pick a find to boost",
+    "confirm": "Boost {{title}} · {{n}} pts",
+    "balance": "You have {{n}} pts.",
+    "notEnough": "You need {{n}} more pts.",
+    "earn": "See how to earn points",
+    "already": "Boosted · {{h}}h left",
+    "boostedLeft": "Boosted · {{h}}h left",
+    "button": "Boost · {{n}} pts",
+    "noFinds": "Put a find on the table first — then you can boost it.",
+    "done": "{{title}} goes first in nearby decks for a day."
   }
 }

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useNavigate } from 'react-router'
 
+import { BoostSheet } from '@/components/BoostSheet'
 import { EmptyState } from '@/components/EmptyState'
 import { MatchMoment } from '@/components/deck/MatchMoment'
 import { OfferComposer } from '@/components/deck/OfferComposer'
@@ -22,6 +23,9 @@ export function useDiscoverUi(h: Hunt) {
   const [viewer, setViewer] = React.useState<{ card: CardItem; index: number } | null>(null)
   const [reporting, setReporting] = React.useState<CardItem | null>(null)
   const [preselect, setPreselect] = React.useState<string | undefined>()
+  /** Boost asks which find and confirms the price -- it never spends on the
+   *  first tap. */
+  const [boosting, setBoosting] = React.useState(false)
   const shell = useShellData()
 
   return {
@@ -45,6 +49,9 @@ export function useDiscoverUi(h: Hunt) {
       setPreselect(h.fitFor(h.top)?.id)
       h.superTop()
     },
+    boosting,
+    onBoost: () => setBoosting(true),
+    setBoosting,
     setViewer,
     setReporting,
   }
@@ -76,6 +83,8 @@ export function DiscoverOverlays({ h, ui }: { h: Hunt; ui: Ui }) {
         onAdd={h.goAdd}
         onNeedPoints={h.goPoints}
       />
+
+      <BoostSheet open={ui.boosting} onOpenChange={ui.setBoosting} />
 
       <MatchMoment
         match={h.matched}

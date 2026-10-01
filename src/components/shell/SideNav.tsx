@@ -30,7 +30,7 @@ function badgeFor(d: Destination, data: ShellData, t: (k: string, v?: Record<str
   }
   if (d.badge === 'admirers') {
     const n = data.admirers
-    return n > 0 ? { text: t('shell.badgeAdmirers', { n: cap(n) }), tone: 'bg-sun text-ink', dot: 'bg-sun' } : null
+    return n > 0 ? { text: t('shell.badgeAdmirers', { count: n, n: cap(n) }), tone: 'bg-sun text-ink', dot: 'bg-sun' } : null
   }
   return null
 }

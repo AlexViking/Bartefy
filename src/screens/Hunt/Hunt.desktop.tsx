@@ -62,7 +62,7 @@ export default function HuntDesktop() {
                 onPass={() => deck.current?.pass()}
                 onWant={() => deck.current?.want()}
                 onSuper={ui.onSuper}
-                onBoost={() => void h.boostMine()}
+                onBoost={ui.onBoost}
               />
             }
           />

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { useNavigate } from 'react-router'
 
+import { BoostSheet, useBoosts } from '@/components/BoostSheet'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -14,6 +15,7 @@ import { ResponsiveSheet } from '@/components/ui/responsive-sheet'
 import { T, useT } from '@/i18n/T'
 import { updateItemDetails } from '@/lib/api'
 import { CATEGORIES, CONDITIONS, categoryLabel, conditionAt, WANT_NOTE_PREFIX } from '@/lib/taxonomy'
+import { PERK_PRICES } from '@/lib/points'
 import { cn } from '@/lib/utils'
 import { TimerPill } from '@/screens/Swaps/SwapsList'
 import { PhotosSection } from '@/screens/AddItem/sections'
@@ -48,6 +50,8 @@ export function FindPane({
   const { t } = useT()
   const navigate = useNavigate()
   const [editing, setEditing] = React.useState(false)
+  const [boosting, setBoosting] = React.useState(false)
+  const boostHours = useBoosts().get(f.id)
   const [confirmRemove, setConfirmRemove] = React.useState(false)
   const cover = f.photos[0]
   // One threshold for "leaving soon": the grid's badge and Needs-you chip use it too.
@@ -150,10 +154,11 @@ export function FindPane({
         {errorKey && <p role="alert" className="rounded-card bg-coral px-3 py-2 font-body text-body-sm text-ink">{t(errorKey)}</p>}
       </div>
 
-      {/* The mock's bar (08-my-finds-b): two quiet text buttons, then ONE green
-          action. Leaving the deck soon, Renew wins even with offers waiting
-          (the mock's Fuji); otherwise offers waiting means Review offers (its
-          Marantz), and nothing waiting means Renew. */}
+      {/* The mock's bar (08-my-finds-b): two quiet text buttons, then ONE
+          main action. Leaving the deck soon: Renew, even with offers waiting
+          (the mock's Fuji). Offers waiting: Review offers (its Marantz).
+          Otherwise: Boost · 75 pts -- which opens the Boost sheet to confirm,
+          never spends on the tap -- or "Boosted · 18h left" while one runs. */}
       <footer className="flex shrink-0 items-center gap-1 border-t border-input px-3 py-3 pb-[max(12px,env(safe-area-inset-bottom))]">
         <Button variant="ghost" onClick={() => setEditing(true)} disabled={busy} className={QUIET}>
           <Icon name="Pencil" size={18} />
@@ -171,17 +176,26 @@ export function FindPane({
             <Icon name="Handshake" size={20} />
             <T as="span" k="finds.reviewOffers" />
           </Button>
+        ) : f.status !== 'active' ? null : soon ? (
+          <Button onClick={() => onAct('renew')} disabled={busy} className={LOUD}>
+            <Icon name="RotateCcw" size={20} />
+            {t('finds.renew', { n: LISTING_DAYS })}
+          </Button>
+        ) : boostHours != null ? (
+          <span className="inline-flex h-11 cursor-default items-center gap-1.5 rounded-card bg-sun/60 px-3.5 font-body text-label-lg text-ink">
+            <Icon name="Zap" size={18} filled />
+            {t('boost.boostedLeft', { h: boostHours })}
+          </span>
         ) : (
-          f.status === 'active' && (
-            <Button onClick={() => onAct('renew')} disabled={busy} className={LOUD}>
-              <Icon name="RotateCcw" size={20} />
-              {t('finds.renew', { n: LISTING_DAYS })}
-            </Button>
-          )
+          <Button variant="ghost" onClick={() => setBoosting(true)} className="h-11 gap-1.5 rounded-card border-0 bg-sun/60 px-3.5 font-body text-label-lg text-ink hover:bg-sun">
+            <Icon name="Zap" size={18} filled />
+            {t('boost.button', { n: PERK_PRICES.boost })}
+          </Button>
         )}
       </footer>
 
       <EditFindSheet open={editing} onOpenChange={setEditing} f={f} onSaved={onEdited} />
+      <BoostSheet open={boosting} onOpenChange={setBoosting} preselect={f.id} />
 
       <ResponsiveSheet
         open={confirmRemove}
