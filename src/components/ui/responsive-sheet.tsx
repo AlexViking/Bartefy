@@ -64,7 +64,10 @@ export function ResponsiveSheet({
             keyboard ring on "Not yet" or the ✕ before anyone had touched the
             keyboard. Tab still enters the dialog first. */}
         <DialogContent
-          className={cn('max-w-[440px] rounded-hero', className)}
+          // outline-none on the panel only: with the auto-focus above
+          // prevented, Radix focuses the panel itself and the browser drew
+          // its default outline around the whole dialog.
+          className={cn('max-w-[440px] rounded-hero outline-none', className)}
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
           {(title || description) && (
@@ -96,7 +99,7 @@ export function ResponsiveSheet({
       <SheetContent
         onOpenAutoFocus={(e) => e.preventDefault()}
         side="bottom"
-        className={cn('max-h-[92dvh] rounded-t-hero pb-[max(16px,env(safe-area-inset-bottom))]', className)}
+        className={cn('max-h-[92dvh] rounded-t-hero pb-[max(16px,env(safe-area-inset-bottom))] outline-none', className)}
       >
         {(title || description) && (
           <SheetHeader className="text-left">

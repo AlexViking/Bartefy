@@ -1387,5 +1387,14 @@
     "button": "Boost · {{n}} pts",
     "noFinds": "Put a find on the table first — then you can boost it.",
     "done": "{{title}} goes first in nearby decks for a day."
+  },
+  "findDetails": {
+    "title": "{{label}}",
+    "open": "See details",
+    "listed": "Listed {{date}}",
+    "photoN": "Photo {{n}}",
+    "unavailable": "This find can’t be shown right now.",
+    "youWant": "You want in return",
+    "youAnything": "You’re open to offers."
   }
 }

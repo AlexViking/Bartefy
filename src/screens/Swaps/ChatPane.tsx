@@ -13,6 +13,7 @@ import { ResponsiveSheet } from '@/components/ui/responsive-sheet'
 import { UserAvatar } from '@/components/ui/user-avatar'
 import { BlockSheet } from '@/components/swap/BlockSheet'
 import { VoiceNote } from '@/components/swap/VoiceNote'
+import { FindDetailsSheet } from '@/components/FindDetails'
 import { VoiceRecorderButton } from '@/components/swap/VoiceRecorder'
 import { T, useT } from '@/i18n/T'
 import { cn } from '@/lib/utils'
@@ -37,6 +38,7 @@ export function ChatPane({ s, onBack }: { s: SwapItem; onBack?: () => void }) {
   const navigate = useNavigate()
   const c = useMatchChat(s.id)
   const [photos, setPhotos] = React.useState(false)
+  const [details, setDetails] = React.useState<{ find: SwapItem['mine']; label: string; mine: boolean } | null>(null)
   const [confirmOpen, setConfirmOpen] = React.useState(false)
   const [cancelOpen, setCancelOpen] = React.useState(false)
   const [blockOpen, setBlockOpen] = React.useState(false)
@@ -161,12 +163,23 @@ export function ChatPane({ s, onBack }: { s: SwapItem; onBack?: () => void }) {
               return (
                 <figure key={String(label)} className="flex min-w-0 flex-col gap-1.5">
                   <p className={cn('font-body text-label-sm uppercase', String(tone))}>{String(label)}</p>
-                  {find.photo ? (
-                    <img alt="" className="aspect-[4/3] max-h-[max(140px,calc(50dvh-200px))] w-full rounded-card object-cover" src={find.photo} />
-                  ) : (
-                    <span className="block aspect-[4/3] w-full rounded-card bg-secondary" />
-                  )}
-                  <figcaption className="font-body text-label-lg text-foreground">{find.title}</figcaption>
+                  {/* Opens the whole find: every photo, condition, wants, story. */}
+                  <button
+                    type="button"
+                    onClick={() => setDetails({ find, label: String(label), mine: find === s.mine })}
+                    className="group flex flex-col gap-1.5 rounded-card text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                  >
+                    {find.photo ? (
+                      <img alt="" className="aspect-[4/3] max-h-[max(140px,calc(50dvh-200px))] w-full rounded-card object-cover transition group-hover:brightness-95" src={find.photo} />
+                    ) : (
+                      <span className="block aspect-[4/3] w-full rounded-card bg-secondary" />
+                    )}
+                    <figcaption className="font-body text-label-lg text-foreground">{find.title}</figcaption>
+                    <span className="inline-flex items-center gap-1 font-body text-label-md text-primary group-hover:underline">
+                      <T as="span" k="findDetails.open" />
+                      <Icon name="ArrowRight" size={14} />
+                    </span>
+                  </button>
                 </figure>
               )
             })}
@@ -246,6 +259,15 @@ export function ChatPane({ s, onBack }: { s: SwapItem; onBack?: () => void }) {
           {status === 'completed' ? t('desk.chatClosed') : t('desk.chatClosedOff')}
         </p>
       )}
+
+      <FindDetailsSheet
+        open={!!details}
+        onOpenChange={(o) => !o && setDetails(null)}
+        itemId={details?.find.id}
+        owner={first}
+        mine={details?.mine}
+        label={details?.label ?? ''}
+      />
 
       {/* Confirming is not undoable: it trades both finds and closes the
           thread. That earns a second tap. */}

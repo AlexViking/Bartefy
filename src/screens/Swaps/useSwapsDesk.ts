@@ -12,6 +12,8 @@ const one = (v: unknown) => (Array.isArray(v) ? v[0] : v) as Row | null
 const photo = (r: Row | null) => (Array.isArray(r?.images) && r!.images.length ? String((r!.images as unknown[])[0]) : undefined)
 
 export interface Find {
+  /** items.id -- for loading the whole find (Find details). */
+  id?: string
   title: string
   photo?: string
   category?: string
@@ -181,6 +183,7 @@ export function useSwapsDesk() {
   const person = (id: string): Person => people.data?.[id] ?? { id, name: '', swaps: 0 }
 
   const find = (r: Row | null): Find => ({
+    id: r?.id != null ? String(r.id) : undefined,
     title: String(r?.title ?? ''),
     photo: photo(r),
     category: r?.category ? String(r.category) : undefined,
