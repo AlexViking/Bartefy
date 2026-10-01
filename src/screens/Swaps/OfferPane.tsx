@@ -1,3 +1,6 @@
+import * as React from 'react'
+
+import { FindDetailsSheet } from '@/components/FindDetails'
 import { Button } from '@/components/ui/button'
 import { Icon } from '@/components/ui/icon'
 import { UserAvatar } from '@/components/ui/user-avatar'
@@ -34,22 +37,34 @@ export function OfferPane({
   const { t } = useT()
   const first = o.who.name.split(' ')[0] || o.who.name
   const left = useTimeLeft(o.expiresAt)
+  /** Which find is open in full -- look properly before saying yes. */
+  const [details, setDetails] = React.useState<{ find: Find; label: string; mine: boolean } | null>(null)
   const meta = (f: Find) =>
     [f.category ? t(categoryLabel(f.category)) : null, f.condition ? t(conditionAt(f.condition).label) : null].filter(Boolean).join(' · ')
 
   const block = (label: string, tone: string, f: Find, sub: string) => (
     <figure className="flex min-w-0 flex-col gap-2">
       <p className={cn('font-body text-label-sm uppercase', tone)}>{label}</p>
-      {f.photo ? (
-        <img alt="" className="aspect-[4/3] max-h-[max(180px,calc(100dvh-520px))] w-full rounded-card object-cover" src={f.photo} />
-      ) : (
-        <span className="block aspect-[4/3] w-full rounded-card bg-secondary" />
-      )}
-      <figcaption>
-        {/* A find's title is user data. */}
-        <p className="font-display text-headline-sm leading-tight text-foreground">{f.title}</p>
-        {sub && <p className="font-body text-body-sm text-muted-foreground">{sub}</p>}
-      </figcaption>
+      <button
+        type="button"
+        onClick={() => setDetails({ find: f, label, mine: f === o.mine })}
+        className="group flex flex-col gap-2 rounded-card text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+      >
+        {f.photo ? (
+          <img alt="" className="aspect-[4/3] max-h-[max(180px,calc(100dvh-520px))] w-full rounded-card object-cover transition group-hover:brightness-95" src={f.photo} />
+        ) : (
+          <span className="block aspect-[4/3] w-full rounded-card bg-secondary" />
+        )}
+        <figcaption>
+          {/* A find's title is user data. */}
+          <p className="font-display text-headline-sm leading-tight text-foreground">{f.title}</p>
+          {sub && <p className="font-body text-body-sm text-muted-foreground">{sub}</p>}
+          <span className="mt-1 inline-flex items-center gap-1 font-body text-label-md text-primary group-hover:underline">
+            <T as="span" k="findDetails.open" />
+            <Icon name="ArrowRight" size={14} />
+          </span>
+        </figcaption>
+      </button>
     </figure>
   )
 
@@ -89,14 +104,18 @@ export function OfferPane({
         ) : (
           <div className="flex flex-col gap-3">
             {block(t('desk.youGet'), 'text-foreground', o.theirs, meta(o.theirs))}
-            <div className="flex items-center gap-3 rounded-card bg-background p-2 pr-3">
+            <button
+              type="button"
+              onClick={() => setDetails({ find: o.mine, label: t('desk.youGive'), mine: true })}
+              className="flex items-center gap-3 rounded-card bg-background p-2 pr-3 text-left hover:bg-secondary"
+            >
               {o.mine.photo ? <img alt="" className="size-14 rounded-lg object-cover" src={o.mine.photo} /> : <span className="size-14 rounded-lg bg-secondary" />}
               <div className="min-w-0 flex-1">
                 <T as="p" k="desk.youGive" className="font-body text-label-sm uppercase text-primary" />
                 <p className="truncate font-body text-label-lg text-foreground">{o.mine.title}</p>
               </div>
-              <Icon name="ArrowLeftRight" size={20} className="text-muted-foreground" />
-            </div>
+              <Icon name="ChevronRight" size={20} className="text-muted-foreground" />
+            </button>
           </div>
         )}
         {o.note && (
@@ -133,6 +152,14 @@ export function OfferPane({
           </p>
         )}
       </footer>
+      <FindDetailsSheet
+        open={!!details}
+        onOpenChange={(v) => !v && setDetails(null)}
+        itemId={details?.find.id}
+        owner={first}
+        mine={details?.mine}
+        label={details?.label ?? ''}
+      />
     </article>
   )
 }
