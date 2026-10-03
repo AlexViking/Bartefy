@@ -138,6 +138,24 @@ function device(): 'mobile' | 'tablet' | 'desktop' {
   return 'desktop'
 }
 
+/** Run once the page is actually on screen.
+ *
+ *  A browser can load a page nobody is looking at: Safari preloads the top
+ *  address-bar suggestion while it is still being typed, Chrome prerenders.
+ *  That second, hidden copy shares the tab's storage and ran the tracker in
+ *  the same second as the real one -- one person counted as two visitors
+ *  (seen on the first day, 2026-10-03). A hidden page waits; one that is
+ *  thrown away never sends. */
+function whenVisible(send: () => void) {
+  if (document.visibilityState === 'visible') return send()
+  const go = () => {
+    if (document.visibilityState !== 'visible') return
+    document.removeEventListener('visibilitychange', go)
+    send()
+  }
+  document.addEventListener('visibilitychange', go)
+}
+
 let lastPath: string | null = null
 
 /** Record one page view on bartefy.com. Called on every route change. */
@@ -163,7 +181,7 @@ export function trackPageView(pathname: string): void {
     const from = sourceName(document.referrer)
     const referrer = from === 'bartefy.com' ? null : from
 
-    void supabase
+    whenVisible(() => void supabase
       .from('page_views')
       .insert({
         site: 'bartefy.com',
@@ -180,7 +198,7 @@ export function trackPageView(pathname: string): void {
       .then(
         () => {},
         () => {},
-      )
+      ))
   } catch {
     // Never surface: counting visitors must not break the page.
   }
