@@ -5,6 +5,7 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { ShellLayout } from './components/shell/AppShell'
 import { useAuthStore } from './store/auth'
 import { useOnboardingStore } from './store/onboarding'
+import { trackPageView } from './lib/pageViews'
 
 import { Onboarding } from './screens/Onboarding'
 import { Auth } from './screens/Auth'
@@ -81,6 +82,7 @@ function AuthRoute() {
 export function AppRouter() {
   return (
     <BrowserRouter>
+      <PageViews />
       <RoutedBoundary>
       <Routes>
         <Route path="/" element={<AuthRoute />} />
@@ -181,6 +183,15 @@ function RoutedBoundary({ children }: { children: React.ReactNode }) {
       {children}
     </ErrorBoundary>
   )
+}
+
+/** One page view per screen visited, signed in or not. Outside Routes so a
+ *  screen remounting never counts twice; trackPageView also ignores a repeat
+ *  of the same path, which is what a redirect route produces. */
+function PageViews() {
+  const { pathname } = useLocation()
+  useEffect(() => trackPageView(pathname), [pathname])
+  return null
 }
 
 /** Old thread links -- /swaps/:id, /chat/:id, /cancel/:id -- onto the current

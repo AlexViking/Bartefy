@@ -10,13 +10,15 @@ import { Input } from '@/components/ui/input'
 import { Slider } from '@/components/ui/slider'
 import { Switch } from '@/components/ui/switch'
 import { Icon } from '@/components/ui/icon'
-import { ToneBadge } from '@/components/ui/tone-badge'
+import { Chip, ToneBadge } from '@/components/ui/tone-badge'
 import { T, useT } from '@/i18n/T'
 import { cn } from '@/lib/utils'
 import { EVENT_NAMES } from '@/lib/analytics'
-import { MIN_PER_ARM, useAnalytics, type ConfigRow, type Pane } from './useAnalytics'
+import { SITES, setTrackingOff } from '@/lib/pageViews'
+import { MIN_PER_ARM, useAnalytics, type ConfigRow, type Pane, type Traffic } from './useAnalytics'
 
-const PANES: Pane[] = ['funnel', 'events', 'experiments', 'settings']
+const PANES: Pane[] = ['visitors', 'funnel', 'events', 'experiments', 'settings']
+const RANGES = [1, 7, 30, 90]
 
 /** Back office, second queue: what people actually do.
  *
@@ -28,6 +30,11 @@ export function Analytics() {
   const a = useAnalytics()
   const { t } = useT()
   const navigate = useNavigate()
+
+  // Whoever reads the visitor numbers stops being counted in them.
+  useEffect(() => {
+    if (a.isStaff) setTrackingOff(true)
+  }, [a.isStaff])
 
   if (a.checkingStaff) {
     return (
@@ -73,6 +80,19 @@ export function Analytics() {
             />
           }
         />
+
+        {/* ── Visitors ───────────────────────────────────────────────── */}
+        {a.pane === 'visitors' && (
+          <Visitors
+            traffic={a.traffic}
+            loading={a.trafficLoading}
+            error={a.trafficError}
+            days={a.trafficDays}
+            onDays={a.setTrafficDays}
+            site={a.site}
+            onSite={a.setSite}
+          />
+        )}
 
         {/* ── Funnel ─────────────────────────────────────────────────── */}
         {a.pane === 'funnel' && (
@@ -658,6 +678,288 @@ function Results({ rows }: { rows: { variant: string; exposed: number; converted
           ? t('analytics.verdictReady')
           : t('analytics.verdictEarly', { min: MIN_PER_ARM })}
       </p>
+    </div>
+  )
+}
+
+/** Who visits the three sites (bartefy.com, bartefy.ge, bartefy.com.ge).
+ *
+ *  Kept to the few numbers that change a decision: how many people, which
+ *  site, where they came from, where they are, phone or computer, and which
+ *  pages. The four site cards double as the site filter, so there is one
+ *  control for it rather than a card row and a dropdown saying the same.
+ */
+function Visitors({
+  traffic, loading, error, days, onDays, site, onSite,
+}: {
+  traffic: Traffic | undefined
+  loading: boolean
+  error: string | null
+  days: number
+  onDays: (d: number) => void
+  site: string | null
+  onSite: (s: string | null) => void
+}) {
+  const { t, lang } = useT()
+  const sites = traffic?.sites ?? []
+  const bySite = (name: string) => sites.find((x) => x.site === name)
+  const all = sites.reduce(
+    (sum, x) => ({ visitors: sum.visitors + x.visitors, views: sum.views + x.views }),
+    { visitors: 0, views: 0 },
+  )
+
+  // Country names in the reader's language; the code is the fallback.
+  let regionName = (code: string) => code
+  try {
+    const names = new Intl.DisplayNames([lang, 'en'], { type: 'region' })
+    regionName = (code) => names.of(code) ?? code
+  } catch {
+    // Older browsers without DisplayNames show the two-letter code.
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
+          {RANGES.map((d) => (
+            <Chip key={d} active={days === d} onClick={() => onDays(d)} data-i18n={`analytics.range_${d}`}>
+              {t(`analytics.range_${d}`)}
+            </Chip>
+          ))}
+        </div>
+        <T as="p" k="analytics.trafficHelp" className="max-w-[560px] font-body text-sm text-muted-foreground" />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <SiteCard
+          label={t('analytics.allSites')}
+          visitors={all.visitors}
+          views={all.views}
+          active={site === null}
+          onClick={() => onSite(null)}
+        />
+        {SITES.map((name) => (
+          <SiteCard
+            key={name}
+            label={name}
+            visitors={bySite(name)?.visitors ?? 0}
+            views={bySite(name)?.views ?? 0}
+            active={site === name}
+            onClick={() => onSite(name)}
+          />
+        ))}
+      </div>
+
+      {error && <p role="alert" className="font-body text-sm text-destructive">{error}</p>}
+      {loading && <T as="p" k="common.loading" className="font-body text-sm text-muted-foreground" />}
+
+      {traffic && traffic.totals.views === 0 && (
+        <section className="rounded-card border border-border/[0.14] bg-card p-5">
+          <T as="p" k="analytics.noVisitors" className="font-body text-sm text-muted-foreground" />
+        </section>
+      )}
+
+      {traffic && traffic.totals.views > 0 && (
+        <>
+          <section className="rounded-card border border-border/[0.14] bg-card p-5">
+            <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
+              <T as="h2" k="analytics.dailyTitle" className="font-display text-h3 text-foreground" />
+              <div className="flex gap-4 font-body text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="size-2.5 rounded-pill bg-primary" />
+                  <T as="span" k="analytics.colVisitors" />
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="size-2.5 rounded-pill bg-accent" />
+                  <T as="span" k="analytics.colViews" />
+                </span>
+              </div>
+            </div>
+            <TrafficDays rows={traffic.days} />
+          </section>
+
+          <div className="grid gap-4 lg:grid-cols-3">
+            <RankList
+              title="analytics.sourcesTitle"
+              rows={traffic.sources.map((r) => ({
+                key: r.source,
+                // "direct" is the only source that is copy; the rest are
+                // site names, which are data.
+                label: r.source === 'direct' ? t('analytics.source_direct') : SOURCE_NAMES[r.source] ?? r.source,
+                i18n: r.source === 'direct' ? 'analytics.source_direct' : undefined,
+                n: r.visits,
+              }))}
+              unit="analytics.colVisits"
+            />
+            <RankList
+              title="analytics.countriesTitle"
+              rows={traffic.countries.map((r) => ({
+                key: r.country,
+                label: r.country === 'unknown'
+                  ? t('analytics.country_unknown')
+                  : `${flag(r.country)} ${regionName(r.country)}`,
+                i18n: r.country === 'unknown' ? 'analytics.country_unknown' : undefined,
+                n: r.visitors,
+              }))}
+              unit="analytics.colVisitors"
+            />
+            <RankList
+              title="analytics.devicesTitle"
+              rows={traffic.devices.map((r) => ({
+                key: r.device,
+                label: t(`analytics.device_${r.device}`),
+                i18n: `analytics.device_${r.device}`,
+                n: r.visitors,
+              }))}
+              unit="analytics.colVisitors"
+            />
+          </div>
+
+          <section className="rounded-card border border-border/[0.14] bg-card p-5">
+            <T as="h2" k="analytics.pagesTitle" className="mb-3 font-display text-h3 text-foreground" />
+            {/* Fixed number columns, or their spaced-out headings take half a
+                phone's width and the path is cut to "/matches/…". */}
+            <table className="w-full table-fixed">
+              <colgroup>
+                <col />
+                <col className="w-20" />
+                <col className="w-20" />
+              </colgroup>
+              <thead>
+                <tr className="border-b border-border/[0.14]">
+                  <Th k="analytics.colPage" />
+                  <Th k="analytics.colViews" right />
+                  <Th k="analytics.colVisitors" right />
+                </tr>
+              </thead>
+              <tbody>
+                {traffic.pages.map((p) => (
+                  <tr key={p.site + p.path} className="border-b border-border/[0.08] last:border-0">
+                    {/* A path is data from the log, not copy. */}
+                    <td className="max-w-0 py-2.5 font-body text-sm text-foreground">
+                      {/* Site on its own line: inline, a phone truncates
+                          "bartefy.com.ge" and the path never shows. */}
+                      {site === null && (
+                        <span className="block truncate text-xs text-muted-foreground">{p.site}</span>
+                      )}
+                      <span className="block truncate">{p.path}</span>
+                    </td>
+                    <td className="py-2.5 text-right font-body text-sm tabular-nums text-foreground">{p.views}</td>
+                    <td className="py-2.5 text-right font-body text-sm tabular-nums text-muted-foreground">{p.visitors}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        </>
+      )}
+
+      <T as="p" k="analytics.notCounted" className="font-body text-xs text-muted-foreground" />
+    </div>
+  )
+}
+
+/** The sources the trackers name themselves, as the brands write them. Any
+ *  other source is the referring site's own address and is shown as such. */
+const SOURCE_NAMES: Record<string, string> = {
+  google: 'Google', facebook: 'Facebook', instagram: 'Instagram', x: 'X', bing: 'Bing',
+  yandex: 'Yandex', linkedin: 'LinkedIn', tiktok: 'TikTok', telegram: 'Telegram',
+}
+
+/** A country code as its flag: two regional-indicator letters. */
+function flag(code: string) {
+  return /^[A-Z]{2}$/.test(code)
+    ? String.fromCodePoint(...[...code].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65))
+    : ''
+}
+
+function SiteCard({
+  label, visitors, views, active, onClick,
+}: {
+  label: string; visitors: number; views: number; active: boolean; onClick: () => void
+}) {
+  const { t } = useT()
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={cn(
+        'rounded-card border bg-card p-4 text-left transition-colors duration-fast ease-brand',
+        'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/45',
+        active ? 'border-primary ring-1 ring-primary' : 'border-border/[0.14] hover:bg-foreground/[0.04]',
+      )}
+    >
+      {/* A site name is data; "All sites" arrives already translated. */}
+      <span className="block truncate font-body text-sm font-semibold text-foreground">{label}</span>
+      <span className="mt-2 block font-display text-2xl font-bold leading-none tabular-nums text-foreground">
+        {visitors}
+      </span>
+      <span className="mt-1 block font-body text-xs text-muted-foreground">
+        {t('analytics.visitorsViews', { views })}
+      </span>
+    </button>
+  )
+}
+
+/** A short ranked list with a bar per row, scaled to the top row. */
+function RankList({
+  title, rows, unit,
+}: {
+  title: string
+  rows: { key: string; label: string; i18n?: string; n: number }[]
+  unit: string
+}) {
+  const { t } = useT()
+  const max = Math.max(1, ...rows.map((r) => r.n))
+  return (
+    <section className="rounded-card border border-border/[0.14] bg-card p-5">
+      <div className="mb-3 flex items-baseline justify-between gap-3">
+        <T as="h2" k={title} className="font-display text-h3 text-foreground" />
+        <span data-i18n={unit} className="font-display text-caption uppercase tracking-[0.12em] text-muted-foreground">
+          {t(unit)}
+        </span>
+      </div>
+      <div className="flex flex-col gap-2.5">
+        {rows.map((r) => (
+          <div key={r.key} className="flex flex-col gap-1">
+            <div className="flex items-baseline justify-between gap-3">
+              <span data-i18n={r.i18n} className="min-w-0 truncate font-body text-sm text-foreground">
+                {r.label}
+              </span>
+              <span className="shrink-0 font-display text-sm font-semibold tabular-nums text-foreground">
+                {r.n}
+              </span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-pill bg-secondary">
+              <div className="h-full rounded-pill bg-primary" style={{ width: `${(r.n / max) * 100}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+/** Visitors and page views per day, on one shared scale (see Spark). Bars
+ *  widen to fill a short range; past a month only every seventh day is
+ *  labelled, or ninety dates collide into one grey smear. */
+function TrafficDays({ rows }: { rows: { day: string; visitors: number; views: number }[] }) {
+  const max = Math.max(1, ...rows.flatMap((r) => [r.visitors, r.views]))
+  const sparse = rows.length > 31
+  return (
+    <div className="flex items-end gap-1 overflow-x-auto">
+      {rows.map((r, i) => (
+        <div key={r.day} className="flex min-w-[8px] flex-1 flex-col items-center gap-1">
+          <div className="flex h-28 w-full items-end justify-center gap-[2px]">
+            <Bar v={r.visitors} max={max} className="w-1/2 max-w-[14px] bg-primary" title={`${r.day} · ${r.visitors}`} />
+            <Bar v={r.views} max={max} className="w-1/2 max-w-[14px] bg-accent" title={`${r.day} · ${r.views}`} />
+          </div>
+          <span className="h-3 font-body text-[10px] tabular-nums text-muted-foreground">
+            {!sparse || i % 7 === 0 ? r.day.slice(8, 10) : ''}
+          </span>
+        </div>
+      ))}
     </div>
   )
 }

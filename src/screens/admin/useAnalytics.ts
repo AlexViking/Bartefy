@@ -32,7 +32,20 @@ export interface ConfigRow {
   key: string; value: unknown; note: string | null; updated_at: string
 }
 
-export type Pane = 'funnel' | 'events' | 'experiments' | 'settings'
+export type Pane = 'visitors' | 'funnel' | 'events' | 'experiments' | 'settings'
+
+/** Everything the Visitors pane shows, from one RPC (admin_traffic) so the
+ *  numbers on one screen all come from the same moment. `sites` ignores the
+ *  site filter -- it is the comparison between the three. */
+export interface Traffic {
+  totals: { visitors: number; views: number; visits: number }
+  sites: { site: string; visitors: number; views: number }[]
+  days: { day: string; visitors: number; views: number }[]
+  sources: { source: string; visits: number }[]
+  countries: { country: string; visitors: number }[]
+  devices: { device: string; visitors: number }[]
+  pages: { site: string; path: string; views: number; visitors: number }[]
+}
 
 /** How many users per arm before a difference means anything.
  *
@@ -48,8 +61,11 @@ export const MIN_PER_ARM = 100
 export function useAnalytics() {
   const userId = useAuthStore((s) => s.session?.user?.id)
   const qc = useQueryClient()
-  const [pane, setPane] = useState<Pane>('funnel')
+  const [pane, setPane] = useState<Pane>('visitors')
   const [days, setDays] = useState(30)
+  /** Visitors pane: how far back, and which site (null = all three). */
+  const [trafficDays, setTrafficDays] = useState(7)
+  const [site, setSite] = useState<string | null>(null)
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
 
   /** Staff gate for the UI. Loading is distinguished from "not staff": a
@@ -124,6 +140,19 @@ export function useAnalytics() {
       return (data ?? []) as Experiment[]
     },
     enabled,
+  })
+
+  const traffic = useQuery({
+    queryKey: ['admin', 'traffic', trafficDays, site],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('admin_traffic', {
+        p_days: trafficDays,
+        p_site: site,
+      })
+      if (error) throw error
+      return data as Traffic
+    },
+    enabled: enabled && pane === 'visitors',
   })
 
   /** Live settings, read through a staff-gated RPC -- app_config has no
@@ -265,6 +294,11 @@ export function useAnalytics() {
     isStaff, checkingStaff,
     pane, setPane,
     days, setDays,
+    trafficDays, setTrafficDays,
+    site, setSite,
+    traffic: traffic.data,
+    trafficLoading: traffic.isLoading,
+    trafficError: traffic.error ? String(traffic.error.message ?? traffic.error) : null,
     funnel: funnel.data ?? [],
     retention: retention.data,
     activity: activity.data ?? [],
