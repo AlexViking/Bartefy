@@ -539,6 +539,8 @@
     "notifMatchHelp": "Someone accepts your offer, or you both confirm a swap.",
     "notifMessageHelp": "A push when someone writes to you in a swap.",
     "notifEmailHelp": "One email now and then with what you missed.",
+    "sounds": "Sounds",
+    "soundsHelp": "A chime for new messages, offers and matches, and for your daily points. This device only.",
     "pushNote": "Push alerts are being rebuilt; these choices are kept for when they are back.",
     "privacyWho": "Who sees what",
     "privacyWhoBody": "Tapping your name shows your photo, name, area and how many swaps you’ve done — nothing else. Nobody can look through your finds; they reach people only through the deck, at random.",

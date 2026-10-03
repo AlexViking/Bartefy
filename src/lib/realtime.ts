@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from './supabase'
 import { keys } from './cache/queryClient'
 import i18n from '@/i18n'
+import { playSound } from '@/lib/sounds'
 
 /* Realtime requires the table to be BOTH on the supabase_realtime publication
  * (036) and readable by the subscriber under RLS -- Supabase filters delivery
@@ -80,6 +81,7 @@ export function useRealtime(userId: string | undefined) {
              noise. */
           if (!isReadingMatch(row.match_id)) {
             toast(i18n.t(row.kind === 'audio' ? 'notif.voiceTitle' : 'notif.messageTitle'))
+            playSound('notification')
           }
         },
       )
@@ -112,6 +114,7 @@ export function useRealtime(userId: string | undefined) {
              those would announce back to people the thing they just did. */
           if (eventType === 'INSERT' && r.to_user === userId && r.from_user !== userId) {
             toast(i18n.t('notif.offerTitle'))
+            playSound('notification')
           }
           /* Everything the Offers screen reads lives under the 'barter'
              prefix -- both list boxes and the badge count -- so one
@@ -153,6 +156,7 @@ export function useRealtime(userId: string | undefined) {
              have to go in the effect's dep array -- tearing down and
              rebuilding the websocket channel on each one. */
           toast.success(i18n.t('notif.matchTitle'))
+          playSound('notification')
         },
       )
 

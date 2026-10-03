@@ -16,6 +16,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
 import { ExperimentBadge } from '@/components/guidance/ExperimentBadge'
 import { UpdatePrompt } from '@/components/UpdatePrompt'
+import { playSound } from '@/lib/sounds'
 
 /** Cache restores before the first paint, so a cold start opens on the last
  *  known feed, threads and profile rather than an empty screen.
@@ -81,15 +82,27 @@ function Live() {
   }, [userId])
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setInitialized()
-    })
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => setSession(session))
+      // getSession reports a failed refresh as a null session rather than
+      // throwing; this is for anything else. Treated as signed out, so the
+      // boot splash lifts onto the sign-in form instead of spinning forever.
+      .catch(() => setSession(null))
+      .finally(setInitialized)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => setSession(session),
     )
     return () => subscription.unsubscribe()
   }, [setSession, setInitialized])
+
+  /** Lift the boot splash (index.html) once we know whether anyone is
+   *  signed in. The routes render nothing until then, so whatever appears
+   *  under the splash is already the right screen. */
+  const initialized = useAuthStore((s) => s.initialized)
+  useEffect(() => {
+    if (initialized) hideBoot()
+  }, [initialized])
 
   /** Today's visit. Fires once the session lands and once per user per day:
    *  the RPC is idempotent on a stored date, so a refresh or a second tab
@@ -104,6 +117,8 @@ function Live() {
         // Only disturb the cache when something was actually awarded.
         if (row && !row.already_claimed && row.awarded > 0) {
           queryClient.invalidateQueries({ queryKey: ['points'] })
+          // Every seventh day in a row is a full week: its own, bigger chime.
+          playSound(row.streak > 0 && row.streak % 7 === 0 ? 'weeklyPoints' : 'dailyPoints')
         }
       })
       // Silent to the USER, not to the log. A missed streak point must never
@@ -121,4 +136,12 @@ function Live() {
   }, [])
 
   return null
+}
+
+function hideBoot() {
+  const el = document.getElementById('boot')
+  if (!el) return
+  el.classList.add('done')
+  // After the 200ms fade in index.html.
+  setTimeout(() => el.remove(), 250)
 }

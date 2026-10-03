@@ -33,6 +33,7 @@ import { keys } from '@/lib/cache/queryClient'
 import { tierOf } from '@/lib/membership'
 import { useIsDesktop } from '@/lib/platform'
 import { resetLocal } from '@/lib/resetLocal'
+import { playSound, setSoundsOn, soundsOn } from '@/lib/sounds'
 import { useTheme, type ThemePref } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/auth'
@@ -110,6 +111,7 @@ export function Settings() {
 
   const [cityOpen, setCityOpen] = React.useState(false)
   const [deleteOpen, setDeleteOpen] = React.useState(false)
+  const [sounds, setSounds] = React.useState(soundsOn)
   const [unblocking, setUnblocking] = React.useState<Blocked | null>(null)
 
   const { data: me } = useQuery({
@@ -281,6 +283,20 @@ export function Settings() {
                   )}
                 </React.Fragment>
               ))}
+              {item(
+                t('settings.sounds'),
+                t('settings.soundsHelp'),
+                <Switch
+                  checked={sounds}
+                  onCheckedChange={(v) => {
+                    setSoundsOn(v)
+                    setSounds(v)
+                    // Turning them on plays one, so you know what you chose.
+                    if (v) playSound('notification')
+                  }}
+                  aria-label={t('settings.sounds')}
+                />,
+              )}
             </div>
             <T as="p" k="settings.pushNote" className="mt-4 font-body text-[12px] text-muted-foreground" />
           </>

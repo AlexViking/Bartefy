@@ -39,8 +39,30 @@
         }
       })()
     </script>
+    <!-- The boot splash. Painted from the first frame, before the bundle has
+         even downloaded, and lifted by App.tsx (hideBoot) once the saved
+         sign-in has been checked. Without it a signed-in person opening the
+         app saw the sign-in form for a second -- the time it takes to renew
+         an expired token -- before being moved to Discover. Colours match
+         --background in both themes (data-theme is set by the script above). -->
+    <style>
+      #boot { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center;
+              background: #F5F4EF; transition: opacity 200ms cubic-bezier(0.2, 0, 0, 1); }
+      html[data-theme='dark'] #boot { background: #16181D; }
+      #boot svg { width: 72px; height: 72px; border-radius: 22%;
+                  animation: boot-breathe 1.2s cubic-bezier(0.2, 0, 0, 1) infinite alternate; }
+      #boot.done { opacity: 0; pointer-events: none; }
+      @keyframes boot-breathe { to { transform: scale(0.94); } }
+      @media (prefers-reduced-motion: reduce) { #boot svg { animation: none; } }
+    </style>
   </head>
   <body>
+    <div id="boot" aria-hidden="true">
+      <svg viewBox="0 0 1400 1400" xmlns="http://www.w3.org/2000/svg">
+        <rect width="1400" height="1400" fill="#1B6B55" />
+        <path transform="translate(-198 -257)" fill="#FFFFFF" d="M697 445L828 618L757 604L757 735C790 650 880 598 1000 598C1100 598 1165 670 1162 790C1160 860 1120 905 1075 922C1170 945 1235 1010 1232 1095C1228 1230 1110 1340 925 1418L970 1470L783 1425L878 1253L885 1325C1020 1270 1105 1210 1105 1120C1105 1040 1060 1000 990 998C930 996 870 1005 820 1005L818 975C870 955 930 945 960 935C1030 912 1072 865 1072 790C1072 720 1030 688 975 688C880 688 800 740 762 830L757 1405L700 1405C660 1405 635 1380 635 1340L635 602L565 618Z" />
+      </svg>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router'
 
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { ShellLayout } from './components/shell/AppShell'
@@ -69,13 +69,13 @@ function AuthRoute() {
   const session = useAuthStore((s) => s.session)
   const initialized = useAuthStore((s) => s.initialized)
   const onboarded = useOnboardingStore((s) => s.completed)
-  const navigate = useNavigate()
 
-  useEffect(() => {
-    if (!initialized || !session) return
-    navigate(onboarded ? '/discover' : '/welcome', { replace: true })
-  }, [session, initialized, onboarded, navigate])
-
+  // Decided during render, not in an effect: an effect runs after the first
+  // paint, so a signed-in person saw the sign-in form before being moved on.
+  // Until the saved session has been read, nothing -- the boot splash in
+  // index.html is still covering the page.
+  if (!initialized) return null
+  if (session) return <Navigate to={onboarded ? '/discover' : '/welcome'} replace />
   return <Auth />
 }
 
